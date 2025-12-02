@@ -1,0 +1,130 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { MainLayout } from '@/components/layout/MainLayout';
+import { Card, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+
+export default function GiftCardSuccessPage() {
+  const searchParams = useSearchParams();
+  const code = searchParams.get('code');
+  const [copied, setCopied] = useState(false);
+
+  const copyToClipboard = () => {
+    if (code) {
+      navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  return (
+    <MainLayout>
+      <div className="min-h-screen bg-warmwhite py-12">
+        <div className="container-custom">
+          <div className="max-w-2xl mx-auto">
+            <Card>
+              <CardContent className="p-12 text-center">
+                {/* Success Icon */}
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 mb-6">
+                  <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+
+                {/* Success Message */}
+                <h1 className="text-h2 font-serif font-light text-graphite-dark mb-4">
+                  Vielen Dank für Ihren Kauf!
+                </h1>
+                <p className="text-body-lg text-graphite mb-8">
+                  Ihr Geschenkgutschein wurde erfolgreich erstellt und per E-Mail verschickt.
+                </p>
+
+                {/* Coupon Code Display */}
+                {code && (
+                  <div className="mb-8">
+                    <p className="text-body text-graphite mb-3">
+                      Gutschein-Code:
+                    </p>
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="px-6 py-4 bg-accent-burgundy/5 border-2 border-accent-burgundy/20 rounded-lg">
+                        <code className="text-h3 font-mono text-accent-burgundy font-semibold">
+                          {code}
+                        </code>
+                      </div>
+                      <Button
+                        variant="secondary"
+                        onClick={copyToClipboard}
+                        className="flex items-center gap-2"
+                      >
+                        {copied ? (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            Kopiert!
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            Kopieren
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Info Box */}
+                <div className="p-6 bg-blue-50 rounded-lg border border-blue-200 mb-8 text-left">
+                  <div className="flex gap-3">
+                    <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="text-sm text-blue-900 space-y-2">
+                      <p className="font-medium">Nächste Schritte:</p>
+                      <ul className="list-disc list-inside space-y-1 pl-2">
+                        <li>Der Gutschein wurde an die angegebene E-Mail-Adresse geschickt</li>
+                        <li>Der Code kann beim Checkout eingegeben werden</li>
+                        <li>Gültig für 3 Jahre ab Kaufdatum</li>
+                        <li>Einlösbar für alle Weine und Events</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Link href="/weine">
+                    <Button size="lg">
+                      Weine entdecken
+                    </Button>
+                  </Link>
+                  <Link href="/">
+                    <Button variant="secondary" size="lg">
+                      Zur Startseite
+                    </Button>
+                  </Link>
+                </div>
+
+                {/* Support */}
+                <div className="mt-8 pt-8 border-t border-taupe-light">
+                  <p className="text-body-sm text-graphite">
+                    Fragen zu Ihrem Gutschein?{' '}
+                    <Link href="/kontakt" className="text-accent-burgundy hover:underline">
+                      Kontaktieren Sie uns
+                    </Link>
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </MainLayout>
+  );
+}

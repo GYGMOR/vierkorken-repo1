@@ -1,0 +1,169 @@
+import { MainLayout } from '@/components/layout/MainLayout';
+import Image from 'next/image';
+
+export default function KontaktPage() {
+  return (
+    <MainLayout>
+      <div className="section-padding bg-gradient-to-br from-warmwhite via-rose-light to-warmwhite">
+        <div className="container-custom max-w-5xl">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <h1 className="text-display font-serif font-light text-graphite-dark mb-4">
+              Kontakt
+            </h1>
+            <p className="text-body-lg text-graphite max-w-2xl mx-auto">
+              Wir freuen uns auf Ihre Nachricht. Besuchen Sie uns oder kontaktieren Sie uns telefonisch.
+            </p>
+          </div>
+
+          {/* Geschäftsführerin Section */}
+          <div className="card p-8 mb-8">
+            <div className="flex flex-col md:flex-row items-center gap-8">
+              {/* Image */}
+              <div className="flex-shrink-0">
+                <Image
+                  src="/images/layout/Inhaberin.png"
+                  alt="Geschäftsführerin"
+                  width={160}
+                  height={160}
+                  className="rounded-full object-cover border-4 border-accent-gold/20"
+                />
+              </div>
+
+              <div className="flex-1 text-center md:text-left">
+                <h2 className="text-h3 font-serif mb-2">Geschäftsführerin</h2>
+                <p className="text-graphite mb-4">
+                  Ihre Ansprechpartnerin für alle Fragen rund um VIERKORKEN.
+                </p>
+                <div className="space-y-2 text-graphite-dark">
+                  <p><strong>Name:</strong> Christina Hediger</p>
+                  <p><strong>E-Mail:</strong> info@vierkorken.ch</p>
+                  <p><strong>Telefon:</strong> +41 XX XXX XX XX</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Standort & Öffnungszeiten */}
+          <div className="grid md:grid-cols-2 gap-8 mb-8">
+            {/* Standort */}
+            <div className="card p-6">
+              <h3 className="text-h4 font-serif mb-4">Unser Standort</h3>
+              <div className="space-y-2 text-graphite mb-4">
+                <p className="font-semibold text-graphite-dark">VIERKORKEN</p>
+                <p>Steinbrunnengasse 3A</p>
+                <p>5707 Seengen</p>
+                <p>Schweiz</p>
+              </div>
+
+              {/* Google Maps */}
+              <div className="mt-4">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2701.234!2d8.19167!3d47.31944!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDfCsDE5JzEwLjAiTiA4wrAxMScz MC4wIkU!5e0!3m2!1sde!2sch!4v1234567890!5m2!1sde!2sch&q=Vier+Korken+Wein-Boutique,+Steinbrunnengasse+3A,+5707+Seengen"
+                  width="100%"
+                  height="250"
+                  style={{ border: 0, borderRadius: '8px' }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Vier Korken Wein-Boutique Standort"
+                ></iframe>
+              </div>
+            </div>
+
+            {/* Öffnungszeiten */}
+            <div className="card p-6">
+              <h3 className="text-h4 font-serif mb-4">Öffnungszeiten</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between py-2 border-b border-taupe-light">
+                  <span className="text-graphite">Montag - Freitag</span>
+                  <span className="font-semibold text-graphite-dark">09:00 - 18:00</span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-taupe-light">
+                  <span className="text-graphite">Samstag</span>
+                  <span className="font-semibold text-graphite-dark">10:00 - 16:00</span>
+                </div>
+                <div className="flex justify-between py-2">
+                  <span className="text-graphite">Sonntag</span>
+                  <span className="font-semibold text-graphite-dark">Geschlossen</span>
+                </div>
+              </div>
+
+              <div className="mt-6 p-4 bg-rose-light/30 rounded-lg">
+                <p className="text-sm text-graphite">
+                  <strong>Hinweis:</strong> Während Events können die Öffnungszeiten abweichen.
+                  Bitte kontaktieren Sie uns vorab.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Kontaktformular */}
+          <div className="card p-8">
+            <h3 className="text-h3 font-serif mb-6 text-center">Schreiben Sie uns</h3>
+            <form className="space-y-6 max-w-2xl mx-auto">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-graphite-dark mb-2">
+                    Name *
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    required
+                    className="w-full px-4 py-3 border border-taupe-light rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-burgundy"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-graphite-dark mb-2">
+                    E-Mail *
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    className="w-full px-4 py-3 border border-taupe-light rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-burgundy"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="subject" className="block text-sm font-medium text-graphite-dark mb-2">
+                  Betreff *
+                </label>
+                <input
+                  type="text"
+                  id="subject"
+                  name="subject"
+                  required
+                  className="w-full px-4 py-3 border border-taupe-light rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-burgundy"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="message" className="block text-sm font-medium text-graphite-dark mb-2">
+                  Nachricht *
+                </label>
+                <textarea
+                  id="message"
+                  name="message"
+                  rows={6}
+                  required
+                  className="w-full px-4 py-3 border border-taupe-light rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-burgundy"
+                ></textarea>
+              </div>
+
+              <div className="text-center">
+                <button type="submit" className="btn btn-primary px-8">
+                  Nachricht senden
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </MainLayout>
+  );
+}
