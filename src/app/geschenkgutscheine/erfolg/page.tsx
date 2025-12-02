@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 
-export default function GiftCardSuccessPage() {
+function GiftCardSuccessContent() {
   const searchParams = useSearchParams();
   const code = searchParams.get('code');
   const [copied, setCopied] = useState(false);
@@ -126,5 +126,22 @@ export default function GiftCardSuccessPage() {
         </div>
       </div>
     </MainLayout>
+  );
+}
+
+export default function GiftCardSuccessPage() {
+  return (
+    <Suspense fallback={
+      <MainLayout>
+        <div className="min-h-screen bg-warmwhite py-12 flex items-center justify-center">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-accent-burgundy"></div>
+            <p className="mt-4 text-graphite">Laden...</p>
+          </div>
+        </div>
+      </MainLayout>
+    }>
+      <GiftCardSuccessContent />
+    </Suspense>
   );
 }
