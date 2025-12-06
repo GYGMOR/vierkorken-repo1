@@ -1,16 +1,20 @@
 FROM node:20-alpine AS deps
+RUN apk add --no-cache openssl1.1-compat
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
 FROM node:20-alpine AS build
+RUN apk add --no-cache openssl1.1-compat
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV SKIP_ENV_VALIDATION=1
 RUN npm run build
 
 FROM node:20-alpine AS run
+RUN apk add --no-cache openssl1.1-compat
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
