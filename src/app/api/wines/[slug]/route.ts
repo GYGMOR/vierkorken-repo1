@@ -7,12 +7,13 @@ import { prisma } from '@/lib/prisma';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
+  const { slug } = await params;
   try {
     const wine = await prisma.wine.findUnique({
       where: {
-        slug: params.slug,
+        slug: slug,
         isActive: true,
       },
       include: {

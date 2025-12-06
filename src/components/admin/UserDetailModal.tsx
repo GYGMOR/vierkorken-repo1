@@ -292,7 +292,7 @@ export function UserDetailModal({ userId, onClose, onUpdate }: UserDetailModalPr
 
         {/* Footer */}
         <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex justify-end">
-          <Button onClick={onClose} variant="outline">
+          <Button onClick={onClose} variant="secondary">
             Schliessen
           </Button>
         </div>

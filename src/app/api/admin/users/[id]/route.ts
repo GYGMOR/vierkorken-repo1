@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
 import { updateUserLoyaltyLevel } from '@/lib/loyalty';
 
@@ -27,12 +27,12 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   if (!await checkAdmin()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    const { id } = await params;
 
     const user = await prisma.user.findUnique({
       where: { id },
@@ -112,12 +112,12 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   if (!await checkAdmin()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    const { id } = await params;
     const body = await request.json();
 
     const { points, reason } = body;

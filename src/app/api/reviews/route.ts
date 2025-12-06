@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
 import {
   applyRateLimit,
@@ -185,6 +185,9 @@ export async function POST(request: NextRequest) {
                 certifications: [], // Required Json field
                 allergens: [], // Required Json field
                 isActive: true,
+              },
+              include: {
+                variants: true,
               },
             });
 

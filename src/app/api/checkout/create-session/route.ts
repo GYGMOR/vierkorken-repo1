@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth-options';
 import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
 
@@ -11,6 +11,22 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const { items, deliveryMethod, shippingMethod, paymentMethod, shippingData, giftOptions, couponCode } = body;
+
+    // Find user if logged in
+    let user: any = null;
+    if (userId && userId !== 'guest') {
+      user = await prisma.user.findUnique({
+        where: { email: userId },
+        include: {
+          addresses: {
+            where: {
+              isDefault: true,
+            },
+            take: 1,
+          },
+        },
+      });
+    }
 
     console.log('🛒 Cart items received:', JSON.stringify(items, null, 2));
     console.log('📦 Delivery method:', deliveryMethod);
@@ -185,6 +201,7 @@ export async function POST(req: NextRequest) {
           product_data: {
             name: `Versandkosten (${shippingLabel})`,
             description: shippingMethod === 'express' ? '1-2 Werktage' : '3-5 Werktage',
+            images: [],
           },
           unit_amount: Math.round(shippingCost * 100),
         },
@@ -200,6 +217,7 @@ export async function POST(req: NextRequest) {
           product_data: {
             name: 'Geschenkverpackung',
             description: 'Elegante Geschenkverpackung',
+            images: [],
           },
           unit_amount: Math.round(giftWrapCost * 100),
         },
@@ -215,6 +233,7 @@ export async function POST(req: NextRequest) {
           product_data: {
             name: `Gutschein: ${coupon.code}`,
             description: coupon.description || 'Rabatt angewendet',
+            images: [],
           },
           unit_amount: -Math.round(discountAmount * 100), // Negative amount
         },
@@ -230,6 +249,7 @@ export async function POST(req: NextRequest) {
           product_data: {
             name: 'Mehrwertsteuer (8.1%)',
             description: 'Gesetzliche Schweizer MwSt.',
+            images: [],
           },
           unit_amount: Math.round(taxAmount * 100),
         },
@@ -239,22 +259,6 @@ export async function POST(req: NextRequest) {
 
     console.log('💳 Stripe line items:', JSON.stringify(lineItems, null, 2));
     console.log('💰 Total calculation: Subtotal CHF', subtotal, '+ Shipping CHF', shippingCost, '+ Gift Wrap CHF', giftWrapCost, '- Discount CHF', discountAmount, '+ Tax CHF', taxAmount, '= Total CHF', total);
-
-    // Find user if logged in
-    let user = null;
-    if (userId && userId !== 'guest') {
-      user = await prisma.user.findUnique({
-        where: { email: userId },
-        include: {
-          addresses: {
-            where: {
-              isDefault: true,
-            },
-            take: 1,
-          },
-        },
-      });
-    }
 
     // Prepare addresses from user's default address or shippingData
     const defaultAddress = user?.addresses?.[0];

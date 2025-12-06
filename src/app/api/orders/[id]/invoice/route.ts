@@ -6,8 +6,8 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    const { id } = await params;
 
     // Fetch real order from database
     const dbOrder = await prisma.order.findUnique({
@@ -235,7 +235,7 @@ export async function GET(
     });
 
     // Return PDF
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="Rechnung_${order.orderNumber}.pdf"`,

@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
 
 async function checkAdmin() {
@@ -28,6 +28,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     if (!await checkAdmin()) {
       return NextResponse.json(
@@ -36,7 +37,6 @@ export async function GET(
       );
     }
 
-    const { id } = await params;
 
     const override = await prisma.klaraProductOverride.findUnique({
       where: { klaraArticleId: id },
@@ -63,6 +63,7 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     if (!await checkAdmin()) {
       return NextResponse.json(
@@ -71,7 +72,6 @@ export async function PUT(
       );
     }
 
-    const { id } = await params;
     const body = await request.json();
 
     const {
@@ -127,6 +127,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     if (!await checkAdmin()) {
       return NextResponse.json(
@@ -135,7 +136,6 @@ export async function DELETE(
       );
     }
 
-    const { id } = await params;
 
     await prisma.klaraProductOverride.delete({
       where: { klaraArticleId: id },

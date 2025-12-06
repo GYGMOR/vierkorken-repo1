@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
 
 async function checkAdmin() {
@@ -20,8 +20,9 @@ async function checkAdmin() {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const isAdmin = await checkAdmin();
     if (!isAdmin) {
@@ -29,7 +30,7 @@ export async function GET(
     }
 
     const images = await prisma.wineImage.findMany({
-      where: { wineId: params.id },
+      where: { wineId: id },
       orderBy: { sortOrder: 'asc' },
     });
 
@@ -48,8 +49,9 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const isAdmin = await checkAdmin();
     if (!isAdmin) {
@@ -68,7 +70,7 @@ export async function POST(
 
     // Check if wine exists
     const wine = await prisma.wine.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!wine) {
@@ -82,7 +84,7 @@ export async function POST(
     let finalSortOrder = sortOrder;
     if (finalSortOrder === undefined) {
       const maxImage = await prisma.wineImage.findFirst({
-        where: { wineId: params.id },
+        where: { wineId: id },
         orderBy: { sortOrder: 'desc' },
       });
       finalSortOrder = maxImage ? maxImage.sortOrder + 1 : 0;
@@ -90,7 +92,7 @@ export async function POST(
 
     const image = await prisma.wineImage.create({
       data: {
-        wineId: params.id,
+        wineId: id,
         url,
         altText: altText || `${wine.name} - ${wine.winery}`,
         title: title || wine.name,

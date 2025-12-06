@@ -4,7 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
 
 async function checkAdmin() {
@@ -24,11 +24,11 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   if (!await checkAdmin()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { id } = await params;
   const body = await request.json();
   const review = await prisma.review.update({
     where: { id },
@@ -42,11 +42,11 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   if (!await checkAdmin()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { id } = await params;
   await prisma.review.delete({ where: { id } });
   return NextResponse.json({ success: true });
 }

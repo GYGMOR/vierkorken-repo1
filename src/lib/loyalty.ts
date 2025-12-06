@@ -134,18 +134,18 @@ export interface BadgeTrigger {
   checkCondition: (data: any) => boolean;
 }
 
-export const BADGE_TRIGGERS = {
+export const BADGE_TRIGGERS: Record<string, BadgeTrigger> = {
   // Time-based purchase badges
   purchase_time_night: {
     type: 'purchase_time',
-    checkCondition: (orderTime: Date) => {
+    checkCondition: (orderTime: any) => {
       const hour = orderTime.getHours();
       return hour >= 0 && hour < 3;
     },
   },
   purchase_time_morning: {
     type: 'purchase_time',
-    checkCondition: (orderTime: Date) => {
+    checkCondition: (orderTime: any) => {
       const hour = orderTime.getHours();
       return hour >= 5 && hour < 10;
     },
@@ -154,25 +154,25 @@ export const BADGE_TRIGGERS = {
   // Region diversity
   regions_explorer: {
     type: 'regions',
-    checkCondition: (uniqueRegions: number) => uniqueRegions >= 6,
+    checkCondition: (uniqueRegions: any) => uniqueRegions >= 6,
   },
 
   // Vintage collection
   vintage_collector: {
     type: 'vintages',
-    checkCondition: (uniqueVintages: number) => uniqueVintages >= 8,
+    checkCondition: (uniqueVintages: any) => uniqueVintages >= 8,
   },
 
   // Event participation
   event_guest: {
     type: 'event',
-    checkCondition: (eventAttended: boolean) => eventAttended,
+    checkCondition: (eventAttended: any) => eventAttended,
   },
 
   // Tenure/loyalty
   loyal_customer: {
     type: 'tenure',
-    checkCondition: (monthsActive: number) => monthsActive >= 12,
+    checkCondition: (monthsActive: any) => monthsActive >= 12,
   },
 };
 

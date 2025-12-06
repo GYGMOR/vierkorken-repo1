@@ -259,7 +259,7 @@ export default function AdminKlaraImport() {
             </p>
           </div>
           <div className="flex gap-3">
-            <Button onClick={fetchData} variant="outline" disabled={loading}>
+            <Button onClick={fetchData} variant="secondary" disabled={loading}>
               {loading ? 'Laden...' : '🔄 Neu laden'}
             </Button>
           </div>
@@ -321,7 +321,7 @@ export default function AdminKlaraImport() {
 
               <div className="flex items-end">
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   onClick={() => {
                     setSelectedCategory('');
                     setSearch('');

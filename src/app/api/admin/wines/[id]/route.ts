@@ -8,7 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
 import slugify from 'slugify';
 
@@ -26,8 +26,9 @@ async function checkAdmin() {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const isAdmin = await checkAdmin();
     if (!isAdmin) {
@@ -35,7 +36,7 @@ export async function GET(
     }
 
     const wine = await prisma.wine.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         variants: {
           orderBy: { price: 'asc' },
@@ -89,8 +90,9 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const isAdmin = await checkAdmin();
     if (!isAdmin) {
@@ -101,7 +103,7 @@ export async function PATCH(
 
     // Check if wine exists
     const existingWine = await prisma.wine.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!existingWine) {
@@ -118,7 +120,7 @@ export async function PATCH(
       let slugExists = await prisma.wine.findFirst({
         where: {
           slug,
-          id: { not: params.id },
+          id: { not: id },
         },
       });
       let counter = 1;
@@ -127,7 +129,7 @@ export async function PATCH(
         slugExists = await prisma.wine.findFirst({
           where: {
             slug,
-            id: { not: params.id },
+            id: { not: id },
           },
         });
         counter++;
@@ -186,7 +188,7 @@ export async function PATCH(
     if (body.klaraId !== undefined) updateData.klaraId = body.klaraId;
 
     const wine = await prisma.wine.update({
-      where: { id: params.id },
+      where: { id: id },
       data: updateData,
       include: {
         variants: true,
@@ -212,8 +214,9 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const isAdmin = await checkAdmin();
     if (!isAdmin) {
@@ -222,7 +225,7 @@ export async function DELETE(
 
     // Check if wine exists
     const wine = await prisma.wine.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         variants: true,
       },
@@ -254,7 +257,7 @@ export async function DELETE(
 
     // Delete wine (will cascade to variants, images, reviews)
     await prisma.wine.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     return NextResponse.json({

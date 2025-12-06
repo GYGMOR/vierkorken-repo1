@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await getServerSession(authOptions);
 
@@ -18,7 +19,7 @@ export async function PATCH(
     const { isActive } = body;
 
     const coupon = await prisma.coupon.update({
-      where: { id: params.id },
+      where: { id },
       data: { isActive },
     });
 
@@ -34,8 +35,9 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await getServerSession(authOptions);
 
@@ -44,7 +46,7 @@ export async function DELETE(
     }
 
     await prisma.coupon.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ success: true });

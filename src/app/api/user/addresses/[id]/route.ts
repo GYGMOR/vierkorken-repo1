@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
 
 // PUT - Update address
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await getServerSession(authOptions);
 
@@ -16,7 +17,7 @@ export async function PUT(
     }
 
     const body = await req.json();
-    const addressId = params.id;
+    const addressId = id;
 
     const {
       firstName,
@@ -91,8 +92,9 @@ export async function PUT(
 // DELETE - Delete address
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await getServerSession(authOptions);
 
@@ -100,7 +102,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Nicht autorisiert' }, { status: 401 });
     }
 
-    const addressId = params.id;
+    const addressId = id;
 
     // Verify address belongs to user
     const existingAddress = await prisma.address.findUnique({

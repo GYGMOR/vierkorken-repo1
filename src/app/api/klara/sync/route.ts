@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { importFromKlaraExcel } from '@/lib/klara/excel-importer';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth-options';
 
 export async function POST(request: NextRequest) {
   try {

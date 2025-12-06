@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
 
 async function checkAdmin() {
@@ -20,8 +20,9 @@ async function checkAdmin() {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const isAdmin = await checkAdmin();
     if (!isAdmin) {
@@ -29,7 +30,7 @@ export async function GET(
     }
 
     const variants = await prisma.wineVariant.findMany({
-      where: { wineId: params.id },
+      where: { wineId: id },
       orderBy: { price: 'asc' },
     });
 
@@ -48,8 +49,9 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const isAdmin = await checkAdmin();
     if (!isAdmin) {
@@ -83,7 +85,7 @@ export async function POST(
 
     // Check if wine exists
     const wine = await prisma.wine.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!wine) {
@@ -107,7 +109,7 @@ export async function POST(
 
     const variant = await prisma.wineVariant.create({
       data: {
-        wineId: params.id,
+        wineId: id,
         sku,
         bottleSize: parseFloat(bottleSize),
         vintage: vintage ? parseInt(vintage) : null,

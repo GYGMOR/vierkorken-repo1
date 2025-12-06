@@ -205,7 +205,7 @@ export async function importProductsToDatabase(
           data: {
             wineId: wine.id,
             sku: product.artikelNummer,
-            bottleSize: product.volumen / 1000, // Convert ml to liters
+            bottleSize: product.volumen ? product.volumen / 1000 : 0.75, // Convert ml to liters, default to 0.75L
             vintage: product.jahrgang,
             price: product.preis,
             stockQuantity: product.bestand,

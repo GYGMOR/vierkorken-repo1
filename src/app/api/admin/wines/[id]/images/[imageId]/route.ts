@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
 
 async function checkAdmin() {
@@ -20,8 +20,9 @@ async function checkAdmin() {
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; imageId: string } }
+  { params }: { params: Promise<{ id: string; imageId: string }> }
 ) {
+  const { id, imageId } = await params;
   try {
     const isAdmin = await checkAdmin();
     if (!isAdmin) {
@@ -31,7 +32,7 @@ export async function PATCH(
     const body = await request.json();
 
     const image = await prisma.wineImage.update({
-      where: { id: params.imageId },
+      where: { id: imageId },
       data: body,
     });
 
@@ -50,8 +51,9 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; imageId: string } }
+  { params }: { params: Promise<{ id: string; imageId: string }> }
 ) {
+  const { id, imageId } = await params;
   try {
     const isAdmin = await checkAdmin();
     if (!isAdmin) {
@@ -59,7 +61,7 @@ export async function DELETE(
     }
 
     await prisma.wineImage.delete({
-      where: { id: params.imageId },
+      where: { id: imageId },
     });
 
     return NextResponse.json({

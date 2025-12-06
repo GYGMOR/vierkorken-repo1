@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
 import { sendOrderConfirmationEmail, sendNewOrderNotificationToAdmin } from '@/lib/email';
 
@@ -132,13 +132,7 @@ export async function POST(req: NextRequest) {
     const order = await prisma.order.create({
       data: {
         orderNumber,
-        ...(session?.user?.id && {
-          user: {
-            connect: {
-              id: session.user.id,
-            },
-          },
-        }),
+        userId: session?.user?.id || undefined,
 
         // Customer info
         customerEmail: shippingData?.email || session?.user?.email || 'gast@vierkorken.ch',
@@ -167,10 +161,8 @@ export async function POST(req: NextRequest) {
         shippingMethod: null, // Not applicable for pickup
 
         // Coupon
-        ...(coupon && {
-          couponId: coupon.id,
-          couponCode: coupon.code,
-        }),
+        couponId: coupon?.id || undefined,
+        couponCode: coupon?.code || undefined,
 
         // Customer note
         customerNote: giftOptions?.giftMessage || null,
@@ -210,25 +202,25 @@ export async function POST(req: NextRequest) {
       console.log('✅ Coupon usage incremented:', coupon.code);
     }
 
+    // Prepare order data for emails
+    const orderData = {
+      orderNumber: order.orderNumber,
+      customerFirstName: order.customerFirstName,
+      customerLastName: order.customerLastName,
+      customerEmail: order.customerEmail,
+      createdAt: order.createdAt,
+      items: order.items,
+      subtotal: order.subtotal,
+      shippingCost: order.shippingCost,
+      taxAmount: order.taxAmount,
+      total: order.total,
+      billingAddress: pickupAddress,
+      shippingAddress: pickupAddress,
+    };
+
     // Send confirmation email
     try {
       console.log('📧 Sending cash order confirmation email to:', order.customerEmail);
-
-      const orderData = {
-        orderNumber: order.orderNumber,
-        customerFirstName: order.customerFirstName,
-        customerLastName: order.customerLastName,
-        customerEmail: order.customerEmail,
-        createdAt: order.createdAt,
-        items: order.items,
-        subtotal: order.subtotal,
-        shippingCost: order.shippingCost,
-        taxAmount: order.taxAmount,
-        total: order.total,
-        billingAddress: pickupAddress,
-        shippingAddress: pickupAddress,
-      };
-
       await sendOrderConfirmationEmail(order.customerEmail, order.id, orderData);
       console.log('✅ Cash order confirmation email sent successfully');
     } catch (emailError) {

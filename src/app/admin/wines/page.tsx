@@ -138,7 +138,7 @@ export default function AdminWines() {
           </div>
           <div className="flex gap-3">
             <Link href="/admin/klara">
-              <Button variant="outline">
+              <Button variant="secondary">
                 🔄 KLARA Import
               </Button>
             </Link>
@@ -210,7 +210,7 @@ export default function AdminWines() {
 
               <div className="flex items-end">
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   onClick={() => {
                     setSearch('');
                     setWineType('');
@@ -339,13 +339,13 @@ export default function AdminWines() {
                           <td className="py-3 px-4">
                             <div className="flex items-center justify-end gap-2">
                               <Link href={`/admin/wines/${wine.id}`}>
-                                <Button size="sm" variant="outline">
+                                <Button size="sm" variant="secondary">
                                   Bearbeiten
                                 </Button>
                               </Link>
                               <Button
                                 size="sm"
-                                variant="outline"
+                                variant="secondary"
                                 onClick={() => deleteWine(wine.id, wine.name)}
                                 className="text-red-600 hover:bg-red-50"
                               >
@@ -440,13 +440,13 @@ export default function AdminWines() {
                     {/* Actions */}
                     <div className="flex gap-2 pt-3 border-t">
                       <Link href={`/admin/wines/${wine.id}`} className="flex-1">
-                        <Button size="sm" variant="outline" className="w-full">
+                        <Button size="sm" variant="secondary" className="w-full">
                           Bearbeiten
                         </Button>
                       </Link>
                       <Button
                         size="sm"
-                        variant="outline"
+                        variant="secondary"
                         onClick={() => deleteWine(wine.id, wine.name)}
                         className="flex-1 text-red-600 hover:bg-red-50"
                       >
@@ -463,7 +463,7 @@ export default function AdminWines() {
             {totalPages > 1 && (
               <div className="mt-6 flex items-center justify-between">
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   disabled={page === 1}
                   onClick={() => setPage(page - 1)}
                 >
@@ -473,7 +473,7 @@ export default function AdminWines() {
                   Seite {page} von {totalPages}
                 </span>
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   disabled={page === totalPages}
                   onClick={() => setPage(page + 1)}
                 >

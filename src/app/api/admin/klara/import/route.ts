@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
 import { fetchKlaraArticles } from '@/lib/klara/api-client';
 import slugify from 'slugify';
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     for (const article of klaraArticles) {
       try {
         // Check if wine with klaraId already exists
-        let wine = await prisma.wine.findUnique({
+        let wine: any = await prisma.wine.findUnique({
           where: { klaraId: article.id },
           include: { variants: true },
         });
@@ -69,6 +69,8 @@ export async function POST(request: NextRequest) {
           isFeatured: false,
           certifications: [],
           allergens: ['sulfites'],
+          aromaProfile: [],
+          foodPairings: [],
         };
 
         if (wine) {
@@ -105,7 +107,8 @@ export async function POST(request: NextRequest) {
         }
 
         // Create or update variant
-        const variant = wine.variants.find(v => v.klaraVariantId === article.id);
+        if (!wine) continue; // Should never happen, but for TypeScript
+        const variant = wine.variants.find((v: any) => v.klaraVariantId === article.id);
 
         const variantData = {
           price: article.price,
@@ -158,7 +161,7 @@ export async function POST(request: NextRequest) {
         recordsCreated: created,
         recordsUpdated: updated,
         recordsFailed: errors,
-        errorLog: errorMessages.length > 0 ? errorMessages : null,
+        errorLog: errorMessages.length > 0 ? errorMessages : undefined,
         completedAt: new Date(),
       },
     });

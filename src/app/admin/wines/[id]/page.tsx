@@ -6,7 +6,7 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 
-export default function AdminWineEdit({ params }: { params: { id: string } }) {
+export default function AdminWineEdit({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -15,27 +15,31 @@ export default function AdminWineEdit({ params }: { params: { id: string } }) {
   const [images, setImages] = useState<any[]>([]);
   const [variants, setVariants] = useState<any[]>([]);
   const [newImageUrl, setNewImageUrl] = useState('');
+  const [wineId, setWineId] = useState<string>('');
 
   useEffect(() => {
-    if (params.id !== 'new') {
-      fetchWine();
-    } else {
-      setLoading(false);
-      setFormData({
-        wineType: 'RED',
-        country: 'CH',
-        isActive: true,
-        isFeatured: false,
-        isBio: false,
-        isDemeter: false,
-        isVegan: false,
-      });
-    }
-  }, [params.id]);
+    params.then((p) => {
+      setWineId(p.id);
+      if (p.id !== 'new') {
+        fetchWine(p.id);
+      } else {
+        setLoading(false);
+        setFormData({
+          wineType: 'RED',
+          country: 'CH',
+          isActive: true,
+          isFeatured: false,
+          isBio: false,
+          isDemeter: false,
+          isVegan: false,
+        });
+      }
+    });
+  }, [params]);
 
-  const fetchWine = async () => {
+  const fetchWine = async (id: string) => {
     try {
-      const res = await fetch(`/api/admin/wines/${params.id}`);
+      const res = await fetch(`/api/admin/wines/${id}`);
       const data = await res.json();
       if (data.success) {
         setWine(data.data);
@@ -55,8 +59,8 @@ export default function AdminWineEdit({ params }: { params: { id: string } }) {
     setSaving(true);
 
     try {
-      const url = params.id === 'new' ? '/api/admin/wines' : `/api/admin/wines/${params.id}`;
-      const method = params.id === 'new' ? 'POST' : 'PATCH';
+      const url = wineId === 'new' ? '/api/admin/wines' : `/api/admin/wines/${wineId}`;
+      const method = wineId === 'new' ? 'POST' : 'PATCH';
 
       const res = await fetch(url, {
         method,
@@ -67,10 +71,10 @@ export default function AdminWineEdit({ params }: { params: { id: string } }) {
       const data = await res.json();
       if (data.success) {
         alert('Wein erfolgreich gespeichert!');
-        if (params.id === 'new') {
+        if (wineId === 'new') {
           router.push(`/admin/wines/${data.data.id}`);
         } else {
-          fetchWine();
+          fetchWine(wineId);
         }
       } else {
         alert(`Fehler: ${data.error}`);
@@ -83,10 +87,10 @@ export default function AdminWineEdit({ params }: { params: { id: string } }) {
   };
 
   const addImage = async () => {
-    if (!newImageUrl || params.id === 'new') return;
+    if (!newImageUrl || wineId === 'new') return;
 
     try {
-      const res = await fetch(`/api/admin/wines/${params.id}/images`, {
+      const res = await fetch(`/api/admin/wines/${wineId}/images`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: newImageUrl }),
@@ -94,7 +98,7 @@ export default function AdminWineEdit({ params }: { params: { id: string } }) {
 
       if (res.ok) {
         setNewImageUrl('');
-        fetchWine();
+        fetchWine(wineId);
       }
     } catch (error) {
       console.error('Error adding image:', error);
@@ -105,10 +109,10 @@ export default function AdminWineEdit({ params }: { params: { id: string } }) {
     if (!confirm('Bild löschen?')) return;
 
     try {
-      await fetch(`/api/admin/wines/${params.id}/images/${imageId}`, {
+      await fetch(`/api/admin/wines/${wineId}/images/${imageId}`, {
         method: 'DELETE',
       });
-      fetchWine();
+      fetchWine(wineId);
     } catch (error) {
       console.error('Error deleting image:', error);
     }
@@ -129,10 +133,10 @@ export default function AdminWineEdit({ params }: { params: { id: string } }) {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-serif font-light text-graphite-dark">
-            {params.id === 'new' ? 'Neuer Wein' : 'Wein bearbeiten'}
+            {wineId === 'new' ? 'Neuer Wein' : 'Wein bearbeiten'}
           </h1>
           <div className="flex gap-3">
-            <Button type="button" variant="outline" onClick={() => router.back()}>
+            <Button type="button" variant="secondary" onClick={() => router.back()}>
               Abbrechen
             </Button>
             <Button type="submit" disabled={saving}>
@@ -289,7 +293,7 @@ export default function AdminWineEdit({ params }: { params: { id: string } }) {
         </Card>
 
         {/* Images */}
-        {params.id !== 'new' && (
+        {wineId !== 'new' && (
           <Card>
             <CardHeader>
               <CardTitle>Bilder</CardTitle>
@@ -331,7 +335,7 @@ export default function AdminWineEdit({ params }: { params: { id: string } }) {
         )}
 
         {/* Variants */}
-        {params.id !== 'new' && (
+        {wineId !== 'new' && (
           <Card>
             <CardHeader>
               <CardTitle>Varianten ({variants.length})</CardTitle>
@@ -370,7 +374,7 @@ export default function AdminWineEdit({ params }: { params: { id: string } }) {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="secondary">
                           Bearbeiten
                         </Button>
                       </div>

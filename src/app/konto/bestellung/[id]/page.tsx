@@ -262,7 +262,7 @@ export default function OrderDetailPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {order.items.map((item) => (
+                    {order.items.map((item: any) => (
                       <div
                         key={item.id}
                         className="flex gap-4 p-4 border border-taupe-light rounded-lg hover:shadow-soft transition-shadow"

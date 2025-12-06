@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
 
 async function checkAdmin() {
@@ -20,8 +20,9 @@ async function checkAdmin() {
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; variantId: string } }
+  { params }: { params: Promise<{ id: string; variantId: string }> }
 ) {
+  const { id, variantId } = await params;
   try {
     const isAdmin = await checkAdmin();
     if (!isAdmin) {
@@ -35,7 +36,7 @@ export async function PATCH(
       const existingSku = await prisma.wineVariant.findFirst({
         where: {
           sku: body.sku,
-          id: { not: params.variantId },
+          id: { not: variantId },
         },
       });
 
@@ -65,7 +66,7 @@ export async function PATCH(
     if (body.klaraVariantId !== undefined) updateData.klaraVariantId = body.klaraVariantId;
 
     const variant = await prisma.wineVariant.update({
-      where: { id: params.variantId },
+      where: { id: variantId },
       data: updateData,
     });
 
@@ -84,8 +85,9 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; variantId: string } }
+  { params }: { params: Promise<{ id: string; variantId: string }> }
 ) {
+  const { id, variantId } = await params;
   try {
     const isAdmin = await checkAdmin();
     if (!isAdmin) {
@@ -94,7 +96,7 @@ export async function DELETE(
 
     // Check if variant has orders
     const orderItems = await prisma.orderItem.count({
-      where: { variantId: params.variantId },
+      where: { variantId: variantId },
     });
 
     if (orderItems > 0) {
@@ -105,7 +107,7 @@ export async function DELETE(
     }
 
     await prisma.wineVariant.delete({
-      where: { id: params.variantId },
+      where: { id: variantId },
     });
 
     return NextResponse.json({

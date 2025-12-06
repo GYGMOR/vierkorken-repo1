@@ -260,9 +260,9 @@ export default function CheckoutPage() {
           body: JSON.stringify({
             items,
             deliveryMethod,
-            shippingMethod: deliveryMethod === 'shipping' ? shippingMethod : null,
+            shippingMethod: null, // Always null for pickup
             paymentMethod: 'cash',
-            shippingData: deliveryMethod === 'shipping' ? shippingData : null,
+            shippingData: null, // Always null for pickup
             giftOptions,
             couponCode: appliedCoupon?.code || null,
           }),
