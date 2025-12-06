@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
 
     // Build where clause
     // Only show PAID orders (exclude cancelled/pending orders)
-    let where: any = {
+    const where: any = {
       paymentStatus: 'PAID', // Only show paid orders
     };
 

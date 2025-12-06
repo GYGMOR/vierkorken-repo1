@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
     console.error('❌ Upload error:', error);
 
     let errorMessage = error.message || 'Unknown error';
-    let statusCode = 500;
+    const statusCode = 500;
 
     if (error.code === 'EACCES') {
       errorMessage = 'Permission denied - cannot write to uploads directory';

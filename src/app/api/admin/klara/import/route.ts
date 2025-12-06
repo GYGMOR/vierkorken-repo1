@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Create or update variant
-        let variant = wine.variants.find(v => v.klaraVariantId === article.id);
+        const variant = wine.variants.find(v => v.klaraVariantId === article.id);
 
         const variantData = {
           price: article.price,
