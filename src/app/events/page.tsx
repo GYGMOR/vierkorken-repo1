@@ -114,6 +114,7 @@ export default function EventsPage() {
           }));
           setEvents(transformedEvents);
           console.log('✅ Loaded events from database:', transformedEvents.length);
+          console.log('📸 Event images:', transformedEvents.map((e: any) => ({ title: e.title, image: e.image })));
         } else {
           // Fallback to mock data if no events in DB
           console.log('⚠️ No events in database, using mock data');
@@ -315,9 +316,24 @@ function EventCard({ event }: { event: typeof UPCOMING_EVENTS[0] }) {
     <>
       <Link href={`/events/${event.slug}`} className="block h-full">
         <Card hover className="overflow-hidden h-full">
-          {/* Image Placeholder */}
-          <div className="h-48 bg-gradient-to-br from-wood-light/40 to-wine/10 flex items-center justify-center">
-            <CalendarIcon className="w-16 h-16 text-wine/30" />
+          {/* Event Image */}
+          <div className="relative h-48 bg-gradient-to-br from-wood-light/40 to-wine/10 overflow-hidden">
+            {event.image && event.image !== '/events/default.jpg' ? (
+              <img
+                src={event.image}
+                alt={event.title}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  console.error('❌ Image failed to load:', event.image);
+                  e.currentTarget.style.display = 'none';
+                }}
+                onLoad={() => console.log('✅ Image loaded:', event.image)}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <CalendarIcon className="w-16 h-16 text-wine/30" />
+              </div>
+            )}
           </div>
 
         <CardHeader>

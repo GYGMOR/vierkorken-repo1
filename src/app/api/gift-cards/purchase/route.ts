@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
     // Calculate prices
     const giftCardAmount = parseFloat(amount);
-    const taxAmount = giftCardAmount * 0.077; // 7.7% MwSt
+    const taxAmount = giftCardAmount * 0.081; // 8.1% MwSt
     const total = giftCardAmount + taxAmount;
 
     // Create coupon in database (inactive until payment is confirmed)

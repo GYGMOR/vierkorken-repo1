@@ -199,7 +199,7 @@ export function ImageUploader({
       <div className="text-xs text-graphite/60">
         <p>💡 Tipp: Sie können auch eine URL zu einem extern gehosteten Bild eingeben.</p>
         <p className="mt-1">
-          💾 Speicherort: {process.env.NEXT_PUBLIC_S3_CONFIGURED === 'true' ? 'Backblaze B2 (Cloud)' : 'Lokal (Server)'}
+          💾 Speicherort: Lokal (Server)
         </p>
       </div>
     </div>

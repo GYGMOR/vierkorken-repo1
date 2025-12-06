@@ -40,24 +40,24 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-warmwhite">
-      <div className="container-custom py-12">
-        <h1 className="text-h1 font-serif font-light text-graphite-dark mb-8">
+      <div className="container-custom px-4 md:px-6 py-6 md:py-12">
+        <h1 className="text-2xl md:text-3xl lg:text-h1 font-serif font-light text-graphite-dark mb-6 md:mb-8">
           Warenkorb
         </h1>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid lg:grid-cols-3 gap-4 md:gap-8">
           {/* Cart Items */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-2 space-y-3 md:space-y-4">
             {items.map((item) => (
-              <Card key={item.id} className="p-6">
-                <div className="flex gap-6">
+              <Card key={item.id} className="p-4 md:p-6">
+                <div className="flex gap-3 md:gap-6">
                   {/* Image */}
                   {item.slug && (
                     <Link
                       href={`/weine/${item.slug}`}
                       className="flex-shrink-0"
                     >
-                      <div className="w-24 h-32 bg-gradient-to-br from-warmwhite to-sand-light rounded-lg relative overflow-hidden">
+                      <div className="w-16 h-24 md:w-24 md:h-32 bg-gradient-to-br from-warmwhite to-sand-light rounded-lg relative overflow-hidden">
                         {item.imageUrl ? (
                           <Image
                             src={item.imageUrl}
@@ -81,33 +81,33 @@ export default function CartPage() {
                         href={`/weine/${item.slug}`}
                         className="block group"
                       >
-                        <h3 className="font-serif text-h4 text-graphite-dark group-hover:text-accent-burgundy transition-colors line-clamp-1">
+                        <h3 className="font-serif text-base md:text-lg lg:text-h4 text-graphite-dark group-hover:text-accent-burgundy transition-colors line-clamp-1">
                           {item.name}
                         </h3>
                         {item.winery && (
-                          <p className="text-body text-graphite mt-1">
+                          <p className="text-xs md:text-sm lg:text-body text-graphite mt-1">
                             {item.winery}
                           </p>
                         )}
                         {item.vintage && (
-                          <p className="text-body-sm text-graphite/60 mt-1">
+                          <p className="text-xs md:text-body-sm text-graphite/60 mt-1">
                             {item.vintage}
                           </p>
                         )}
                         {item.eventDate && (
-                          <p className="text-body-sm text-graphite/60 mt-1">
+                          <p className="text-xs md:text-body-sm text-graphite/60 mt-1">
                             {new Date(item.eventDate).toLocaleDateString('de-CH')}
                           </p>
                         )}
                       </Link>
                     ) : (
                       <div>
-                        <h3 className="font-serif text-h4 text-graphite-dark">
+                        <h3 className="font-serif text-base md:text-lg lg:text-h4 text-graphite-dark">
                           {item.name}
                         </h3>
-                        {item.winery && <p className="text-body text-graphite mt-1">{item.winery}</p>}
+                        {item.winery && <p className="text-xs md:text-sm lg:text-body text-graphite mt-1">{item.winery}</p>}
                         {item.eventDate && (
-                          <p className="text-body-sm text-graphite/60 mt-1">
+                          <p className="text-xs md:text-body-sm text-graphite/60 mt-1">
                             {new Date(item.eventDate).toLocaleDateString('de-CH')}
                           </p>
                         )}
@@ -115,30 +115,30 @@ export default function CartPage() {
                     )}
 
                     {/* Quantity & Price */}
-                    <div className="flex items-center justify-between mt-4">
-                      <div className="flex items-center gap-3">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-3 md:mt-4 gap-3 sm:gap-0">
+                      <div className="flex items-center gap-2 md:gap-3">
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="w-8 h-8 rounded-lg border border-taupe hover:bg-taupe-light transition-colors flex items-center justify-center"
+                          className="w-7 h-7 md:w-8 md:h-8 rounded-lg border border-taupe hover:bg-taupe-light transition-colors flex items-center justify-center text-sm"
                         >
                           −
                         </button>
-                        <span className="w-12 text-center font-medium text-graphite-dark">
+                        <span className="w-10 md:w-12 text-center font-medium text-graphite-dark text-sm md:text-base">
                           {item.quantity}
                         </span>
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="w-8 h-8 rounded-lg border border-taupe hover:bg-taupe-light transition-colors flex items-center justify-center"
+                          className="w-7 h-7 md:w-8 md:h-8 rounded-lg border border-taupe hover:bg-taupe-light transition-colors flex items-center justify-center text-sm"
                         >
                           +
                         </button>
                       </div>
 
-                      <div className="text-right">
-                        <p className="font-serif text-h4 text-graphite-dark">
+                      <div className="text-left sm:text-right">
+                        <p className="font-serif text-lg md:text-xl lg:text-h4 text-graphite-dark">
                           {formatPrice(item.price * item.quantity)}
                         </p>
-                        <p className="text-body-sm text-graphite/60">
+                        <p className="text-xs md:text-body-sm text-graphite/60">
                           {formatPrice(item.price)} / Flasche
                         </p>
                       </div>
@@ -148,10 +148,10 @@ export default function CartPage() {
                   {/* Remove Button */}
                   <button
                     onClick={() => removeItem(item.id)}
-                    className="flex-shrink-0 text-graphite/40 hover:text-red-600 transition-colors"
+                    className="flex-shrink-0 text-graphite/40 hover:text-red-600 transition-colors self-start"
                     aria-label="Entfernen"
                   >
-                    <TrashIcon className="w-5 h-5" />
+                    <TrashIcon className="w-4 h-4 md:w-5 md:h-5" />
                   </button>
                 </div>
               </Card>
@@ -159,16 +159,16 @@ export default function CartPage() {
 
             {/* Package Suggestions - Only for wine products and incomplete cases */}
             {shouldShowPackageSuggestion && (
-              <Card className="p-6 bg-rose-light/30">
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center">
-                    <BoxIcon className="w-6 h-6 text-accent-burgundy" />
+              <Card className="p-4 md:p-6 bg-rose-light/30">
+                <div className="flex items-start gap-3 md:gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center">
+                    <BoxIcon className="w-5 h-5 md:w-6 md:h-6 text-accent-burgundy" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-serif text-h4 text-graphite-dark mb-2">
+                    <h3 className="font-serif text-base md:text-lg lg:text-h4 text-graphite-dark mb-2">
                       Versandoptimierung
                     </h3>
-                    <p className="text-body text-graphite mb-4">
+                    <p className="text-sm md:text-body text-graphite mb-3 md:mb-4">
                       Mit {bottlesNeededForFullCase === 1 ? 'nur 1 weiteren Flasche' : `nur ${bottlesNeededForFullCase} weiteren Flaschen`} können Sie eine 6er-Kiste bestellen
                       und Versandkosten sparen!
                     </p>
@@ -183,18 +183,18 @@ export default function CartPage() {
             )}
 
             {/* Gift Card Suggestion */}
-            <Card className="p-6 bg-accent-gold/5 border-accent-gold/20">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-accent-gold/10 flex items-center justify-center">
-                  <svg className="w-6 h-6 text-accent-burgundy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <Card className="p-4 md:p-6 bg-accent-gold/5 border-accent-gold/20">
+              <div className="flex items-start gap-3 md:gap-4">
+                <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-full bg-accent-gold/10 flex items-center justify-center">
+                  <svg className="w-5 h-5 md:w-6 md:h-6 text-accent-burgundy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
                   </svg>
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-serif text-h4 text-graphite-dark mb-2">
+                  <h3 className="font-serif text-base md:text-lg lg:text-h4 text-graphite-dark mb-2">
                     Geschenkgutscheine
                   </h3>
-                  <p className="text-body text-graphite mb-4">
+                  <p className="text-sm md:text-body text-graphite mb-3 md:mb-4">
                     Schenken Sie Weingenuss. Perfekt für jeden Anlass.
                   </p>
                   <Link href="/geschenkgutscheine">
@@ -209,20 +209,20 @@ export default function CartPage() {
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <Card className="p-6 sticky top-24">
-              <h2 className="font-serif text-h3 text-graphite-dark mb-6">
+            <Card className="p-4 md:p-6 lg:sticky lg:top-24">
+              <h2 className="font-serif text-xl md:text-2xl lg:text-h3 text-graphite-dark mb-4 md:mb-6">
                 Zusammenfassung
               </h2>
 
-              <div className="space-y-4">
-                <div className="flex items-center justify-between text-body">
+              <div className="space-y-3 md:space-y-4">
+                <div className="flex items-center justify-between text-sm md:text-body">
                   <span className="text-graphite">Zwischensumme</span>
                   <span className="font-medium text-graphite-dark">
                     {formatPrice(subtotal)}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-body">
+                <div className="flex items-center justify-between text-sm md:text-body">
                   <span className="text-graphite">Versand</span>
                   <span className="font-medium text-graphite-dark">
                     {shipping === 0 ? 'Gratis' : formatPrice(shipping)}
@@ -230,11 +230,11 @@ export default function CartPage() {
                 </div>
 
                 {shipping > 0 && (
-                  <div className="flex items-start gap-2 p-3 bg-blue-50 rounded-lg">
-                    <svg className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="flex items-start gap-2 p-2.5 md:p-3 bg-blue-50 rounded-lg">
+                    <svg className="w-3.5 h-3.5 md:w-4 md:h-4 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <p className="text-body-sm text-blue-900 flex-1">
+                    <p className="text-xs md:text-body-sm text-blue-900 flex-1">
                       Ab {formatPrice(150)} Bestellwert versandkostenfrei!
                       {subtotal < 150 && ` Noch ${formatPrice(150 - subtotal)} bis zur kostenlosen Lieferung.`}
                     </p>
@@ -244,21 +244,21 @@ export default function CartPage() {
                 <div className="divider"></div>
 
                 <div className="flex items-center justify-between">
-                  <span className="font-serif text-h4 text-graphite-dark">
+                  <span className="font-serif text-lg md:text-xl lg:text-h4 text-graphite-dark">
                     Total
                   </span>
-                  <span className="font-serif text-h3 text-graphite-dark">
+                  <span className="font-serif text-xl md:text-2xl lg:text-h3 text-graphite-dark">
                     {formatPrice(total)}
                   </span>
                 </div>
 
-                <p className="text-body-sm text-graphite/60">
+                <p className="text-xs md:text-body-sm text-graphite/60">
                   Inkl. MwSt. und Versandkosten
                 </p>
               </div>
 
               <Button
-                className="w-full mt-6"
+                className="w-full mt-4 md:mt-6"
                 size="lg"
                 onClick={handleCheckout}
               >
@@ -266,20 +266,20 @@ export default function CartPage() {
               </Button>
 
               <Link href="/weine">
-                <button className="btn btn-ghost w-full mt-3">
+                <button className="btn btn-ghost w-full mt-2 md:mt-3 text-sm md:text-base">
                   Weiter einkaufen
                 </button>
               </Link>
 
               {/* Loyalty Points */}
-              <div className="mt-6 p-4 bg-gradient-to-br from-accent-gold/10 to-accent-burgundy/10 rounded-lg border border-accent-gold/20">
-                <div className="flex items-center gap-2 mb-2">
-                  <StarIcon className="w-5 h-5 text-accent-gold" />
-                  <span className="font-medium text-graphite-dark">
+              <div className="mt-4 md:mt-6 p-3 md:p-4 bg-gradient-to-br from-accent-gold/10 to-accent-burgundy/10 rounded-lg border border-accent-gold/20">
+                <div className="flex items-center gap-2 mb-1.5 md:mb-2">
+                  <StarIcon className="w-4 h-4 md:w-5 md:h-5 text-accent-gold" />
+                  <span className="font-medium text-sm md:text-base text-graphite-dark">
                     Loyalty Punkte
                   </span>
                 </div>
-                <p className="text-body-sm text-graphite/80">
+                <p className="text-xs md:text-body-sm text-graphite/80">
                   Sie erhalten <span className="font-semibold">{Math.floor(total * 1.2)}</span> Punkte
                   für diese Bestellung!
                 </p>
@@ -295,14 +295,14 @@ export default function CartPage() {
 function EmptyCart() {
   return (
     <div className="min-h-screen bg-warmwhite flex items-center justify-center">
-      <div className="text-center max-w-md px-6">
-        <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-taupe-light/30 mb-6">
-          <CartIcon className="w-12 h-12 text-taupe" />
+      <div className="text-center max-w-md px-4 md:px-6">
+        <div className="inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 rounded-full bg-taupe-light/30 mb-4 md:mb-6">
+          <CartIcon className="w-10 h-10 md:w-12 md:h-12 text-taupe" />
         </div>
-        <h1 className="text-h2 font-serif font-light text-graphite-dark mb-4">
+        <h1 className="text-xl md:text-2xl lg:text-h2 font-serif font-light text-graphite-dark mb-3 md:mb-4">
           Ihr Warenkorb ist leer
         </h1>
-        <p className="text-body-lg text-graphite mb-8">
+        <p className="text-sm md:text-base lg:text-body-lg text-graphite mb-6 md:mb-8">
           Entdecken Sie unsere exquisite Weinauswahl und finden Sie Ihren nächsten Lieblingswein.
         </p>
         <Link href="/weine">

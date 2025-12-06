@@ -38,7 +38,16 @@
       "Bash(node scripts/test-review-system.js:*)",
       "Bash(ssh:*)",
       "Bash(if not exist \"src\\app\\registrieren\" mkdir \"src\\app\\registrieren\")",
-      "Bash(del \"C:\\Users\\joel.hediger\\Downloads\\vierkorken-Prototyp\\src\\app\\api\\setup-admin\\route.ts\")"
+      "Bash(del \"C:\\Users\\joel.hediger\\Downloads\\vierkorken-Prototyp\\src\\app\\api\\setup-admin\\route.ts\")",
+      "Bash(openssl version:*)",
+      "Bash(openssl req:*)",
+      "Bash(node server.js:*)",
+      "Bash(curl:*)",
+      "Bash(mysql:*)",
+      "Bash(del nul)",
+      "Bash(del robocopy.log)",
+      "Bash(del:*)",
+      "Bash(del check-tickets-qr.js)"
     ],
     "deny": [],
     "ask": []

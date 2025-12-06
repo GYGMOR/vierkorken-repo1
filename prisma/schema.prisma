@@ -7,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -33,6 +33,10 @@ model User {
   twoFactorEnabled  Boolean   @default(false)
   twoFactorSecret   String?
   role              UserRole  @default(CUSTOMER)
+
+  // Password Reset
+  passwordResetToken       String?
+  passwordResetTokenExpiry DateTime?
 
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
@@ -887,4 +891,46 @@ model MediaAsset {
   @@index([mimeType])
 
   @@map("mediaasset")
+}
+
+// ============================================================
+// WEB ANALYTICS
+// ============================================================
+
+model PageView {
+  id              String   @id @default(cuid())
+
+  // Page Info
+  path            String   // e.g., "/weine/chateau-margaux"
+  pageTitle       String?
+  referrer        String?  // Where user came from
+
+  // User Info
+  userId          String?  // If logged in
+  sessionId       String   // Unique session identifier
+  ipAddress       String?  // For location tracking
+  userAgent       String?  // Browser/device info
+
+  // Location Data
+  country         String?
+  region          String?
+  city            String?
+
+  // Device Info
+  deviceType      String?  // "mobile", "desktop", "tablet"
+  browser         String?
+  os              String?
+
+  // Timing
+  timeOnPage      Int?     // seconds
+
+  createdAt       DateTime @default(now())
+
+  @@index([path])
+  @@index([userId])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@index([country])
+
+  @@map("pageview")
 }

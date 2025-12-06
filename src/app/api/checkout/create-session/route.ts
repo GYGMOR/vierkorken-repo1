@@ -149,7 +149,7 @@ export async function POST(req: NextRequest) {
     }
 
     const subtotalAfterDiscount = Math.max(0, subtotal + shippingCost + giftWrapCost - discountAmount);
-    const taxAmount = subtotalAfterDiscount * 0.077;
+    const taxAmount = subtotalAfterDiscount * 0.081;
     const total = subtotalAfterDiscount + taxAmount;
 
     // Build line items for Stripe
@@ -222,8 +222,23 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Add tax (MwSt.) as a line item
+    if (taxAmount > 0) {
+      lineItems.push({
+        price_data: {
+          currency: 'chf',
+          product_data: {
+            name: 'Mehrwertsteuer (8.1%)',
+            description: 'Gesetzliche Schweizer MwSt.',
+          },
+          unit_amount: Math.round(taxAmount * 100),
+        },
+        quantity: 1,
+      });
+    }
+
     console.log('💳 Stripe line items:', JSON.stringify(lineItems, null, 2));
-    console.log('💰 Total calculation: Subtotal CHF', subtotal, '+ Shipping CHF', shippingCost, '- Discount CHF', discountAmount, '= Total CHF', total);
+    console.log('💰 Total calculation: Subtotal CHF', subtotal, '+ Shipping CHF', shippingCost, '+ Gift Wrap CHF', giftWrapCost, '- Discount CHF', discountAmount, '+ Tax CHF', taxAmount, '= Total CHF', total);
 
     // Find user if logged in
     let user = null;

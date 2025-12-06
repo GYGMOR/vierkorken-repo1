@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
+import { sendOrderConfirmationEmail, sendNewOrderNotificationToAdmin } from '@/lib/email';
 
 export async function POST(req: NextRequest) {
   try {
@@ -109,7 +110,7 @@ export async function POST(req: NextRequest) {
     }
 
     const subtotalAfterDiscount = Math.max(0, subtotal + shippingCost + giftWrapCost - discountAmount);
-    const taxAmount = subtotalAfterDiscount * 0.077;
+    const taxAmount = subtotalAfterDiscount * 0.081;
     const total = subtotalAfterDiscount + taxAmount;
 
     // Generate order number
@@ -209,8 +210,41 @@ export async function POST(req: NextRequest) {
       console.log('✅ Coupon usage incremented:', coupon.code);
     }
 
-    // TODO: Send confirmation email
-    // TODO: Notify admin about new cash order
+    // Send confirmation email
+    try {
+      console.log('📧 Sending cash order confirmation email to:', order.customerEmail);
+
+      const orderData = {
+        orderNumber: order.orderNumber,
+        customerFirstName: order.customerFirstName,
+        customerLastName: order.customerLastName,
+        customerEmail: order.customerEmail,
+        createdAt: order.createdAt,
+        items: order.items,
+        subtotal: order.subtotal,
+        shippingCost: order.shippingCost,
+        taxAmount: order.taxAmount,
+        total: order.total,
+        billingAddress: pickupAddress,
+        shippingAddress: pickupAddress,
+      };
+
+      await sendOrderConfirmationEmail(order.customerEmail, order.id, orderData);
+      console.log('✅ Cash order confirmation email sent successfully');
+    } catch (emailError) {
+      console.error('❌ Failed to send cash order confirmation email:', emailError);
+      // Continue with order creation even if email fails
+    }
+
+    // Notify admin about new cash order
+    try {
+      console.log('📧 Sending admin notification for cash order:', order.orderNumber);
+      await sendNewOrderNotificationToAdmin(order.id, orderData);
+      console.log('✅ Admin notification sent successfully');
+    } catch (adminEmailError) {
+      console.error('❌ Failed to send admin notification:', adminEmailError);
+      // Continue - admin email is non-critical
+    }
 
     return NextResponse.json({
       success: true,

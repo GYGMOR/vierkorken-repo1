@@ -9,3 +9,7 @@ build
 nul
 
 .env.local
+
+# SSL Certificates
+certs/
+.cert/

@@ -196,7 +196,7 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
             {/* Favorites Icon */}
             <Link
               href="/favoriten"
-              className="text-graphite hover:text-graphite-dark transition-colors relative hidden md:block"
+              className="text-graphite hover:text-graphite-dark transition-colors relative"
               aria-label="Favoriten"
             >
               <HeartIcon />

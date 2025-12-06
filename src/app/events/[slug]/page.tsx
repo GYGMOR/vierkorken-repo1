@@ -4,6 +4,7 @@ import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCart } from '@/contexts/CartContext';
 import { formatPrice } from '@/lib/utils';
 
@@ -151,6 +152,8 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
             };
             setEvent(transformedEvent);
             console.log('✅ Loaded event from database:', transformedEvent.title, 'Capacity:', transformedEvent.booked, '/', transformedEvent.capacity);
+            console.log('📸 Event image:', transformedEvent.image);
+            console.log('📸 Raw featuredImage from API:', data.event.featuredImage);
           } else {
             // Fallback to mock data if event not found in DB
             console.log('⚠️ Event not found in database, using mock data');
@@ -312,10 +315,25 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12 mb-12">
           {/* Image */}
           <div className="flex justify-center">
-            <div className="w-full max-w-md aspect-[4/3] bg-gradient-to-br from-warmwhite to-sand-light rounded-lg flex items-center justify-center overflow-hidden">
-              <svg className="w-32 h-32 text-taupe" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z" />
-              </svg>
+            <div className="relative w-full max-w-md aspect-[4/3] bg-gradient-to-br from-warmwhite to-sand-light rounded-lg overflow-hidden">
+              {event.image && event.image !== '/events/default.jpg' ? (
+                <img
+                  src={event.image}
+                  alt={event.title}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    console.error('❌ Image failed to load:', event.image);
+                    e.currentTarget.style.display = 'none';
+                  }}
+                  onLoad={() => console.log('✅ Image loaded:', event.image)}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <svg className="w-32 h-32 text-taupe" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z" />
+                  </svg>
+                </div>
+              )}
             </div>
           </div>
 

@@ -4,15 +4,15 @@ export default function WiderrufsrechtPage() {
   return (
     <MainLayout>
       <div className="section-padding bg-warmwhite">
-        <div className="container-custom max-w-4xl">
-          <h1 className="text-display font-serif font-light text-graphite-dark mb-8">
+        <div className="container-custom max-w-4xl px-4 md:px-6">
+          <h1 className="text-2xl md:text-3xl lg:text-display font-serif font-light text-graphite-dark mb-6 md:mb-8">
             Widerrufsrecht & Widerrufsbelehrung
           </h1>
 
-          <div className="prose prose-lg max-w-none space-y-6 text-graphite">
+          <div className="prose prose-sm md:prose-lg max-w-none space-y-6 text-graphite">
             <section>
-              <h2 className="text-h3 font-serif text-graphite-dark mb-4">Widerrufsbelehrung</h2>
-              <div className="bg-accent-burgundy/10 p-6 rounded-lg">
+              <h2 className="text-xl md:text-2xl lg:text-h3 font-serif text-graphite-dark mb-3 md:mb-4">Widerrufsbelehrung</h2>
+              <div className="bg-accent-burgundy/10 p-4 md:p-6 rounded-lg">
                 <h3 className="font-semibold text-graphite-dark mb-3">Widerrufsrecht</h3>
                 <p>
                   Sie haben das Recht, binnen vierzehn Tagen ohne Angabe von Gründen diesen
@@ -27,11 +27,11 @@ export default function WiderrufsrechtPage() {
             </section>
 
             <section>
-              <h2 className="text-h3 font-serif text-graphite-dark mb-4">Ausübung des Widerrufsrechts</h2>
+              <h2 className="text-xl md:text-2xl lg:text-h3 font-serif text-graphite-dark mb-3 md:mb-4">Ausübung des Widerrufsrechts</h2>
               <p>
                 Um Ihr Widerrufsrecht auszuüben, müssen Sie uns:
               </p>
-              <div className="bg-rose-light/30 p-4 rounded-lg mt-3">
+              <div className="bg-rose-light/30 p-4 md:p-6 rounded-lg mt-3">
                 <p className="font-semibold">VIERKORKEN</p>
                 <p>Steinbrunnengasse 3A</p>
                 <p>5707 Seengen</p>
@@ -50,7 +50,7 @@ export default function WiderrufsrechtPage() {
             </section>
 
             <section>
-              <h2 className="text-h3 font-serif text-graphite-dark mb-4">Widerrufsfrist</h2>
+              <h2 className="text-xl md:text-2xl lg:text-h3 font-serif text-graphite-dark mb-3 md:mb-4">Widerrufsfrist</h2>
               <p>
                 Zur Wahrung der Widerrufsfrist reicht es aus, dass Sie die Mitteilung über
                 die Ausübung des Widerrufsrechts vor Ablauf der Widerrufsfrist absenden.
@@ -58,7 +58,7 @@ export default function WiderrufsrechtPage() {
             </section>
 
             <section>
-              <h2 className="text-h3 font-serif text-graphite-dark mb-4">Folgen des Widerrufs</h2>
+              <h2 className="text-xl md:text-2xl lg:text-h3 font-serif text-graphite-dark mb-3 md:mb-4">Folgen des Widerrufs</h2>
               <p>
                 Wenn Sie diesen Vertrag widerrufen, haben wir Ihnen alle Zahlungen, die wir
                 von Ihnen erhalten haben, einschließlich der Lieferkosten (mit Ausnahme der
@@ -81,7 +81,7 @@ export default function WiderrufsrechtPage() {
             </section>
 
             <section>
-              <h2 className="text-h3 font-serif text-graphite-dark mb-4">Rücksendung der Waren</h2>
+              <h2 className="text-xl md:text-2xl lg:text-h3 font-serif text-graphite-dark mb-3 md:mb-4">Rücksendung der Waren</h2>
               <p>
                 Sie haben die Waren unverzüglich und in jedem Fall spätestens binnen vierzehn
                 Tagen ab dem Tag, an dem Sie uns über den Widerruf dieses Vertrags unterrichten,
@@ -91,7 +91,7 @@ export default function WiderrufsrechtPage() {
                 Die Frist ist gewahrt, wenn Sie die Waren vor Ablauf der Frist von vierzehn
                 Tagen absenden.
               </p>
-              <div className="bg-warmwhite-light p-4 rounded-lg mt-3 border border-taupe-light">
+              <div className="bg-warmwhite-light p-4 md:p-6 rounded-lg mt-3 border border-taupe-light">
                 <p className="font-semibold">Rücksendeadresse:</p>
                 <p className="mt-2">VIERKORKEN</p>
                 <p>Steinbrunnengasse 3A</p>
@@ -101,7 +101,7 @@ export default function WiderrufsrechtPage() {
             </section>
 
             <section>
-              <h2 className="text-h3 font-serif text-graphite-dark mb-4">Kosten der Rücksendung</h2>
+              <h2 className="text-xl md:text-2xl lg:text-h3 font-serif text-graphite-dark mb-3 md:mb-4">Kosten der Rücksendung</h2>
               <p>
                 Sie tragen die unmittelbaren Kosten der Rücksendung der Waren.
               </p>
@@ -113,15 +113,15 @@ export default function WiderrufsrechtPage() {
             </section>
 
             <section>
-              <h2 className="text-h3 font-serif text-graphite-dark mb-4">Ausschluss des Widerrufsrechts</h2>
-              <div className="bg-accent-burgundy/10 p-4 rounded-lg">
+              <h2 className="text-xl md:text-2xl lg:text-h3 font-serif text-graphite-dark mb-3 md:mb-4">Ausschluss des Widerrufsrechts</h2>
+              <div className="bg-accent-burgundy/10 p-4 md:p-6 rounded-lg">
                 <p className="font-semibold text-accent-burgundy mb-2">
                   Wichtiger Hinweis:
                 </p>
                 <p>
                   Das Widerrufsrecht besteht nicht bei:
                 </p>
-                <ul className="list-disc pl-6 space-y-2 mt-2">
+                <ul className="list-disc pl-4 md:pl-6 space-y-2 mt-2">
                   <li>
                     Waren, die nach Kundenspezifikation angefertigt wurden oder eindeutig
                     auf persönliche Bedürfnisse zugeschnitten sind
@@ -140,13 +140,13 @@ export default function WiderrufsrechtPage() {
             </section>
 
             <section>
-              <h2 className="text-h3 font-serif text-graphite-dark mb-4">Muster-Widerrufsformular</h2>
-              <div className="bg-warmwhite-light p-6 rounded-lg border border-taupe-light">
-                <p className="italic text-graphite/80 mb-4">
+              <h2 className="text-xl md:text-2xl lg:text-h3 font-serif text-graphite-dark mb-3 md:mb-4">Muster-Widerrufsformular</h2>
+              <div className="bg-warmwhite-light p-4 md:p-6 rounded-lg border border-taupe-light">
+                <p className="italic text-graphite/80 mb-4 text-sm md:text-base">
                   (Wenn Sie den Vertrag widerrufen wollen, dann füllen Sie bitte dieses Formular
                   aus und senden Sie es zurück.)
                 </p>
-                <div className="space-y-3 font-mono text-sm">
+                <div className="space-y-3 font-mono text-xs md:text-sm">
                   <p>An:</p>
                   <p className="pl-4">VIERKORKEN</p>
                   <p className="pl-4">Steinbrunnengasse 3A</p>
@@ -175,28 +175,28 @@ export default function WiderrufsrechtPage() {
                   <p className="mt-3">Datum</p>
                   <p>_____________________________________________</p>
 
-                  <p className="mt-4 text-xs">(*) Unzutreffendes streichen.</p>
+                  <p className="mt-4 text-[10px] md:text-xs">(*) Unzutreffendes streichen.</p>
                 </div>
               </div>
             </section>
 
             <section>
-              <h2 className="text-h3 font-serif text-graphite-dark mb-4">Kontakt</h2>
+              <h2 className="text-xl md:text-2xl lg:text-h3 font-serif text-graphite-dark mb-3 md:mb-4">Kontakt</h2>
               <p>
                 Bei Fragen zum Widerrufsrecht oder zur Rücksendung kontaktieren Sie uns gerne:
               </p>
-              <ul className="list-disc pl-6 space-y-2 mt-3">
+              <ul className="list-disc pl-4 md:pl-6 space-y-2 mt-3">
                 <li>E-Mail: info@vierkorken.ch</li>
                 <li>Telefon: +41 XX XXX XX XX</li>
                 <li>Persönlich: Steinbrunnengasse 3A, 5707 Seengen</li>
               </ul>
             </section>
 
-            <div className="mt-8 p-4 bg-accent-burgundy/10 rounded-lg">
-              <p className="text-sm">
+            <div className="mt-6 md:mt-8 p-4 md:p-6 bg-accent-burgundy/10 rounded-lg">
+              <p className="text-xs md:text-sm">
                 <strong>Stand:</strong> Januar 2025
               </p>
-              <p className="text-sm mt-2">
+              <p className="text-xs md:text-sm mt-2">
                 Diese Widerrufsbelehrung entspricht den gesetzlichen Anforderungen des
                 Schweizerischen Obligationenrechts (OR).
               </p>

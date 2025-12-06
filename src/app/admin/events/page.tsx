@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { ImageUploader } from '@/components/admin/ImageUploader';
 
 interface Event {
   id: string;
@@ -471,16 +472,51 @@ export default function AdminEvents() {
 
                 {/* Featured Image */}
                 <div>
-                  <label className="block text-sm font-medium text-graphite mb-1">
-                    Bild-URL
+                  <label className="block text-sm font-medium text-graphite mb-2">
+                    Event-Bild
                   </label>
-                  <input
-                    type="text"
-                    name="featuredImage"
-                    value={formData.featuredImage}
-                    onChange={handleInputChange}
-                    placeholder="https://example.com/image.jpg"
-                    className="w-full px-3 py-2 border border-taupe-light rounded focus:outline-none focus:ring-2 focus:ring-burgundy"
+
+                  {/* Current Image Preview */}
+                  {formData.featuredImage && (
+                    <div className="mb-4">
+                      <div className="relative inline-block">
+                        <img
+                          src={formData.featuredImage}
+                          alt="Event Vorschau"
+                          className="max-h-48 rounded-lg border border-taupe-light"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setFormData({ ...formData, featuredImage: '' })}
+                          className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
+                          title="Bild entfernen"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                      <p className="text-xs text-graphite mt-2">
+                        Aktuelles Bild: {formData.featuredImage}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Image Uploader */}
+                  <ImageUploader
+                    onUploadComplete={(url) => setFormData({ ...formData, featuredImage: url })}
+                    allowMultiple={false}
+                    maxSizeMB={10}
                   />
                 </div>
 

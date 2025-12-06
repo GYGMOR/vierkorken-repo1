@@ -17,6 +17,7 @@ export default function CheckoutSuccessContent() {
   const [error, setError] = useState<string | null>(null);
   const { clearCart } = useCart();
   const [hasCleared, setHasCleared] = useState(false);
+  const [hasConfirmed, setHasConfirmed] = useState(false);
 
   useEffect(() => {
     const orderIdFromParams = orderId || searchParams.get('orderId');
@@ -64,17 +65,22 @@ export default function CheckoutSuccessContent() {
 
         // Stripe-Zahlung (sessionId + orderId)
         if (sessionId && orderIdFromParams) {
-          const confirmResponse = await fetch(
-            `/api/orders/${orderIdFromParams}/confirm`,
-            {
-              method: 'POST',
-            },
-          );
+          // Only confirm once
+          if (!hasConfirmed) {
+            setHasConfirmed(true);
 
-          if (!isMounted) return;
+            const confirmResponse = await fetch(
+              `/api/orders/${orderIdFromParams}/confirm`,
+              {
+                method: 'POST',
+              },
+            );
 
-          if (!confirmResponse.ok) {
-            throw new Error('Bestellung konnte nicht bestätigt werden');
+            if (!isMounted) return;
+
+            if (!confirmResponse.ok) {
+              throw new Error('Bestellung konnte nicht bestätigt werden');
+            }
           }
 
           if (!hasCleared) {
@@ -110,16 +116,16 @@ export default function CheckoutSuccessContent() {
     return () => {
       isMounted = false;
     };
-  }, [sessionId, orderId, searchParams, clearCart, hasCleared]);
+  }, [sessionId, orderId, searchParams, clearCart, hasCleared, hasConfirmed]);
 
   if (loading) {
     return (
       <MainLayout>
-        <div className="min-h-screen bg-warmwhite py-12">
+        <div className="min-h-screen bg-warmwhite py-6 md:py-12 px-4">
           <div className="container-custom">
             <div className="max-w-2xl mx-auto">
               <Card>
-                <CardContent className="p-12 text-center">
+                <CardContent className="p-6 md:p-12 text-center">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-burgundy mx-auto mb-4" />
                   <p className="text-graphite">Lade Bestelldaten...</p>
                 </CardContent>
@@ -134,17 +140,17 @@ export default function CheckoutSuccessContent() {
   if (error) {
     return (
       <MainLayout>
-        <div className="min-h-screen bg-warmwhite py-12">
+        <div className="min-h-screen bg-warmwhite py-6 md:py-12 px-4">
           <div className="container-custom">
             <div className="max-w-2xl mx-auto">
               <Card className="border-red-200">
                 <CardHeader>
                   <CardTitle className="text-red-600">Fehler</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-graphite mb-4">{error}</p>
+                <CardContent className="p-4 md:p-6">
+                  <p className="text-graphite mb-4 text-sm md:text-base">{error}</p>
                   <Link href="/">
-                    <Button>Zurück zur Startseite</Button>
+                    <Button className="w-full sm:w-auto">Zurück zur Startseite</Button>
                   </Link>
                 </CardContent>
               </Card>
@@ -157,15 +163,15 @@ export default function CheckoutSuccessContent() {
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-warmwhite py-12">
+      <div className="min-h-screen bg-warmwhite py-6 md:py-12 px-4">
         <div className="container-custom">
           <div className="max-w-2xl mx-auto">
             {/* Success Card */}
-            <Card className="border-green-200 mb-6">
-              <CardContent className="p-8 text-center">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Card className="border-green-200 mb-4 md:mb-6">
+              <CardContent className="p-6 md:p-8 text-center">
+                <div className="w-16 h-16 md:w-20 md:h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg
-                    className="w-10 h-10 text-green-600"
+                    className="w-8 h-8 md:w-10 md:h-10 text-green-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -178,10 +184,10 @@ export default function CheckoutSuccessContent() {
                     />
                   </svg>
                 </div>
-                <h1 className="text-h2 font-serif text-graphite-dark mb-2">
+                <h1 className="text-2xl md:text-h2 font-serif text-graphite-dark mb-2">
                   Bestellung erfolgreich!
                 </h1>
-                <p className="text-graphite">
+                <p className="text-sm md:text-base text-graphite">
                   Vielen Dank für Ihre Bestellung. Wir haben Ihre Bestellung erhalten
                   und werden sie schnellstmöglich bearbeiten.
                 </p>
@@ -190,27 +196,27 @@ export default function CheckoutSuccessContent() {
 
             {/* Order Details */}
             {sessionData && (
-              <Card className="mb-6">
-                <CardHeader>
-                  <CardTitle>Bestelldetails</CardTitle>
+              <Card className="mb-4 md:mb-6">
+                <CardHeader className="p-4 md:p-6">
+                  <CardTitle className="text-lg md:text-xl">Bestelldetails</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between">
-                    <span className="text-graphite">Bestellnummer:</span>
-                    <span className="font-semibold text-graphite-dark">
+                <CardContent className="space-y-3 md:space-y-4 p-4 md:p-6 pt-0">
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
+                    <span className="text-sm md:text-base text-graphite">Bestellnummer:</span>
+                    <span className="font-semibold text-sm md:text-base text-graphite-dark break-all">
                       {sessionData.id}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-graphite">Betrag:</span>
-                    <span className="font-semibold text-graphite-dark">
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
+                    <span className="text-sm md:text-base text-graphite">Betrag:</span>
+                    <span className="font-semibold text-sm md:text-base text-graphite-dark">
                       CHF {(sessionData.amount_total / 100).toFixed(2)}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-graphite">Zahlungsstatus:</span>
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
+                    <span className="text-sm md:text-base text-graphite">Zahlungsstatus:</span>
                     <span
-                      className={`font-semibold ${
+                      className={`font-semibold text-sm md:text-base ${
                         sessionData.payment_status === 'paid'
                           ? 'text-green-600'
                           : 'text-yellow-600'
@@ -222,9 +228,9 @@ export default function CheckoutSuccessContent() {
                     </span>
                   </div>
                   {sessionData.customer_email && (
-                    <div className="flex justify-between">
-                      <span className="text-graphite">E-Mail:</span>
-                      <span className="text-graphite-dark">
+                    <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
+                      <span className="text-sm md:text-base text-graphite">E-Mail:</span>
+                      <span className="text-sm md:text-base text-graphite-dark break-all">
                         {sessionData.customer_email}
                       </span>
                     </div>
@@ -235,43 +241,43 @@ export default function CheckoutSuccessContent() {
 
             {/* Next Steps */}
             <Card>
-              <CardHeader>
-                <CardTitle>Wie geht es weiter?</CardTitle>
+              <CardHeader className="p-4 md:p-6">
+                <CardTitle className="text-lg md:text-xl">Wie geht es weiter?</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3 md:space-y-4 p-4 md:p-6 pt-0">
                 <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-accent-burgundy text-white rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-6 h-6 md:w-7 md:h-7 bg-accent-burgundy text-white rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-sm md:text-base">
                     1
                   </div>
-                  <div>
-                    <p className="font-medium text-graphite-dark">
+                  <div className="flex-1">
+                    <p className="font-medium text-sm md:text-base text-graphite-dark">
                       Bestellbestätigung per E-Mail
                     </p>
-                    <p className="text-sm text-graphite">
+                    <p className="text-xs md:text-sm text-graphite">
                       Sie erhalten in Kürze eine Bestätigung an Ihre E-Mail-Adresse.
                     </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-accent-burgundy text-white rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-6 h-6 md:w-7 md:h-7 bg-accent-burgundy text-white rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-sm md:text-base">
                     2
                   </div>
-                  <div>
-                    <p className="font-medium text-graphite-dark">
+                  <div className="flex-1">
+                    <p className="font-medium text-sm md:text-base text-graphite-dark">
                       Bestellung wird vorbereitet
                     </p>
-                    <p className="text-sm text-graphite">
+                    <p className="text-xs md:text-sm text-graphite">
                       Wir bereiten Ihre Bestellung sorgfältig vor.
                     </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-accent-burgundy text-white rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-6 h-6 md:w-7 md:h-7 bg-accent-burgundy text-white rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-sm md:text-base">
                     3
                   </div>
-                  <div>
-                    <p className="font-medium text-graphite-dark">Versand</p>
-                    <p className="text-sm text-graphite">
+                  <div className="flex-1">
+                    <p className="font-medium text-sm md:text-base text-graphite-dark">Versand</p>
+                    <p className="text-xs md:text-sm text-graphite">
                       Sie erhalten eine Versandbestätigung, sobald Ihre Bestellung
                       unterwegs ist.
                     </p>
@@ -281,14 +287,14 @@ export default function CheckoutSuccessContent() {
             </Card>
 
             {/* Action Buttons */}
-            <div className="mt-8 flex flex-col sm:flex-row gap-4">
+            <div className="mt-6 md:mt-8 flex flex-col sm:flex-row gap-3 md:gap-4">
               <Link href="/konto" className="flex-1">
-                <Button variant="secondary" className="w-full">
+                <Button variant="secondary" className="w-full text-sm md:text-base h-11 md:h-12">
                   Zu meinen Bestellungen
                 </Button>
               </Link>
               <Link href="/weine" className="flex-1">
-                <Button className="w-full">Weiter einkaufen</Button>
+                <Button className="w-full text-sm md:text-base h-11 md:h-12">Weiter einkaufen</Button>
               </Link>
             </div>
           </div>

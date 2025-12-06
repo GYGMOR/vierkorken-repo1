@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { MainLayout } from '@/components/layout/MainLayout';
 
 interface KlaraCategory {
@@ -104,18 +105,21 @@ export default function HomePage() {
               icon={<WineGlassIcon />}
               title="Kuratierte Auswahl"
               description="Handverlesene Weine von ausgewählten Weingütern aus aller Welt."
+              backgroundImage="/images/layout/weinauswahl.png"
             />
             <FeatureCard
               href="/club"
               icon={<BadgeIcon />}
               title="Loyalty Club"
               description="Sammeln Sie Punkte, steigen Sie auf und genießen Sie exklusive Vorteile."
+              backgroundImage="/images/layout/weingläser.jpg"
             />
             <FeatureCard
               href="/events"
               icon={<CalendarIcon />}
               title="Exklusive Events"
               description="Teilnahme an Verkostungen, Masterclasses und Weingut-Besuchen."
+              backgroundImage="/images/layout/social-wein-tasting.jpg"
             />
           </div>
         </div>
@@ -136,7 +140,7 @@ export default function HomePage() {
           ) : (
             <>
               {/* Main 4 Wine Types */}
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 justify-items-center max-w-6xl mx-auto">
                 {getMainWineCategories(categories).map((category) => (
                   <WineTypeCard
                     key={category.id}
@@ -156,7 +160,7 @@ export default function HomePage() {
                       Weitere beliebte Kategorien
                     </h3>
                   </div>
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center max-w-6xl mx-auto">
                     {getPopularCategories(categories).map((category) => (
                       <WineTypeCard
                         key={category.id}
@@ -166,26 +170,35 @@ export default function HomePage() {
                         color="from-taupe-light/30 to-warmwhite"
                       />
                     ))}
-                    {/* Gift Cards */}
-                    <Link
-                      href="/geschenkgutscheine"
-                      className="card card-hover p-8 text-center bg-gradient-to-br from-accent-gold/10 to-warmwhite border-2 border-accent-gold/20 group transition-all shadow-lg"
-                    >
-                      <div className="flex justify-center mb-4">
-                        <svg className="w-12 h-12 text-accent-burgundy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
-                        </svg>
-                      </div>
-                      <h3 className="text-h4 font-serif mb-2 text-wine-dark group-hover:text-wine transition-colors">
-                        Geschenkgutscheine
-                      </h3>
-                      <p className="text-sm text-graphite/70 group-hover:text-wine transition-colors">
-                        Perfektes Geschenk
-                      </p>
-                    </Link>
                   </div>
                 </>
               )}
+
+              {/* Gift Cards Section */}
+              <div className="text-center mb-8 mt-12">
+                <h3 className="text-h3 font-serif font-light text-wine-dark">
+                  Geschenkideen
+                </h3>
+              </div>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center max-w-6xl mx-auto">
+                {/* Gift Cards */}
+                <Link
+                  href="/geschenkgutscheine"
+                  className="card card-hover p-8 text-center bg-gradient-to-br from-accent-gold/10 to-warmwhite border-2 border-accent-gold/20 group transition-all shadow-lg w-full min-w-[250px]"
+                >
+                  <div className="flex justify-center mb-4">
+                    <svg className="w-12 h-12 text-accent-burgundy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                    </svg>
+                  </div>
+                  <h3 className="text-h4 font-serif mb-2 text-wine-dark group-hover:text-wine transition-colors">
+                    Geschenkgutscheine
+                  </h3>
+                  <p className="text-sm text-graphite/70 group-hover:text-wine transition-colors">
+                    Perfektes Geschenk
+                  </p>
+                </Link>
+              </div>
             </>
           )}
         </div>
@@ -267,14 +280,45 @@ function getColorForWineType(typeName: string): string {
 }
 
 // Helper Components
-function FeatureCard({ href, icon, title, description }: { href: string; icon: React.ReactNode; title: string; description: string }) {
+function FeatureCard({
+  href,
+  icon,
+  title,
+  description,
+  backgroundImage
+}: {
+  href: string;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  backgroundImage?: string;
+}) {
   return (
-    <Link href={href} className="card p-8 text-center space-y-4 card-hover cursor-pointer block border-2 border-taupe-light shadow-lg group">
-      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-wood-lightest text-wine transition-colors group-hover:bg-wine group-hover:text-warmwhite">
-        {icon}
+    <Link
+      href={href}
+      className="card p-8 text-center space-y-4 card-hover cursor-pointer block border-2 border-taupe-light shadow-lg group relative overflow-hidden w-full h-full"
+    >
+      {/* Hintergrundbild mit Verblassungseffekt */}
+      {backgroundImage && (
+        <div className="absolute inset-0 z-0">
+          <Image
+            src={backgroundImage}
+            alt={title}
+            fill
+            className="object-cover opacity-40 group-hover:opacity-50 transition-opacity duration-500 ease-in-out"
+            quality={90}
+          />
+        </div>
+      )}
+
+      {/* Content über dem Bild */}
+      <div className="relative z-10 space-y-4">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-wood-lightest text-wine transition-colors group-hover:bg-wine group-hover:text-warmwhite">
+          {icon}
+        </div>
+        <h3 className="text-h4 font-serif text-wine-dark">{title}</h3>
+        <p className="text-graphite/80">{description}</p>
       </div>
-      <h3 className="text-h4 font-serif text-wine-dark">{title}</h3>
-      <p className="text-graphite/80">{description}</p>
     </Link>
   );
 }
@@ -283,7 +327,7 @@ function WineTypeCard({ categoryId, type, count, color }: { categoryId: string; 
   return (
     <Link
       href={`/weine?category=${categoryId}`}
-      className={`card card-hover p-8 text-center bg-gradient-to-br ${color} group transition-all border-2 border-taupe-light shadow-lg`}
+      className={`card card-hover p-8 text-center bg-gradient-to-br ${color} group transition-all border-2 border-taupe-light shadow-lg w-full min-w-[250px]`}
     >
       <h3 className="text-h4 font-serif mb-2 text-wine-dark group-hover:text-wine transition-colors">{type}</h3>
       <p className="text-sm text-graphite/70 group-hover:text-wine transition-colors">

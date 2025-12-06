@@ -3,6 +3,7 @@ import { stripe } from '@/lib/stripe';
 import Stripe from 'stripe';
 import { prisma } from '@/lib/prisma';
 import { updateUserLoyaltyLevel } from '@/lib/loyalty';
+import { sendOrderConfirmationEmail, sendNewOrderNotificationToAdmin } from '@/lib/email';
 
 // WICHTIG: Next.js muss den rohen Body behalten für Stripe Signature Verification
 export const runtime = 'nodejs';
@@ -174,6 +175,42 @@ export async function POST(req: NextRequest) {
 
         console.log('✅ Order created:', order.orderNumber);
         console.log('📦 Order ID:', order.id);
+
+        // Send order confirmation email to customer
+        try {
+          console.log('📧 Sending order confirmation email to:', order.customerEmail);
+
+          const orderData = {
+            orderNumber: order.orderNumber,
+            customerFirstName: order.customerFirstName,
+            customerLastName: order.customerLastName,
+            customerEmail: order.customerEmail,
+            createdAt: order.createdAt,
+            items: [], // Stripe orders don't have items stored yet - simplified
+            subtotal: order.subtotal,
+            shippingCost: order.shippingCost,
+            taxAmount: order.taxAmount,
+            total: order.total,
+            billingAddress: order.billingAddress,
+            shippingAddress: order.shippingAddress,
+          };
+
+          await sendOrderConfirmationEmail(order.customerEmail, order.id, orderData);
+          console.log('✅ Order confirmation email sent successfully');
+
+          // Send admin notification
+          try {
+            console.log('📧 Sending admin notification for Stripe order:', order.orderNumber);
+            await sendNewOrderNotificationToAdmin(order.id, orderData);
+            console.log('✅ Admin notification sent successfully');
+          } catch (adminEmailError) {
+            console.error('❌ Failed to send admin notification:', adminEmailError);
+            // Continue - admin email is non-critical
+          }
+        } catch (emailError) {
+          console.error('❌ Failed to send order confirmation email:', emailError);
+          // Continue with webhook processing even if email fails
+        }
 
         break;
       }

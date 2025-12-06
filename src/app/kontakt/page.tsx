@@ -1,5 +1,6 @@
 import { MainLayout } from '@/components/layout/MainLayout';
 import Image from 'next/image';
+import { ContactForm } from './ContactForm';
 
 export default function KontaktPage() {
   return (
@@ -99,69 +100,7 @@ export default function KontaktPage() {
           </div>
 
           {/* Kontaktformular */}
-          <div className="card p-8">
-            <h3 className="text-h3 font-serif mb-6 text-center">Schreiben Sie uns</h3>
-            <form className="space-y-6 max-w-2xl mx-auto">
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-graphite-dark mb-2">
-                    Name *
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    required
-                    className="w-full px-4 py-3 border border-taupe-light rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-burgundy"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-graphite-dark mb-2">
-                    E-Mail *
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    required
-                    className="w-full px-4 py-3 border border-taupe-light rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-burgundy"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="subject" className="block text-sm font-medium text-graphite-dark mb-2">
-                  Betreff *
-                </label>
-                <input
-                  type="text"
-                  id="subject"
-                  name="subject"
-                  required
-                  className="w-full px-4 py-3 border border-taupe-light rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-burgundy"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="message" className="block text-sm font-medium text-graphite-dark mb-2">
-                  Nachricht *
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  rows={6}
-                  required
-                  className="w-full px-4 py-3 border border-taupe-light rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-burgundy"
-                ></textarea>
-              </div>
-
-              <div className="text-center">
-                <button type="submit" className="btn btn-primary px-8">
-                  Nachricht senden
-                </button>
-              </div>
-            </form>
-          </div>
+          <ContactForm />
         </div>
       </div>
     </MainLayout>

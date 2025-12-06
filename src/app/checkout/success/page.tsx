@@ -16,13 +16,13 @@ export const metadata = {
 function LoadingFallback() {
   return (
     <MainLayout>
-      <div className="min-h-screen bg-warmwhite py-12">
+      <div className="min-h-screen bg-warmwhite py-6 md:py-12 px-4">
         <div className="container-custom">
           <div className="max-w-2xl mx-auto">
             <Card>
-              <CardContent className="p-12 text-center">
+              <CardContent className="p-6 md:p-12 text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-burgundy mx-auto mb-4" />
-                <p className="text-graphite">Lade Bestelldaten...</p>
+                <p className="text-sm md:text-base text-graphite">Lade Bestelldaten...</p>
               </CardContent>
             </Card>
           </div>

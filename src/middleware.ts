@@ -46,7 +46,7 @@ export function middleware(request: NextRequest) {
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
-    "upgrade-insecure-requests",
+    // "upgrade-insecure-requests", // Disabled for local development - enable in production
   ].join('; ');
 
   response.headers.set('Content-Security-Policy', cspDirectives);

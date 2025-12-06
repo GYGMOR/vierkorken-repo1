@@ -1,6 +1,6 @@
 /**
  * Admin Image Upload API
- * Handles file uploads to S3
+ * Handles file uploads to local storage
  * 🔒 SECURITY: Admin-only + Rate limiting + File validation + Filename sanitization
  */
 
@@ -8,11 +8,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
-import {
-  uploadToS3,
-  validateFileType as validateFileTypeS3,
-  validateFileSize as validateFileSizeS3,
-} from '@/lib/s3-upload';
 import {
   uploadLocally,
   validateFileType,
@@ -29,15 +24,6 @@ import {
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-
-// Check if S3 is configured
-const isS3Configured = () => {
-  return !!(
-    process.env.S3_BUCKET &&
-    process.env.S3_ACCESS_KEY &&
-    process.env.S3_SECRET_KEY
-  );
-};
 
 async function checkAdmin() {
   const session = await getServerSession(authOptions);
@@ -62,8 +48,7 @@ export async function POST(request: NextRequest) {
     const session = await requireAdmin(request);
     if (session instanceof NextResponse) return session;
 
-    const useS3 = isS3Configured();
-    console.log(`📤 Using ${useS3 ? 'S3' : 'local'} storage for upload`);
+    console.log('📤 Using local storage for upload');
 
     // Get form data
     const formData = await request.formData();
@@ -132,16 +117,9 @@ export async function POST(request: NextRequest) {
     // Convert file to buffer
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    // Upload to S3 or local storage with sanitized filename
-    let url: string;
-
-    if (useS3) {
-      console.log('📤 Uploading file to S3:', safeFilename, file.type, `${(file.size / 1024).toFixed(2)}KB`);
-      url = await uploadToS3(buffer, safeFilename, file.type);
-    } else {
-      console.log('📤 Uploading file locally:', safeFilename, file.type, `${(file.size / 1024).toFixed(2)}KB`);
-      url = await uploadLocally(buffer, safeFilename, file.type);
-    }
+    // Upload to local storage with sanitized filename
+    console.log('📤 Uploading file locally:', safeFilename, file.type, `${(file.size / 1024).toFixed(2)}KB`);
+    const url = await uploadLocally(buffer, safeFilename, file.type);
 
     // Log successful upload
     logSecurityEvent('File uploaded successfully',
@@ -165,22 +143,10 @@ export async function POST(request: NextRequest) {
     let errorMessage = error.message || 'Unknown error';
     let statusCode = 500;
 
-    const useS3 = isS3Configured();
-
-    if (useS3) {
-      if (error.message?.includes('credentials not configured')) {
-        errorMessage = 'S3 credentials not configured';
-      } else if (error.message?.includes('Access Denied')) {
-        errorMessage = 'S3 access denied - check credentials and bucket permissions';
-      } else if (error.message?.includes('NoSuchBucket')) {
-        errorMessage = 'S3 bucket does not exist';
-      }
-    } else {
-      if (error.code === 'EACCES') {
-        errorMessage = 'Permission denied - cannot write to uploads directory';
-      } else if (error.code === 'ENOSPC') {
-        errorMessage = 'No space left on device';
-      }
+    if (error.code === 'EACCES') {
+      errorMessage = 'Permission denied - cannot write to uploads directory';
+    } else if (error.code === 'ENOSPC') {
+      errorMessage = 'No space left on device';
     }
 
     return NextResponse.json(
@@ -188,7 +154,7 @@ export async function POST(request: NextRequest) {
         error: 'Upload failed',
         message: errorMessage,
         details: error.message,
-        storage: useS3 ? 'S3' : 'local',
+        storage: 'local',
       },
       { status: statusCode }
     );

@@ -86,7 +86,7 @@ export default function CheckoutPage() {
   const discountAmount = appliedCoupon?.discountAmount || 0;
   const subtotalBeforeDiscount = total + shippingCost + giftWrapCost;
   const subtotalAfterDiscount = Math.max(0, subtotalBeforeDiscount - discountAmount);
-  const finalTotal = subtotalAfterDiscount * 1.077; // inkl. MwSt
+  const finalTotal = subtotalAfterDiscount * 1.081; // inkl. MwSt
 
   // Load saved addresses when user is logged in
   useEffect(() => {
@@ -889,9 +889,9 @@ export default function CheckoutPage() {
                         </div>
                       )}
                       <div className="flex items-center justify-between text-body-sm">
-                        <span className="text-graphite/70">MwSt. (7.7%)</span>
+                        <span className="text-graphite/70">MwSt. (8.1%)</span>
                         <span className="text-graphite">
-                          CHF {(subtotalAfterDiscount * 0.077).toFixed(2)}
+                          CHF {(subtotalAfterDiscount * 0.081).toFixed(2)}
                         </span>
                       </div>
                     </div>

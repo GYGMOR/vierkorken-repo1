@@ -246,16 +246,11 @@ export default function AccountPage() {
             <div className="grid lg:grid-cols-3 gap-4 md:gap-6">
               {/* Stats */}
               <div className="lg:col-span-2 space-y-4 md:space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                   <StatCard
                     label="Bestellungen"
                     value={user.totalOrders.toString()}
                     icon={<OrderIcon />}
-                  />
-                  <StatCard
-                    label="Ausgegeben"
-                    value={`CHF ${user.totalSpent.toFixed(0)}`}
-                    icon={<MoneyIcon />}
                   />
                   <StatCard
                     label="Punkte"
