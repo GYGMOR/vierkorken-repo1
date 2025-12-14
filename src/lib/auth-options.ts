@@ -51,6 +51,7 @@ export const authOptions: NextAuthOptions = {
           name: `${user.firstName} ${user.lastName}`,
           firstName: user.firstName || undefined,
           lastName: user.lastName || undefined,
+          role: user.role, // Include role for JWT
         };
       },
     }),
@@ -69,6 +70,8 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
+        // Store role in JWT token for maintenance mode checks
+        token.role = user.role as string;
       }
       return token;
     },
@@ -77,6 +80,8 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.email = token.email as string;
         session.user.name = token.name as string;
+        // Include role in session for client-side access
+        session.user.role = token.role as string;
       }
       return session;
     },

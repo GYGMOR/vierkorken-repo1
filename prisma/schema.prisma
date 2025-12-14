@@ -34,6 +34,14 @@ model User {
   twoFactorSecret   String?
   role              UserRole  @default(CUSTOMER)
 
+  // Newsletter Subscription
+  newsletterSubscribed Boolean  @default(false)
+  newsletterSubscribedAt DateTime?
+
+  // Consent Tracking
+  termsAcceptedAt     DateTime?
+  privacyAcceptedAt   DateTime?
+
   // Password Reset
   passwordResetToken       String?
   passwordResetTokenExpiry DateTime?
@@ -747,6 +755,43 @@ enum PostStatus {
 }
 
 // ============================================================
+// NEWS & ANNOUNCEMENTS
+// ============================================================
+
+model News {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+
+  title           String
+  excerpt         String?  @db.Text
+  content         String   @db.Text
+
+  featuredImage   String?
+
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+
+  // Publishing
+  status          PostStatus @default(DRAFT)
+  publishedAt     DateTime?
+
+  // Priority for homepage display
+  isPinned        Boolean  @default(false)
+  sortOrder       Int      @default(0)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([slug])
+  @@index([status])
+  @@index([publishedAt])
+  @@index([isPinned])
+
+  @@map("news")
+}
+
+// ============================================================
 // KLARA INTEGRATION
 // ============================================================
 
@@ -933,4 +978,80 @@ model PageView {
   @@index([country])
 
   @@map("pageview")
+}
+
+// ============================================================
+// MAINTENANCE MODE SUBSCRIPTIONS
+// ============================================================
+
+model MaintenanceModeSubscriber {
+  id              String   @id @default(cuid())
+  email           String   @unique
+
+  // Metadata
+  subscribedAt    DateTime @default(now())
+  notifiedAt      DateTime? // When launch notification was sent
+  ipAddress       String?  // For tracking/analytics
+  userAgent       String?  // Browser info
+
+  // Status
+  isActive        Boolean  @default(true)
+  unsubscribedAt  DateTime?
+
+  @@index([email])
+  @@index([subscribedAt])
+  @@index([isActive])
+
+  @@map("maintenancemodesubscriber")
+}
+
+// ============================================================
+// NEWSLETTER SUBSCRIPTIONS
+// ============================================================
+
+model NewsletterSubscriber {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  firstName       String?
+  lastName        String?
+
+  // Source tracking
+  source          String   @default("homepage") // "homepage", "registration", "checkout"
+
+  // Status
+  isActive        Boolean  @default(true)
+  confirmedAt     DateTime? // For double opt-in (optional)
+  unsubscribedAt  DateTime?
+
+  // Metadata
+  subscribedAt    DateTime @default(now())
+  ipAddress       String?
+  userAgent       String?
+
+  // Relations (optional)
+  userId          String?  // Link to User if they later register
+
+  @@index([email])
+  @@index([isActive])
+  @@index([userId])
+
+  @@map("newslettersubscriber")
+}
+
+// ============================================================
+// SYSTEM SETTINGS
+// ============================================================
+
+model Settings {
+  id              String   @id @default(cuid())
+  key             String   @unique
+  value           String   @db.Text
+  description     String?
+
+  updatedAt       DateTime @updatedAt
+  updatedBy       String?  // Admin user ID
+
+  @@index([key])
+
+  @@map("settings")
 }

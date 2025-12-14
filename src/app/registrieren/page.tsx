@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -15,9 +16,18 @@ export default function RegisterPage() {
     password: '',
     confirmPassword: '',
     acceptTerms: false,
+    subscribeNewsletter: false,
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Pre-fill email from URL parameter (from newsletter signup)
+  useEffect(() => {
+    const prefilledEmail = searchParams.get('email');
+    if (prefilledEmail) {
+      setFormData(prev => ({ ...prev, email: prefilledEmail }));
+    }
+  }, [searchParams]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -60,6 +70,7 @@ export default function RegisterPage() {
           password: formData.password,
           firstName: formData.firstName,
           lastName: formData.lastName,
+          subscribeNewsletter: formData.subscribeNewsletter,
         }),
       });
 
@@ -226,6 +237,22 @@ export default function RegisterPage() {
                 <Link href="/datenschutz" className="text-accent-burgundy hover:text-accent-burgundy-dark">
                   Datenschutzbestimmungen
                 </Link>
+              </label>
+            </div>
+
+            {/* Newsletter Subscription (Optional) */}
+            <div className="flex items-start">
+              <input
+                id="subscribeNewsletter"
+                name="subscribeNewsletter"
+                type="checkbox"
+                checked={formData.subscribeNewsletter}
+                onChange={handleChange}
+                className="h-4 w-4 text-accent-burgundy focus:ring-accent-burgundy border-taupe rounded mt-1"
+              />
+              <label htmlFor="subscribeNewsletter" className="ml-2 block text-sm text-graphite">
+                <span className="font-medium">Newsletter abonnieren (optional)</span> - Erhalten Sie exklusive Angebote, Neuigkeiten und Wein-Empfehlungen.
+                <span className="text-accent-gold font-medium"> +50 Treuepunkte</span>
               </label>
             </div>
 

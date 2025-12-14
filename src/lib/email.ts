@@ -790,3 +790,457 @@ Admin-Panel: ${process.env.NEXT_PUBLIC_APP_URL}/admin/orders
     // Don't throw error - admin notification is not critical
   }
 }
+
+/**
+ * Send maintenance mode subscription confirmation email
+ */
+export async function sendMaintenanceSubscriptionEmail(to: string) {
+  const mailOptions = {
+    from: process.env.EMAIL_FROM || '"VIERKORKEN" <noreply@vierkorken.ch>',
+    to,
+    subject: 'Vielen Dank für Ihr Interesse an VIERKORKEN',
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Vielen Dank</title>
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); padding: 30px 20px; text-align: center; border-radius: 12px 12px 0 0;">
+            <h1 style="color: #fff; margin: 0; font-size: 32px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">VIERKORKEN</h1>
+            <div style="margin-top: 12px; height: 1px; width: 80px; background: linear-gradient(to right, transparent, #C9A961, transparent); margin-left: auto; margin-right: auto;"></div>
+          </div>
+
+          <div style="background-color: #FAF8F5; padding: 40px 30px; border-radius: 0 0 12px 12px;">
+            <h2 style="color: #6D2932; margin-top: 0; font-family: Georgia, serif; font-weight: 300; font-size: 24px;">
+              Vielen Dank für Ihr Interesse!
+            </h2>
+
+            <p>Wir freuen uns sehr über Ihr Interesse an unserem Premium-Weinshop.</p>
+
+            <p>Unser Team arbeitet gerade an spannenden Updates, um Ihnen das beste Einkaufserlebnis zu bieten. Sie gehören zu den Ersten, die benachrichtigt werden, sobald wir wieder online sind.</p>
+
+            <div style="background-color: #fff; padding: 20px; border-radius: 8px; border-left: 4px solid #C9A961; margin: 30px 0;">
+              <p style="margin: 0; color: #6D2932;">
+                <strong>Was Sie erwarten können:</strong>
+              </p>
+              <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+                <li>Exklusive Weine aus aller Welt</li>
+                <li>Persönliche Beratung durch unsere Sommeliers</li>
+                <li>Schneller und sicherer Versand</li>
+                <li>Besondere Angebote für Stammkunden</li>
+              </ul>
+            </div>
+
+            <p>Wir melden uns bei Ihnen, sobald es soweit ist!</p>
+
+            <p style="margin-top: 30px;">
+              Mit besten Grüßen,<br>
+              <strong style="color: #6D2932;">Ihr VIERKORKEN Team</strong>
+            </p>
+
+            <hr style="border: none; border-top: 1px solid #E8E3DF; margin: 30px 0;">
+
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              © ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop<br>
+              <a href="mailto:info@vierkorken.ch" style="color: #6D2932; text-decoration: none;">info@vierkorken.ch</a>
+            </p>
+          </div>
+        </body>
+      </html>
+    `,
+    text: `
+VIERKORKEN - Premium Weinshop
+
+Vielen Dank für Ihr Interesse!
+
+Wir freuen uns sehr über Ihr Interesse an unserem Premium-Weinshop.
+
+Unser Team arbeitet gerade an spannenden Updates, um Ihnen das beste Einkaufserlebnis zu bieten. Sie gehören zu den Ersten, die benachrichtigt werden, sobald wir wieder online sind.
+
+Was Sie erwarten können:
+• Exklusive Weine aus aller Welt
+• Persönliche Beratung durch unsere Sommeliers
+• Schneller und sicherer Versand
+• Besondere Angebote für Stammkunden
+
+Wir melden uns bei Ihnen, sobald es soweit ist!
+
+Mit besten Grüßen,
+Ihr VIERKORKEN Team
+
+---
+© ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop
+info@vierkorken.ch
+    `.trim(),
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log('✅ Maintenance subscription email sent to:', to);
+  } catch (error) {
+    console.error('❌ Error sending maintenance subscription email:', error);
+    throw new Error('Failed to send subscription confirmation email');
+  }
+}
+
+/**
+ * Send launch notification email to subscribers
+ */
+export async function sendLaunchNotificationEmail(to: string) {
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://vierkorken.ch';
+
+  const mailOptions = {
+    from: process.env.EMAIL_FROM || '"VIERKORKEN" <noreply@vierkorken.ch>',
+    to,
+    subject: '🎉 VIERKORKEN ist jetzt online!',
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Wir sind online!</title>
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); padding: 40px 20px; text-align: center; border-radius: 12px 12px 0 0;">
+            <h1 style="color: #fff; margin: 0; font-size: 36px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">VIERKORKEN</h1>
+            <div style="margin-top: 12px; height: 1px; width: 80px; background: linear-gradient(to right, transparent, #C9A961, transparent); margin-left: auto; margin-right: auto;"></div>
+            <p style="color: #FAF8F5; font-size: 18px; margin-top: 20px; margin-bottom: 0;">Wir sind jetzt online!</p>
+          </div>
+
+          <div style="background-color: #FAF8F5; padding: 40px 30px; border-radius: 0 0 12px 12px;">
+            <h2 style="color: #6D2932; margin-top: 0; font-family: Georgia, serif; font-weight: 300; font-size: 24px;">
+              Willkommen zurück!
+            </h2>
+
+            <p>Es ist soweit – unser Premium-Weinshop ist wieder online und besser als je zuvor!</p>
+
+            <p>Als einer unserer geschätzten Interessenten laden wir Sie ein, unsere Auswahl an exklusiven Weinen zu entdecken.</p>
+
+            <div style="text-align: center; margin: 40px 0;">
+              <a href="${siteUrl}" style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); color: #ffffff; padding: 16px 40px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 500; font-size: 16px; box-shadow: 0 4px 12px rgba(109, 41, 50, 0.3);">
+                Jetzt Shop besuchen
+              </a>
+            </div>
+
+            <div style="background-color: #fff; padding: 25px; border-radius: 8px; margin: 30px 0; border: 2px solid #C9A961;">
+              <h3 style="color: #6D2932; margin-top: 0; font-size: 18px; font-family: Georgia, serif;">
+                ✨ Besondere Highlights
+              </h3>
+              <ul style="margin: 15px 0 0 0; padding-left: 20px; color: #3D3D3D;">
+                <li style="margin-bottom: 10px;">Über 500 exklusive Weine aus aller Welt</li>
+                <li style="margin-bottom: 10px;">Persönliche Beratung durch Sommeliers</li>
+                <li style="margin-bottom: 10px;">Kostenloser Versand ab CHF 150</li>
+                <li style="margin-bottom: 10px;">Sichere Zahlung mit Stripe oder Klara</li>
+              </ul>
+            </div>
+
+            <p>Wir freuen uns darauf, Sie bei VIERKORKEN begrüßen zu dürfen!</p>
+
+            <p style="margin-top: 30px;">
+              Prost und beste Grüße,<br>
+              <strong style="color: #6D2932;">Ihr VIERKORKEN Team</strong>
+            </p>
+
+            <hr style="border: none; border-top: 1px solid #E8E3DF; margin: 30px 0;">
+
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              © ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop<br>
+              <a href="mailto:info@vierkorken.ch" style="color: #6D2932; text-decoration: none;">info@vierkorken.ch</a> |
+              <a href="${siteUrl}" style="color: #6D2932; text-decoration: none;">www.vierkorken.ch</a>
+            </p>
+          </div>
+        </body>
+      </html>
+    `,
+    text: `
+VIERKORKEN - Premium Weinshop
+
+Wir sind jetzt online!
+
+Willkommen zurück!
+
+Es ist soweit – unser Premium-Weinshop ist wieder online und besser als je zuvor!
+
+Als einer unserer geschätzten Interessenten laden wir Sie ein, unsere Auswahl an exklusiven Weinen zu entdecken.
+
+Jetzt Shop besuchen: ${siteUrl}
+
+BESONDERE HIGHLIGHTS:
+• Über 500 exklusive Weine aus aller Welt
+• Persönliche Beratung durch Sommeliers
+• Kostenloser Versand ab CHF 150
+• Sichere Zahlung mit Stripe oder Klara
+
+Wir freuen uns darauf, Sie bei VIERKORKEN begrüßen zu dürfen!
+
+Prost und beste Grüße,
+Ihr VIERKORKEN Team
+
+---
+© ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop
+info@vierkorken.ch | ${siteUrl}
+    `.trim(),
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log('✅ Launch notification email sent to:', to);
+  } catch (error) {
+    console.error('❌ Error sending launch notification email:', error);
+    throw new Error('Failed to send launch notification email');
+  }
+}
+
+/**
+ * Send newsletter subscription confirmation email
+ */
+export async function sendNewsletterConfirmationEmail(to: string) {
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://vierkorken.ch';
+  const unsubscribeUrl = `${siteUrl}/newsletter/unsubscribe?email=${encodeURIComponent(to)}`;
+
+  const mailOptions = {
+    from: process.env.EMAIL_FROM || '"VIERKORKEN" <noreply@vierkorken.ch>',
+    to,
+    subject: 'Willkommen beim VIERKORKEN Newsletter',
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Newsletter Bestätigung</title>
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); padding: 30px 20px; text-align: center; border-radius: 12px 12px 0 0;">
+            <h1 style="color: #fff; margin: 0; font-size: 32px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">VIERKORKEN</h1>
+            <div style="margin-top: 12px; height: 1px; width: 80px; background: linear-gradient(to right, transparent, #C9A961, transparent); margin-left: auto; margin-right: auto;"></div>
+          </div>
+
+          <div style="background-color: #FAF8F5; padding: 40px 30px; border-radius: 0 0 12px 12px;">
+            <h2 style="color: #6D2932; margin-top: 0; font-family: Georgia, serif; font-weight: 300; font-size: 24px;">
+              Willkommen beim VIERKORKEN Newsletter!
+            </h2>
+
+            <p>Vielen Dank für Ihr Interesse an unserem Newsletter. Sie sind jetzt angemeldet und erhalten ab sofort:</p>
+
+            <div style="background-color: #fff; padding: 20px; border-radius: 8px; border-left: 4px solid #C9A961; margin: 30px 0;">
+              <ul style="margin: 0; padding-left: 20px;">
+                <li style="margin-bottom: 10px;"><strong>Neuigkeiten & Ankündigungen</strong> - Erfahren Sie als Erster von neuen Produkten und Updates</li>
+                <li style="margin-bottom: 10px;"><strong>Exklusive Angebote</strong> - Besondere Rabatte nur für Newsletter-Abonnenten</li>
+                <li style="margin-bottom: 10px;"><strong>Wein-Empfehlungen</strong> - Persönliche Tipps von unseren Sommeliers</li>
+                <li><strong>Event-Einladungen</strong> - Zugang zu Verkostungen und Veranstaltungen</li>
+              </ul>
+            </div>
+
+            <div style="background-color: #fff; padding: 25px; border-radius: 8px; margin: 30px 0; border: 2px solid #8B4155; text-align: center;">
+              <p style="margin: 0 0 15px 0; font-size: 16px; color: #6D2932;">
+                <strong>💡 Tipp:</strong> Erstellen Sie jetzt einen Account und sammeln Sie Treuepunkte bei jedem Einkauf!
+              </p>
+              <a href="${siteUrl}/registrieren?email=${encodeURIComponent(to)}" style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 500;">
+                Jetzt Account erstellen
+              </a>
+            </div>
+
+            <p>Wir freuen uns, Sie auf dem Laufenden zu halten!</p>
+
+            <p style="margin-top: 30px;">
+              Prost und beste Grüße,<br>
+              <strong style="color: #6D2932;">Ihr VIERKORKEN Team</strong>
+            </p>
+
+            <hr style="border: none; border-top: 1px solid #E8E3DF; margin: 30px 0;">
+
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              Sie erhalten diese E-Mail, weil Sie sich für unseren Newsletter angemeldet haben.<br>
+              <a href="${unsubscribeUrl}" style="color: #6D2932; text-decoration: underline;">Newsletter abbestellen</a>
+            </p>
+
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              © ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop<br>
+              <a href="mailto:info@vierkorken.ch" style="color: #6D2932; text-decoration: none;">info@vierkorken.ch</a>
+            </p>
+          </div>
+        </body>
+      </html>
+    `,
+    text: `
+VIERKORKEN - Premium Weinshop
+
+Willkommen beim VIERKORKEN Newsletter!
+
+Vielen Dank für Ihr Interesse an unserem Newsletter. Sie sind jetzt angemeldet und erhalten ab sofort:
+
+• Neuigkeiten & Ankündigungen - Erfahren Sie als Erster von neuen Produkten und Updates
+• Exklusive Angebote - Besondere Rabatte nur für Newsletter-Abonnenten
+• Wein-Empfehlungen - Persönliche Tipps von unseren Sommeliers
+• Event-Einladungen - Zugang zu Verkostungen und Veranstaltungen
+
+TIPP: Erstellen Sie jetzt einen Account und sammeln Sie Treuepunkte bei jedem Einkauf!
+Account erstellen: ${siteUrl}/registrieren?email=${encodeURIComponent(to)}
+
+Wir freuen uns, Sie auf dem Laufenden zu halten!
+
+Prost und beste Grüße,
+Ihr VIERKORKEN Team
+
+---
+Sie erhalten diese E-Mail, weil Sie sich für unseren Newsletter angemeldet haben.
+Newsletter abbestellen: ${unsubscribeUrl}
+
+© ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop
+info@vierkorken.ch
+    `.trim(),
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log('✅ Newsletter confirmation email sent to:', to);
+  } catch (error) {
+    console.error('❌ Error sending newsletter confirmation email:', error);
+    throw new Error('Failed to send newsletter confirmation email');
+  }
+}
+
+/**
+ * Send news notification email to newsletter subscribers
+ */
+export async function sendNewsNotificationEmail(
+  to: string,
+  news: {
+    title: string;
+    excerpt?: string;
+    slug: string;
+    featuredImage?: string;
+    content: string;
+  }
+) {
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://vierkorken.ch';
+  const newsUrl = `${siteUrl}/news/${news.slug}`;
+  const unsubscribeUrl = `${siteUrl}/newsletter/unsubscribe?email=${encodeURIComponent(to)}`;
+
+  // Truncate content for email preview (first 500 chars)
+  const contentPreview = news.content.length > 500
+    ? news.content.substring(0, 500) + '...'
+    : news.content;
+
+  const mailOptions = {
+    from: process.env.EMAIL_FROM || '"VIERKORKEN" <noreply@vierkorken.ch>',
+    to,
+    subject: `Neue News: ${news.title}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>${news.title}</title>
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #FAF8F5;">
+          <!-- Header with VIERKORKEN branding -->
+          <div style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); padding: 30px 20px; text-align: center; border-radius: 12px 12px 0 0;">
+            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">VIERKORKEN</h1>
+            <div style="margin-top: 12px; height: 1px; width: 80px; background: linear-gradient(to right, transparent, #C9A961, transparent); margin-left: auto; margin-right: auto;"></div>
+            <p style="color: #FAF8F5; margin-top: 15px; margin-bottom: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 2px;">Neue Neuigkeiten</p>
+          </div>
+
+          <!-- News Content -->
+          <div style="background-color: #fff; padding: 40px 30px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            ${news.featuredImage ? `
+              <img src="${news.featuredImage}" alt="${news.title}" style="width: 100%; height: auto; border-radius: 8px; margin-bottom: 25px; display: block;">
+            ` : ''}
+
+            <h2 style="color: #6D2932; font-size: 24px; margin-top: 0; font-family: Georgia, serif; font-weight: 400; line-height: 1.3;">
+              ${news.title}
+            </h2>
+
+            ${news.excerpt ? `
+              <p style="color: #8B4155; font-size: 16px; font-style: italic; margin: 15px 0; padding-left: 20px; border-left: 3px solid #C9A961;">
+                ${news.excerpt}
+              </p>
+            ` : ''}
+
+            <div style="color: #3D3D3D; line-height: 1.8; font-size: 15px; margin: 20px 0;">
+              ${contentPreview}
+            </div>
+
+            <!-- CTA Button -->
+            <div style="text-align: center; margin: 35px 0 25px;">
+              <a href="${newsUrl}" style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); color: #fff; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 500; font-size: 16px; box-shadow: 0 4px 12px rgba(109, 41, 50, 0.3); transition: all 0.3s;">
+                Vollständigen Artikel lesen →
+              </a>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px;">
+              <p style="color: #999; font-size: 13px; margin: 0;">
+                Entdecken Sie weitere exklusive Inhalte auf unserer Website
+              </p>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div style="background-color: #F5F0EB; padding: 25px 20px; text-align: center; border-radius: 8px; margin-top: 20px;">
+            <div style="margin-bottom: 15px;">
+              <a href="${siteUrl}/weine" style="color: #6D2932; text-decoration: none; margin: 0 12px; font-size: 14px;">Weine entdecken</a>
+              <span style="color: #C9A961;">|</span>
+              <a href="${siteUrl}/events" style="color: #6D2932; text-decoration: none; margin: 0 12px; font-size: 14px;">Events</a>
+              <span style="color: #C9A961;">|</span>
+              <a href="${siteUrl}/news" style="color: #6D2932; text-decoration: none; margin: 0 12px; font-size: 14px;">Alle News</a>
+            </div>
+
+            <hr style="border: none; border-top: 1px solid #E8E3DF; margin: 20px 0;">
+
+            <p style="color: #999; font-size: 12px; margin: 10px 0;">
+              Sie erhalten diese E-Mail, weil Sie unseren Newsletter abonniert haben.<br>
+              <a href="${unsubscribeUrl}" style="color: #6D2932; text-decoration: underline;">Newsletter abbestellen</a>
+            </p>
+
+            <p style="color: #999; font-size: 12px; margin: 10px 0 0;">
+              © ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop<br>
+              <a href="mailto:info@vierkorken.ch" style="color: #6D2932; text-decoration: none;">info@vierkorken.ch</a>
+            </p>
+          </div>
+        </body>
+      </html>
+    `,
+    text: `
+VIERKORKEN - Premium Weinshop
+
+NEUE NEUIGKEITEN
+
+${news.title}
+${'='.repeat(news.title.length)}
+
+${news.excerpt || ''}
+
+${contentPreview}
+
+Vollständigen Artikel lesen:
+${newsUrl}
+
+---
+
+Weitere Links:
+• Weine entdecken: ${siteUrl}/weine
+• Events: ${siteUrl}/events
+• Alle News: ${siteUrl}/news
+
+Sie erhalten diese E-Mail, weil Sie unseren Newsletter abonniert haben.
+Newsletter abbestellen: ${unsubscribeUrl}
+
+© ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop
+info@vierkorken.ch
+    `.trim(),
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log('✅ News notification email sent to:', to);
+  } catch (error) {
+    console.error('❌ Error sending news notification email:', error);
+    throw new Error('Failed to send news notification email');
+  }
+}

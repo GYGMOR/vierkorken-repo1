@@ -69,6 +69,9 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
             <Link href="/weine" className="text-graphite hover:text-graphite-dark transition-colors">
               Weine
             </Link>
+            <Link href="/news" className="text-graphite hover:text-graphite-dark transition-colors">
+              News
+            </Link>
             <Link href="/events" className="text-graphite hover:text-graphite-dark transition-colors">
               Events
             </Link>
@@ -223,6 +226,13 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Weine
+              </Link>
+              <Link
+                href="/news"
+                className="text-graphite hover:text-graphite-dark transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                News
               </Link>
               <Link
                 href="/events"

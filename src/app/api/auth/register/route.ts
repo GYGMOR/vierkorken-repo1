@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email, password, firstName, lastName } = body;
+    const { email, password, firstName, lastName, subscribeNewsletter } = body;
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -48,6 +48,9 @@ export async function POST(request: NextRequest) {
     // Hash password with strong work factor
     const passwordHash = await bcrypt.hash(password, 12);
 
+    // Calculate initial loyalty points (50 for newsletter signup)
+    const initialPoints = subscribeNewsletter === true ? 50 : 0;
+
     // Create user with sanitized data
     const user = await prisma.user.create({
       data: {
@@ -56,13 +59,59 @@ export async function POST(request: NextRequest) {
         firstName,
         lastName,
         role: 'CUSTOMER',
-        loyaltyPoints: 0,
+        loyaltyPoints: initialPoints,
         loyaltyLevel: 1,
         totalSpent: 0,
+        // Newsletter subscription
+        newsletterSubscribed: subscribeNewsletter === true,
+        newsletterSubscribedAt: subscribeNewsletter === true ? new Date() : null,
+        // Consent tracking
+        termsAcceptedAt: new Date(),
+        privacyAcceptedAt: new Date(),
       },
     });
 
-    logSecurityEvent('User registered successfully', { userId: user.id, email: user.email }, 'low');
+    // Handle newsletter subscription
+    if (subscribeNewsletter === true) {
+      // Check if email exists in NewsletterSubscriber table
+      const existingSubscriber = await prisma.newsletterSubscriber.findUnique({
+        where: { email: email.toLowerCase() },
+      });
+
+      if (existingSubscriber) {
+        // Link existing subscriber to user
+        await prisma.newsletterSubscriber.update({
+          where: { email: email.toLowerCase() },
+          data: { userId: user.id },
+        });
+      } else {
+        // Create new NewsletterSubscriber record
+        await prisma.newsletterSubscriber.create({
+          data: {
+            email: email.toLowerCase(),
+            firstName,
+            lastName,
+            source: 'registration',
+            userId: user.id,
+            isActive: true,
+            subscribedAt: new Date(),
+          },
+        });
+      }
+
+      // Create loyalty transaction for newsletter signup bonus
+      await prisma.loyaltyTransaction.create({
+        data: {
+          userId: user.id,
+          points: 50,
+          reason: 'Newsletter Subscription',
+          balanceBefore: 0,
+          balanceAfter: 50,
+        },
+      });
+    }
+
+    logSecurityEvent('User registered successfully', { userId: user.id, email: user.email, newsletterSubscribed: subscribeNewsletter }, 'low');
 
     return NextResponse.json(
       {
