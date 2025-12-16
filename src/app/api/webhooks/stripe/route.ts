@@ -227,13 +227,133 @@ export async function POST(req: NextRequest) {
 
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        console.log('💰 PaymentIntent succeeded:', paymentIntent.id);
+        console.log('\n========================================');
+        console.log('💰 PAYMENT INTENT SUCCEEDED (TWINT/Async Payment)');
+        console.log('========================================');
+        console.log('Payment Intent ID:', paymentIntent.id);
+        console.log('Amount:', (paymentIntent.amount || 0) / 100, paymentIntent.currency?.toUpperCase());
+        console.log('Payment Method Types:', paymentIntent.payment_method_types);
+        console.log('========================================\n');
+
+        // Find order by payment intent ID
+        const order = await prisma.order.findFirst({
+          where: {
+            OR: [
+              { paymentIntentId: paymentIntent.id },
+              { paymentIntentId: { startsWith: 'cs_' } }, // Checkout session ID
+            ],
+          },
+        });
+
+        if (order) {
+          console.log('✅ Found order:', order.orderNumber);
+
+          // Update order status to PAID and CONFIRMED
+          await prisma.order.update({
+            where: { id: order.id },
+            data: {
+              paymentStatus: 'PAID',
+              status: 'CONFIRMED',
+              paidAt: new Date(),
+            },
+          });
+
+          console.log('✅ Order marked as PAID and CONFIRMED');
+
+          // Update user loyalty points if user exists
+          if (order.userId) {
+            await prisma.user.update({
+              where: { id: order.userId },
+              data: {
+                loyaltyPoints: { increment: order.pointsEarned },
+              },
+            });
+
+            // Update loyalty level
+            await updateUserLoyaltyLevel(order.userId);
+            console.log('✅ Loyalty points awarded:', order.pointsEarned);
+          }
+
+          // Send confirmation emails
+          try {
+            // Reload order with items for email
+            const orderWithItems = await prisma.order.findUnique({
+              where: { id: order.id },
+              include: {
+                items: true,
+                tickets: true,
+              },
+            });
+
+            if (orderWithItems) {
+              const orderData = {
+                orderNumber: orderWithItems.orderNumber,
+                customerFirstName: orderWithItems.customerFirstName,
+                customerLastName: orderWithItems.customerLastName,
+                customerEmail: orderWithItems.customerEmail,
+                createdAt: orderWithItems.createdAt,
+                items: orderWithItems.items,
+                subtotal: orderWithItems.subtotal,
+                shippingCost: orderWithItems.shippingCost,
+                taxAmount: orderWithItems.taxAmount,
+                total: orderWithItems.total,
+                billingAddress: orderWithItems.billingAddress,
+                shippingAddress: orderWithItems.shippingAddress,
+                deliveryMethod: orderWithItems.deliveryMethod,
+              };
+
+              await sendOrderConfirmationEmail(orderWithItems.customerEmail, orderWithItems.id, orderData);
+              await sendNewOrderNotificationToAdmin(orderWithItems);
+              console.log('✅ Confirmation emails sent');
+            }
+          } catch (emailError) {
+            console.error('❌ Error sending emails:', emailError);
+          }
+        } else {
+          console.log('⚠️  Order not found for Payment Intent:', paymentIntent.id);
+        }
+
         break;
       }
 
       case 'payment_intent.payment_failed': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        console.log('❌ Payment failed:', paymentIntent.id);
+        console.log('\n========================================');
+        console.log('❌ PAYMENT INTENT FAILED (TWINT/Async Payment)');
+        console.log('========================================');
+        console.log('Payment Intent ID:', paymentIntent.id);
+        console.log('Last error:', paymentIntent.last_payment_error?.message || 'Unknown error');
+        console.log('========================================\n');
+
+        // Find order by payment intent ID
+        const order = await prisma.order.findFirst({
+          where: {
+            OR: [
+              { paymentIntentId: paymentIntent.id },
+              { paymentIntentId: { startsWith: 'cs_' } },
+            ],
+          },
+        });
+
+        if (order) {
+          console.log('📦 Found order:', order.orderNumber);
+
+          // Update order status to FAILED
+          await prisma.order.update({
+            where: { id: order.id },
+            data: {
+              paymentStatus: 'FAILED',
+              status: 'CANCELLED',
+              cancelledAt: new Date(),
+              cancellationReason: paymentIntent.last_payment_error?.message || 'Payment failed',
+            },
+          });
+
+          console.log('✅ Order marked as FAILED and CANCELLED');
+        } else {
+          console.log('⚠️  Order not found for Payment Intent:', paymentIntent.id);
+        }
+
         break;
       }
 

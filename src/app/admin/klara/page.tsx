@@ -369,13 +369,13 @@ export default function AdminKlaraImport() {
                             <span className="text-xs">Alle</span>
                           </div>
                         </th>
+                        <th className="text-center py-3 px-4 text-sm font-medium text-graphite w-24 sticky right-0 bg-white shadow-sm">Bearbeiten</th>
                         <th className="text-left py-3 px-4 text-sm font-medium text-graphite">Artikel #</th>
                         <th className="text-left py-3 px-4 text-sm font-medium text-graphite">Name</th>
                         <th className="text-left py-3 px-4 text-sm font-medium text-graphite">Beschreibung</th>
                         <th className="text-left py-3 px-4 text-sm font-medium text-graphite">Preis</th>
                         <th className="text-left py-3 px-4 text-sm font-medium text-graphite">Lager</th>
                         <th className="text-left py-3 px-4 text-sm font-medium text-graphite">Kategorien</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-graphite">Bearbeiten</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -395,6 +395,33 @@ export default function AdminKlaraImport() {
                                 className="w-5 h-5 text-accent-burgundy rounded cursor-pointer"
                                 title={isActive ? "Im Shop sichtbar" : "Im Shop ausgeblendet"}
                               />
+                            </td>
+                            <td className="py-3 px-4 text-center sticky right-0 bg-white shadow-sm">
+                              <button
+                                onClick={(e) => openEditModal(article, e)}
+                                className="p-2 hover:bg-accent-burgundy/10 rounded-lg transition-colors inline-flex items-center justify-center"
+                                title="Produkt bearbeiten"
+                              >
+                                <svg
+                                  className="w-6 h-6 text-accent-burgundy"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                                  />
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                  />
+                                </svg>
+                              </button>
                             </td>
                             <td className="py-3 px-4 font-mono text-sm">{article.articleNumber}</td>
                           <td className="py-3 px-4 font-medium">{article.name}</td>
@@ -422,33 +449,6 @@ export default function AdminKlaraImport() {
                                 ) : null;
                               })}
                             </div>
-                          </td>
-                          <td className="py-3 px-4">
-                            <button
-                              onClick={(e) => openEditModal(article, e)}
-                              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                              title="Produkt bearbeiten"
-                            >
-                              <svg
-                                className="w-5 h-5 text-graphite"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                                />
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                />
-                              </svg>
-                            </button>
                           </td>
                         </tr>
                         );
@@ -482,11 +482,11 @@ export default function AdminKlaraImport() {
                           </div>
                           <button
                             onClick={(e) => openEditModal(article, e)}
-                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
+                            className="p-2 hover:bg-accent-burgundy/10 rounded-lg transition-colors flex-shrink-0"
                             title="Produkt bearbeiten"
                           >
                             <svg
-                              className="w-5 h-5 text-graphite"
+                              className="w-6 h-6 text-accent-burgundy"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"

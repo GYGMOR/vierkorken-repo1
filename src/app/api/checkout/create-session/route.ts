@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     const userId = session?.user?.email || 'guest';
 
     const body = await req.json();
-    const { items, deliveryMethod, shippingMethod, paymentMethod, shippingData, giftOptions, couponCode } = body;
+    const { items, deliveryMethod, shippingMethod, paymentMethod, shippingData, billingData, giftOptions, couponCode } = body;
 
     // Find user if logged in
     let user: any = null;
@@ -31,7 +31,10 @@ export async function POST(req: NextRequest) {
     console.log('🛒 Cart items received:', JSON.stringify(items, null, 2));
     console.log('📦 Delivery method:', deliveryMethod);
     console.log('🚚 Shipping method:', shippingMethod);
+    console.log('💳 Payment method:', paymentMethod);
     console.log('🎫 Coupon code:', couponCode);
+    console.log('📬 Shipping data received:', JSON.stringify(shippingData, null, 2));
+    console.log('📬 Billing data received:', JSON.stringify(billingData, null, 2));
 
     // Separate wine items and event items
     const wineItems = items.filter((item: any) => item.type !== 'event');
@@ -176,14 +179,29 @@ export async function POST(req: NextRequest) {
       // Only include images if they're valid URLs (Stripe requires full URLs, not relative paths)
       const hasValidImage = item.imageUrl && (item.imageUrl.startsWith('http://') || item.imageUrl.startsWith('https://'));
 
+      // Build description - Stripe doesn't allow empty strings, so provide a fallback
+      let description = '';
+      if (item.type === 'wine') {
+        const wineryPart = item.winery || '';
+        const vintagePart = item.vintage || '';
+        description = `${wineryPart} ${vintagePart}`.trim();
+
+        // If still empty, use a default description
+        if (!description) {
+          description = 'Schweizer Wein';
+        }
+      } else if (item.type === 'event') {
+        description = item.eventDate ? `Event am ${item.eventDate}` : 'Event-Ticket';
+      } else {
+        description = 'VIERKORKEN Produkt';
+      }
+
       return {
         price_data: {
           currency: 'chf',
           product_data: {
-            name: item.name,
-            description: item.type === 'wine'
-              ? `${item.winery || ''} ${item.vintage || ''}`.trim()
-              : `Event am ${item.eventDate || ''}`,
+            name: item.name || 'Produkt',
+            description: description,
             images: hasValidImage ? [item.imageUrl] : [],
           },
           unit_amount: Math.round(item.price * 100), // Convert to cents
@@ -299,7 +317,12 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const billingAddress = finalShippingAddress;
+    // Billing address: use billingData if provided, otherwise same as shipping
+    const billingAddress = billingData || finalShippingAddress;
+
+    console.log('📍 Final Shipping Address:', JSON.stringify(finalShippingAddress, null, 2));
+    console.log('📍 Final Billing Address:', JSON.stringify(billingAddress, null, 2));
+    console.log('📦 Delivery Method:', deliveryMethod);
 
     // Generate order number
     const orderNumber = `VK-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
@@ -471,8 +494,15 @@ export async function POST(req: NextRequest) {
     console.log('📦 Order items:', orderWithItems?.items?.length || 0);
     console.log('📦 Items details:', JSON.stringify(orderWithItems?.items || [], null, 2));
 
-    // Create Checkout Session
-    const checkoutSession = await stripe.checkout.sessions.create({
+    // Determine payment method types based on selected payment method
+    const paymentMethodTypes = paymentMethod === 'twint'
+      ? ['card', 'twint']  // TWINT enabled
+      : ['card'];           // Card only
+
+    console.log('💳 Stripe payment method types:', paymentMethodTypes);
+
+    // Create Checkout Session with TWINT support
+    const sessionConfig: any = {
       mode: 'payment',
       line_items: lineItems,
       client_reference_id: userId,
@@ -481,11 +511,19 @@ export async function POST(req: NextRequest) {
         userId: userId,
         orderId: order.id,
         orderNumber: orderNumber,
+        paymentMethod: paymentMethod || 'card',
       },
       success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/checkout/success?session_id={CHECKOUT_SESSION_ID}&order_id=${order.id}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/warenkorb`,
-      payment_method_types: ['card'],
-    });
+      payment_method_types: paymentMethodTypes,
+    };
+
+    // TWINT requires explicit CHF currency
+    if (paymentMethod === 'twint') {
+      sessionConfig.currency = 'chf';
+    }
+
+    const checkoutSession = await stripe.checkout.sessions.create(sessionConfig);
 
     // Update order with Stripe session ID
     await prisma.order.update({

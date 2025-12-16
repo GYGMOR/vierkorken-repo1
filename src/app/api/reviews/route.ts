@@ -155,53 +155,61 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // If wine doesn't exist, try to fetch from KLARA API and create it
+    // If wine doesn't exist, create it automatically for KLARA products
     if (!wine) {
       try {
-        // Fetch KLARA articles (using relative URL to avoid port issues)
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `http://localhost:${process.env.PORT || 3000}`;
-        const klaraRes = await fetch(`${baseUrl}/api/klara/articles`);
-        const klaraData = await klaraRes.json();
+        console.log('🔍 Wine not found in database, creating entry for KLARA product:', wineId);
 
-        if (klaraData.success) {
-          // Find the specific product
-          const klaraProduct = klaraData.data.find((p: any) => p.id === wineId);
+        // Fetch from KLARA API directly using the correct import
+        const { fetchKlaraArticles } = await import('@/lib/klara/api-client');
+        const klaraArticles = await fetchKlaraArticles();
 
-          if (klaraProduct) {
-            // Create wine entry in database for KLARA product
-            wine = await prisma.wine.create({
-              data: {
-                klaraId: klaraProduct.id,
-                name: klaraProduct.name,
-                slug: `klara-${klaraProduct.id}`, // Use prefix to avoid conflicts
-                winery: 'KLARA Sortiment', // Default winery for KLARA products
-                region: 'Schweiz',
-                country: 'Schweiz',
-                grapeVarieties: [], // Required Json field
-                wineType: 'RED', // Default type
-                description: klaraProduct.description || klaraProduct.name,
-                aromaProfile: [], // Required Json field
-                foodPairings: [], // Required Json field
-                certifications: [], // Required Json field
-                allergens: [], // Required Json field
-                isActive: true,
-              },
-              include: {
-                variants: true,
-              },
-            });
+        // Find the specific product
+        const klaraProduct = klaraArticles.find((p: any) => p.id === wineId);
 
-            console.log('✅ Created Wine entry for KLARA product:', wine.id, wine.name);
-          }
+        if (klaraProduct) {
+          console.log('✅ Found KLARA product:', klaraProduct.name);
+
+          // Create wine entry in database for KLARA product
+          wine = await prisma.wine.create({
+            data: {
+              klaraId: klaraProduct.id,
+              name: klaraProduct.name,
+              slug: `klara-${klaraProduct.id.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`, // Safe slug
+              winery: 'KLARA Sortiment',
+              region: 'Schweiz',
+              country: 'Schweiz',
+              grapeVarieties: [],
+              wineType: 'RED', // Default, will be shown from KLARA data
+              description: klaraProduct.description || klaraProduct.name,
+              aromaProfile: [],
+              foodPairings: [],
+              certifications: [],
+              allergens: ['sulfites'], // Standard wine allergen
+              isActive: true,
+            },
+            include: {
+              variants: true,
+            },
+          });
+
+          console.log('✅ Created Wine entry for KLARA product:', wine.id, wine.name);
+        } else {
+          console.error('❌ KLARA product not found:', wineId);
         }
       } catch (error) {
-        console.error('Error fetching/creating KLARA wine:', error);
+        console.error('❌ Error fetching/creating KLARA wine:', error);
+        // Log detailed error for debugging
+        if (error instanceof Error) {
+          console.error('Error details:', error.message, error.stack);
+        }
       }
     }
 
     if (!wine) {
+      console.error('❌ Final check: Wine still not found after creation attempt. wineId:', wineId);
       return NextResponse.json(
-        { success: false, error: 'Wine not found' },
+        { success: false, error: 'Produkt konnte nicht gefunden werden. Bitte versuchen Sie es später erneut oder kontaktieren Sie den Support.' },
         { status: 404 }
       );
     }

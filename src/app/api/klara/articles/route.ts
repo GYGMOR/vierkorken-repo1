@@ -76,21 +76,25 @@ export async function GET(request: NextRequest) {
 
       // If override exists, merge extended data
       if (override) {
+        // Custom name overrides KLARA name
+        if (override.customName) {
+          merged.name = override.customName;
+        }
+
         // Custom price overrides KLARA price
         if (override.customPrice !== null && override.customPrice > 0) {
           merged.price = Number(override.customPrice);
         }
 
-        // Add image if available
-        if (override.imageUrl) {
-          merged.images = [override.imageUrl];
+        // Custom description overrides KLARA description
+        if (override.customDescription) {
+          merged.description = override.customDescription;
         }
 
-        // Add extended fields if available
-        if (override.producer) merged.winery = override.producer;
-        if (override.region) merged.region = override.region;
-        if (override.vintage) merged.vintage = override.vintage;
-        if (override.shortDescription) merged.description = override.shortDescription;
+        // Add images if available (customImages is a JSON array)
+        if (override.customImages && Array.isArray(override.customImages) && override.customImages.length > 0) {
+          merged.images = override.customImages;
+        }
 
         // IMPORTANT: isActive flag controls visibility (for admin portal checkbox)
         merged.isActive = override.isActive;

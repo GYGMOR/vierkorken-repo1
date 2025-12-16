@@ -48,6 +48,17 @@ export default function CheckoutPage() {
   });
 
   const [billingIsSame, setBillingIsSame] = useState(true);
+  const [billingData, setBillingData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    street: '',
+    streetNumber: '',
+    postalCode: '',
+    city: '',
+    country: 'CH',
+  });
   const [giftOptions, setGiftOptions] = useState({
     isGift: false,
     giftWrap: false,
@@ -102,10 +113,22 @@ export default function CheckoutPage() {
         const data = await response.json();
         setSavedAddresses(data.addresses || []);
 
-        // Auto-select default address
+        // Auto-select default address and populate shippingData
         const defaultAddr = data.addresses?.find((addr: any) => addr.isDefault);
         if (defaultAddr) {
           setSelectedAddressId(defaultAddr.id);
+          // Populate shippingData with the default address
+          setShippingData({
+            firstName: defaultAddr.firstName,
+            lastName: defaultAddr.lastName,
+            email: session?.user?.email || '',
+            phone: defaultAddr.phone || '',
+            street: defaultAddr.street,
+            streetNumber: defaultAddr.streetNumber,
+            postalCode: defaultAddr.postalCode,
+            city: defaultAddr.city,
+            country: defaultAddr.country,
+          });
         }
       }
     } catch (error) {
@@ -278,6 +301,13 @@ export default function CheckoutPage() {
       }
       // Stripe Payment (Karte/Twint)
       else {
+        // Log data before sending to API (for debugging)
+        console.log('🛒 Checkout data being sent:');
+        console.log('  - Delivery Method:', deliveryMethod);
+        console.log('  - Shipping Data:', deliveryMethod === 'shipping' ? shippingData : null);
+        console.log('  - Billing Data:', !billingIsSame ? billingData : null);
+        console.log('  - Billing is same as shipping:', billingIsSame);
+
         const response = await fetch('/api/checkout/create-session', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -287,6 +317,7 @@ export default function CheckoutPage() {
             shippingMethod: deliveryMethod === 'shipping' ? shippingMethod : null,
             paymentMethod,
             shippingData: deliveryMethod === 'shipping' ? shippingData : null,
+            billingData: !billingIsSame ? billingData : null, // Send billing data only if different from shipping
             giftOptions,
             couponCode: appliedCoupon?.code || null,
           }),
@@ -590,6 +621,114 @@ export default function CheckoutPage() {
                     </CardContent>
                   </Card>
                 )}
+
+                {/* Rechnungsadresse */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Rechnungsadresse</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Checkbox: Rechnungsadresse = Lieferadresse */}
+                    <label className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={billingIsSame}
+                        onChange={(e) => setBillingIsSame(e.target.checked)}
+                        className="w-4 h-4 rounded border-taupe text-accent-burgundy focus:ring-accent-burgundy"
+                      />
+                      <span className="text-body text-graphite">
+                        Rechnungsadresse ist identisch mit {deliveryMethod === 'shipping' ? 'Lieferadresse' : 'Kontaktdaten'}
+                      </span>
+                    </label>
+
+                    {/* Separate Rechnungsadresse Felder */}
+                    {!billingIsSame && (
+                      <>
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <Input
+                            label="Vorname"
+                            required
+                            value={billingData.firstName}
+                            onChange={(e) =>
+                              setBillingData({ ...billingData, firstName: e.target.value })
+                            }
+                          />
+                          <Input
+                            label="Nachname"
+                            required
+                            value={billingData.lastName}
+                            onChange={(e) =>
+                              setBillingData({ ...billingData, lastName: e.target.value })
+                            }
+                          />
+                        </div>
+
+                        <Input
+                          label="E-Mail"
+                          type="email"
+                          required
+                          value={billingData.email}
+                          onChange={(e) =>
+                            setBillingData({ ...billingData, email: e.target.value })
+                          }
+                        />
+
+                        <Input
+                          label="Telefon"
+                          type="tel"
+                          value={billingData.phone}
+                          onChange={(e) =>
+                            setBillingData({ ...billingData, phone: e.target.value })
+                          }
+                        />
+
+                        <div className="grid grid-cols-4 gap-4">
+                          <div className="col-span-3">
+                            <Input
+                              label="Strasse"
+                              required
+                              value={billingData.street}
+                              onChange={(e) =>
+                                setBillingData({ ...billingData, street: e.target.value })
+                              }
+                            />
+                          </div>
+                          <div className="col-span-1">
+                            <Input
+                              label="Nr."
+                              required
+                              value={billingData.streetNumber}
+                              onChange={(e) =>
+                                setBillingData({ ...billingData, streetNumber: e.target.value })
+                              }
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid md:grid-cols-3 gap-4">
+                          <Input
+                            label="PLZ"
+                            required
+                            value={billingData.postalCode}
+                            onChange={(e) =>
+                              setBillingData({ ...billingData, postalCode: e.target.value })
+                            }
+                          />
+                          <div className="col-span-2">
+                            <Input
+                              label="Ort"
+                              required
+                              value={billingData.city}
+                              onChange={(e) =>
+                                setBillingData({ ...billingData, city: e.target.value })
+                              }
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
 
                 {/* 3. Zahlungsmethode */}
                 <Card>
