@@ -32,6 +32,7 @@ export default function AdminKlaraImport() {
   const [search, setSearch] = useState('');
   const [editingArticle, setEditingArticle] = useState<KlaraArticle | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [clearingCache, setClearingCache] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -82,6 +83,33 @@ export default function AdminKlaraImport() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const clearCache = async () => {
+    try {
+      setClearingCache(true);
+
+      const res = await fetch('/api/admin/klara/cache', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'clear' }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        alert('✅ Cache geleert! Die nächste Anfrage holt frische Daten von KLARA.');
+        // Neu laden um frische Daten zu zeigen
+        await fetchData();
+      } else {
+        alert(`Fehler: ${data.error}`);
+      }
+    } catch (error: any) {
+      console.error('Error clearing cache:', error);
+      alert(`Fehler: ${error.message}`);
+    } finally {
+      setClearingCache(false);
     }
   };
 
@@ -259,6 +287,9 @@ export default function AdminKlaraImport() {
             </p>
           </div>
           <div className="flex gap-3">
+            <Button onClick={clearCache} variant="secondary" disabled={clearingCache || loading}>
+              {clearingCache ? 'Leere Cache...' : '🗑️ Cache leeren'}
+            </Button>
             <Button onClick={fetchData} variant="secondary" disabled={loading}>
               {loading ? 'Laden...' : '🔄 Neu laden'}
             </Button>

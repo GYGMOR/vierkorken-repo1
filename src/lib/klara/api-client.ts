@@ -3,7 +3,10 @@
  *
  * Modern TypeScript client for KLARA POS API
  * Fetches products in real-time from KLARA system
+ * WITH IN-MEMORY CACHING for performance
  */
+
+import { klaraCache, CACHE_KEYS } from './cache';
 
 // KLARA API Types
 export interface KlaraArticle {
@@ -41,12 +44,24 @@ export interface ParsedArticle {
 
 /**
  * Fetch all articles from KLARA API
+ * WITH IN-MEMORY CACHING (5 minute TTL)
  * Exactly like the old PHP version (api/klara-articles.php)
  */
 export async function fetchKlaraArticles(
   categoryId?: string,
   search?: string
 ): Promise<ParsedArticle[]> {
+  // Check cache first
+  const cacheKey = CACHE_KEYS.ARTICLES(categoryId, search);
+  const cached = klaraCache.get<ParsedArticle[]>(cacheKey);
+
+  if (cached) {
+    console.log(`🚀 Returning ${cached.length} articles from cache (FAST!)`);
+    return cached;
+  }
+
+  console.log('⏳ Cache MISS - fetching fresh data from KLARA API...');
+
   // Check if mock mode is enabled
   const useMock = process.env.USE_MOCK_KLARA === 'true';
 
@@ -76,7 +91,7 @@ export async function fetchKlaraArticles(
       'Accept-Language': 'de',
       'X-API-KEY': apiKey, // WICHTIG: X-API-KEY (uppercase KEY)
     },
-    // Cache disabled for custom HTTPS server compatibility
+    // Next.js cache disabled - we use our own cache layer
     cache: 'no-store',
   });
 
@@ -142,15 +157,31 @@ export async function fetchKlaraArticles(
     articles.push(parsed);
   }
 
-  console.log(`✅ Returning ${articles.length} filtered KLARA articles`);
+  console.log(`✅ Processed ${articles.length} filtered KLARA articles`);
+
+  // Store in cache for 5 minutes (300 seconds)
+  klaraCache.set(cacheKey, articles, 5 * 60 * 1000);
+
   return articles;
 }
 
 /**
  * Fetch categories from KLARA API
+ * WITH IN-MEMORY CACHING (5 minute TTL)
  * Exactly like the old PHP version (api/klara-categories.php)
  */
 export async function fetchKlaraCategories(): Promise<KlaraCategory[]> {
+  // Check cache first
+  const cacheKey = CACHE_KEYS.CATEGORIES;
+  const cached = klaraCache.get<KlaraCategory[]>(cacheKey);
+
+  if (cached) {
+    console.log(`🚀 Returning ${cached.length} categories from cache (FAST!)`);
+    return cached;
+  }
+
+  console.log('⏳ Cache MISS - fetching fresh categories from KLARA API...');
+
   // Check if mock mode is enabled
   const useMock = process.env.USE_MOCK_KLARA === 'true';
 
@@ -180,6 +211,7 @@ export async function fetchKlaraCategories(): Promise<KlaraCategory[]> {
       'Accept-Language': 'de',
       'X-API-KEY': apiKey, // WICHTIG: X-API-KEY (uppercase KEY)
     },
+    // Next.js cache disabled - we use our own cache layer
     cache: 'no-store',
   });
 
@@ -207,7 +239,11 @@ export async function fetchKlaraCategories(): Promise<KlaraCategory[]> {
     return orderA - orderB;
   });
 
-  console.log(`✅ Returning ${categories.length} KLARA categories`);
+  console.log(`✅ Processed ${categories.length} KLARA categories`);
+
+  // Store in cache for 5 minutes
+  klaraCache.set(cacheKey, categories, 5 * 60 * 1000);
+
   return categories;
 }
 
