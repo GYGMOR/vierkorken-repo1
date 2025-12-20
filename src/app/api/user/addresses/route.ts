@@ -8,16 +8,15 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
 import {
-
-// Force Node.js runtime (required for Prisma)
-export const runtime = 'nodejs';
-
   applyRateLimit,
   requireAuth,
   validateAddressInput,
   sanitizeString,
   logSecurityEvent,
 } from '@/lib/security';
+
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
 
 // GET - Fetch user's addresses
 export async function GET(req: NextRequest) {

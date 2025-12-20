@@ -14,10 +14,6 @@ import {
   validateFileSize,
 } from '@/lib/local-upload';
 import {
-
-// Force Node.js runtime (required for Prisma)
-export const runtime = 'nodejs';
-
   applyRateLimit,
   requireAdmin,
   sanitizeFilename,
@@ -25,6 +21,9 @@ export const runtime = 'nodejs';
   isValidFileSize,
   logSecurityEvent,
 } from '@/lib/security';
+
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB

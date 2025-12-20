@@ -7,14 +7,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import {
-
-// Force Node.js runtime (required for Prisma)
-export const runtime = 'nodejs';
-
   applyRateLimit,
   validateRegistrationInput,
   logSecurityEvent,
 } from '@/lib/security';
+
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {

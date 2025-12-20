@@ -6,14 +6,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import {
-
-// Force Node.js runtime (required for Prisma)
-export const runtime = 'nodejs';
-
   applyRateLimit,
   requireAuth,
   logSecurityEvent,
 } from '@/lib/security';
+
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
 
 export async function GET(req: NextRequest) {
   try {
