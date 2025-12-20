@@ -5,11 +5,12 @@ import { notifyNewsletterSubscribers } from '@/lib/newsletter';
 // GET /api/news/[slug] - Get single news by slug
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params;
     const news = await prisma.news.findUnique({
-      where: { slug: params.slug },
+      where: { slug },
     });
 
     if (!news) {
@@ -41,19 +42,20 @@ export async function GET(
 // PUT /api/news/[slug] - Update news (Admin only)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params;
     const body = await request.json();
     const { title, excerpt, content, featuredImage, status, publishedAt, isPinned, sortOrder } = body;
 
     // Fetch original news to check if status changed
     const originalNews = await prisma.news.findUnique({
-      where: { slug: params.slug },
+      where: { slug },
     });
 
     const news = await prisma.news.update({
-      where: { slug: params.slug },
+      where: { slug },
       data: {
         title,
         excerpt,
@@ -103,11 +105,12 @@ export async function PUT(
 // DELETE /api/news/[slug] - Delete news (Admin only)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params;
     await prisma.news.delete({
-      where: { slug: params.slug },
+      where: { slug },
     });
 
     return NextResponse.json({
