@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { notifyNewsletterSubscribers } from '@/lib/newsletter';
+import { PostStatus } from '@prisma/client';
 
 // GET /api/news/[slug] - Get single news by slug
 export async function GET(
@@ -71,8 +72,8 @@ export async function PUT(
     // Send newsletter notifications if status changed from DRAFT to PUBLISHED
     if (
       originalNews &&
-      originalNews.status !== 'PUBLISHED' &&
-      news.status === 'PUBLISHED' &&
+      originalNews.status !== PostStatus.PUBLISHED &&
+      news.status === PostStatus.PUBLISHED &&
       news.publishedAt &&
       news.publishedAt <= new Date()
     ) {

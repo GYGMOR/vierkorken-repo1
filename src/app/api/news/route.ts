@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { notifyNewsletterSubscribers } from '@/lib/newsletter';
+import { PostStatus } from '@prisma/client';
 
 // GET /api/news - Get all published news
 export async function GET(request: NextRequest) {
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
     const where = includeUnpublished
       ? {}
       : {
-          status: 'PUBLISHED',
+          status: PostStatus.PUBLISHED,
           publishedAt: {
             lte: new Date(),
           },
@@ -72,15 +73,15 @@ export async function POST(request: NextRequest) {
         excerpt,
         content,
         featuredImage,
-        status: status || 'DRAFT',
-        publishedAt: publishedAt ? new Date(publishedAt) : status === 'PUBLISHED' ? new Date() : null,
+        status: status || PostStatus.DRAFT,
+        publishedAt: publishedAt ? new Date(publishedAt) : status === PostStatus.PUBLISHED ? new Date() : null,
         isPinned: isPinned || false,
         sortOrder: sortOrder || 0,
       },
     });
 
     // Send newsletter notifications if publishing immediately
-    if (news.status === 'PUBLISHED' && news.publishedAt && news.publishedAt <= new Date()) {
+    if (news.status === PostStatus.PUBLISHED && news.publishedAt && news.publishedAt <= new Date()) {
       // Send notifications asynchronously (don't block response)
       notifyNewsletterSubscribers({
         title: news.title,
