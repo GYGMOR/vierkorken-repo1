@@ -3,6 +3,10 @@ import { prisma } from '@/lib/prisma';
 import { updateUserLoyaltyLevel, POINT_REWARDS } from '@/lib/loyalty';
 import { sendOrderConfirmationEmail, sendNewOrderNotificationToAdmin } from '@/lib/email';
 
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
+
+
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }

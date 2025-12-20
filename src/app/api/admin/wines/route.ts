@@ -12,6 +12,10 @@ import { prisma } from '@/lib/prisma';
 import { isValidLength, sanitizeString, isValidNumber } from '@/lib/security';
 import slugify from 'slugify';
 
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
+
+
 // Admin authentication check
 async function checkAdmin() {
   const session = await getServerSession(authOptions);

@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendContactEmail } from '@/lib/email';
 
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
+
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();

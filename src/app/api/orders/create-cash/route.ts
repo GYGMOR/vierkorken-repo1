@@ -4,6 +4,10 @@ import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
 import { sendOrderConfirmationEmail, sendNewOrderNotificationToAdmin } from '@/lib/email';
 
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
+
+
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);

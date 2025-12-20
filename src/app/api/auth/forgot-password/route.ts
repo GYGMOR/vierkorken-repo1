@@ -4,6 +4,10 @@ import crypto from 'crypto';
 import { sendPasswordResetEmail } from '@/lib/email';
 import { applyRateLimit, sanitizeString, logSecurityEvent } from '@/lib/security';
 
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
+
+
 export async function POST(req: NextRequest) {
   try {
     // Rate limiting: 3 requests per hour per IP

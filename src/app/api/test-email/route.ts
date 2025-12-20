@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sendOrderConfirmationEmail } from '@/lib/email';
 import { prisma } from '@/lib/prisma';
 
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
+
+
 export async function GET(req: NextRequest) {
   try {
     // Get the most recent order to test with

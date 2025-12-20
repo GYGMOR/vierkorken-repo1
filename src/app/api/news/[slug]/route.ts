@@ -3,6 +3,10 @@ import { prisma } from '@/lib/prisma';
 import { notifyNewsletterSubscribers } from '@/lib/newsletter';
 import { PostStatus } from '@prisma/client';
 
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
+
+
 // GET /api/news/[slug] - Get single news by slug
 export async function GET(
   request: NextRequest,

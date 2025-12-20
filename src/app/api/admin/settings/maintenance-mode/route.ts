@@ -3,6 +3,10 @@ import { requireAdmin } from '@/lib/security';
 import { prisma } from '@/lib/prisma';
 import { sendLaunchNotificationEmail } from '@/lib/email';
 
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
+
+
 /**
  * GET /api/admin/settings/maintenance-mode
  * Get current maintenance mode status

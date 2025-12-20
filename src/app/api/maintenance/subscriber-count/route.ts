@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/security';
 import { prisma } from '@/lib/prisma';
 
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
+
+
 /**
  * GET /api/maintenance/subscriber-count
  * Get count of active maintenance mode subscribers

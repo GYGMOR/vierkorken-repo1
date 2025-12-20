@@ -1,32 +1,21 @@
 /**
  * Next.js Middleware for Security & Maintenance Mode
  * Automatically applies security headers and handles maintenance mode
+ *
+ * NOTE: Middleware runs in Edge Runtime - NO DATABASE ACCESS!
+ * Prisma cannot run in Edge Runtime, so we only check environment variables.
  */
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { prisma } from './lib/prisma';
 
 /**
  * Check if maintenance mode is enabled
- * Checks database first, falls back to environment variable
+ * Uses environment variable only (Edge Runtime compatible)
  */
-async function checkMaintenanceMode(): Promise<boolean> {
-  try {
-    // Check database setting
-    const setting = await prisma.settings.findUnique({
-      where: { key: 'maintenance_mode' },
-    });
-
-    if (setting) {
-      return setting.value === 'true';
-    }
-  } catch (error) {
-    console.error('Failed to read maintenance setting from DB:', error);
-  }
-
-  // Fallback to environment variable
+function checkMaintenanceMode(): boolean {
+  // Check environment variable
   return process.env.MAINTENANCE_MODE === 'true';
 }
 
@@ -37,7 +26,7 @@ export async function middleware(request: NextRequest) {
   // MAINTENANCE MODE CHECK
   // ============================================================
 
-  const isMaintenanceMode = await checkMaintenanceMode();
+  const isMaintenanceMode = checkMaintenanceMode();
 
   if (isMaintenanceMode) {
     // Always allow these paths (needed for admin bypass and functionality)

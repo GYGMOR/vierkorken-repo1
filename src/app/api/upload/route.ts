@@ -3,6 +3,10 @@ import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { mkdir } from 'fs/promises';
 
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
+
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();

@@ -18,6 +18,10 @@ import { prisma } from '@/lib/prisma';
 import { fetchKlaraArticles } from '@/lib/klara/api-client';
 import { applyRateLimit } from '@/lib/security';
 
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
+
+
 export async function GET(request: NextRequest) {
   // Rate limiting: 100 requests per minute to prevent API abuse
   const rateLimitResponse = await applyRateLimit(request, 100, 60000);

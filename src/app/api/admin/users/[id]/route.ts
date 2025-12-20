@@ -10,6 +10,10 @@ import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
 import { updateUserLoyaltyLevel } from '@/lib/loyalty';
 
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
+
+
 async function checkAdmin() {
   const session = await getServerSession(authOptions);
   if (!session || !session.user?.email) {

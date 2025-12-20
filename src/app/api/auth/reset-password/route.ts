@@ -3,6 +3,10 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { applyRateLimit, isStrongPassword, logSecurityEvent } from '@/lib/security';
 
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
+
+
 export async function POST(req: NextRequest) {
   try {
     // Rate limiting: 5 requests per hour per IP

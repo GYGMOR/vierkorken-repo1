@@ -14,6 +14,10 @@ import {
   validateFileSize,
 } from '@/lib/local-upload';
 import {
+
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
+
   applyRateLimit,
   requireAdmin,
   sanitizeFilename,

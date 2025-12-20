@@ -4,6 +4,10 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { applyRateLimit } from '@/lib/security';
 
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
+
+
 export async function POST(req: NextRequest) {
   // Rate limiting: 30 validations per minute to prevent brute-force attacks
   const rateLimitResponse = await applyRateLimit(req, 30, 60000);

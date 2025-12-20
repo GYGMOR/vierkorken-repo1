@@ -9,6 +9,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/security';
 import { klaraCache } from '@/lib/klara/cache';
 
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
+
+
 /**
  * GET - Get cache statistics
  */

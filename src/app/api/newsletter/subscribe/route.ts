@@ -3,6 +3,10 @@ import { prisma } from '@/lib/prisma';
 import { isValidEmail, sanitizeString, checkRateLimit, getRateLimitIdentifier } from '@/lib/security';
 import { sendNewsletterConfirmationEmail } from '@/lib/email';
 
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
+
+
 export async function POST(req: NextRequest) {
   try {
     // Rate limiting: 5 requests per hour per IP

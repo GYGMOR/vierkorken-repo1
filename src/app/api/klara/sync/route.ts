@@ -9,6 +9,10 @@ import { importFromKlaraExcel } from '@/lib/klara/excel-importer';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
+
+
 export async function POST(request: NextRequest) {
   try {
     // Check admin authentication

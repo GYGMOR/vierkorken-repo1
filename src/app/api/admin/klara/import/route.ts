@@ -11,6 +11,10 @@ import { prisma } from '@/lib/prisma';
 import { fetchKlaraArticles } from '@/lib/klara/api-client';
 import slugify from 'slugify';
 
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
+
+
 async function checkAdmin() {
   const session = await getServerSession(authOptions);
   if (!session || session.user?.role !== 'ADMIN') {

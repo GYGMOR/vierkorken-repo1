@@ -3,6 +3,10 @@ import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/security';
 import { sendLaunchNotificationEmail } from '@/lib/email';
 
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
+
+
 export async function POST(req: NextRequest) {
   // Require admin authentication
   const authResult = await requireAdmin(req);

@@ -9,6 +9,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { fetchKlaraCategories, fetchKlaraArticles } from '@/lib/klara/api-client';
 import { prisma } from '@/lib/prisma';
 
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
+
+
 export async function GET(request: NextRequest) {
   try {
     console.log('📂 Fetching KLARA categories...');
