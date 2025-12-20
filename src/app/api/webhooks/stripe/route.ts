@@ -270,7 +270,7 @@ export async function POST(req: NextRequest) {
             });
 
             // Update loyalty level
-            await updateUserLoyaltyLevel(order.userId);
+            await updateUserLoyaltyLevel(order.userId, prisma);
             console.log('✅ Loyalty points awarded:', order.pointsEarned);
           }
 
