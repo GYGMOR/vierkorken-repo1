@@ -303,7 +303,7 @@ export async function POST(req: NextRequest) {
               };
 
               await sendOrderConfirmationEmail(orderWithItems.customerEmail, orderWithItems.id, orderData);
-              await sendNewOrderNotificationToAdmin(orderWithItems);
+              await sendNewOrderNotificationToAdmin(orderWithItems.id, orderData);
               console.log('✅ Confirmation emails sent');
             }
           } catch (emailError) {
