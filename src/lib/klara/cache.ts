@@ -13,7 +13,7 @@ interface CacheEntry<T> {
 
 class KlaraCache {
   private cache = new Map<string, CacheEntry<any>>();
-  private defaultTTL = 15 * 60 * 1000; // 15 minutes in milliseconds for better performance
+  private defaultTTL = 60 * 60 * 1000; // 1 hour for MUCH better performance!
 
   /**
    * Get cached data if available and not expired

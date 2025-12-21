@@ -173,8 +173,8 @@ export async function fetchKlaraArticles(
 
     console.log(`✅ Processed ${articles.length} filtered KLARA articles`);
 
-    // Store in cache for 15 minutes for better performance
-    klaraCache.set(cacheKey, articles, 15 * 60 * 1000);
+    // Store in cache for 1 HOUR for MUCH better performance
+    klaraCache.set(cacheKey, articles, 60 * 60 * 1000);
 
     return articles;
   } catch (fetchError: any) {
@@ -268,8 +268,8 @@ export async function fetchKlaraCategories(): Promise<KlaraCategory[]> {
 
     console.log(`✅ Processed ${categories.length} KLARA categories`);
 
-    // Store in cache for 15 minutes for better performance
-    klaraCache.set(cacheKey, categories, 15 * 60 * 1000);
+    // Store in cache for 1 HOUR for MUCH better performance
+    klaraCache.set(cacheKey, categories, 60 * 60 * 1000);
 
     return categories;
   } catch (fetchError: any) {

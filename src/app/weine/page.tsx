@@ -3,8 +3,8 @@ import { Navigation } from '@/components/layout/Navigation';
 import { Footer } from '@/components/layout/Footer';
 import WineListContent from './WineListContent';
 
-// Server Component - dynamically rendered
-export const dynamic = 'force-dynamic';
+// ISR: Revalidate every 15 minutes for INSTANT loading!
+export const revalidate = 900; // 15 minutes = 900 seconds
 
 export const metadata = {
   title: 'Unsere Weine | Vierkorken',
