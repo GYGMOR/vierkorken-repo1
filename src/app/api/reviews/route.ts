@@ -40,42 +40,73 @@ export async function GET(request: NextRequest) {
   // Sanitize input
   const sanitizedWineId = sanitizeString(wineId, 100);
 
+  console.log('📝 Fetching reviews for wineId:', sanitizedWineId);
+
   try {
     // Find the wine first (could be by id or klaraId)
-    const wine = await prisma.wine.findFirst({
-      where: {
-        OR: [
-          { id: sanitizedWineId },
-          { klaraId: sanitizedWineId },
-        ],
-      },
-    });
+    let wine = null;
 
-    if (!wine) {
+    try {
+      wine = await prisma.wine.findFirst({
+        where: {
+          OR: [
+            { id: sanitizedWineId },
+            { klaraId: sanitizedWineId },
+          ],
+        },
+      });
+    } catch (dbError: any) {
+      console.error('❌ Database error finding wine:', dbError.message);
+      // Return empty reviews if DB is not available (KLARA products don't need DB)
       return NextResponse.json({
         success: true,
-        data: [], // Return empty array if wine not found
+        data: [],
+        message: 'No reviews available (database error)',
       });
     }
 
+    if (!wine) {
+      console.log('⚠️  Wine not found in database (likely KLARA product), returning empty reviews');
+      return NextResponse.json({
+        success: true,
+        data: [], // Return empty array if wine not found (KLARA products)
+      });
+    }
+
+    console.log('✅ Wine found in database:', wine.id, wine.name);
+
     // Now fetch reviews using the actual wine database ID
-    const reviews = await prisma.review.findMany({
-      where: {
-        wineId: wine.id, // Use the actual database ID
-        isApproved: true, // Only show approved reviews to public
-      },
-      include: {
-        user: {
-          select: {
-            firstName: true,
-            lastName: true,
+    let reviews = [];
+
+    try {
+      reviews = await prisma.review.findMany({
+        where: {
+          wineId: wine.id, // Use the actual database ID
+          isApproved: true, // Only show approved reviews to public
+        },
+        include: {
+          user: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
           },
         },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+    } catch (dbError: any) {
+      console.error('❌ Database error fetching reviews:', dbError.message);
+      // Return empty reviews if DB query fails
+      return NextResponse.json({
+        success: true,
+        data: [],
+        message: 'No reviews available (database error)',
+      });
+    }
+
+    console.log(`✅ Found ${reviews.length} reviews for wine ${wine.id}`);
 
     // Format reviews for frontend
     const formattedReviews = reviews.map(review => ({
@@ -93,11 +124,15 @@ export async function GET(request: NextRequest) {
       data: formattedReviews,
     });
   } catch (error: any) {
-    console.error('Error fetching reviews:', error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    console.error('❌ Unexpected error fetching reviews:', error);
+    console.error('❌ Error stack:', error.stack);
+
+    // ALWAYS return valid JSON, never crash!
+    return NextResponse.json({
+      success: true,
+      data: [],
+      message: 'Reviews temporarily unavailable',
+    });
   }
 }
 
