@@ -73,6 +73,15 @@ export async function fetchKlaraArticles(
 
   const apiUrl = process.env.KLARA_API_URL || 'https://api.klara.ch';
   const apiKey = process.env.KLARA_API_KEY;
+  const apiSecret = process.env.KLARA_API_SECRET;
+
+  console.log('🔑 KLARA API Config:', {
+    apiUrl,
+    hasApiKey: !!apiKey,
+    apiKeyLength: apiKey?.length,
+    hasApiSecret: !!apiSecret,
+    apiSecretLength: apiSecret?.length,
+  });
 
   if (!apiKey || apiKey === 'mock_mode') {
     console.log('⚠️  KLARA_API_KEY not configured, returning empty array');
@@ -84,31 +93,36 @@ export async function fetchKlaraArticles(
 
   console.log('📡 Calling KLARA API:', url);
 
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'accept': 'application/json',
-      'Accept-Language': 'de',
-      'X-API-KEY': apiKey, // WICHTIG: X-API-KEY (uppercase KEY)
-    },
-    // Next.js cache disabled - we use our own cache layer
-    cache: 'no-store',
-  });
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'accept': 'application/json',
+        'Accept-Language': 'de',
+        'X-API-KEY': apiKey, // WICHTIG: X-API-KEY (uppercase KEY)
+      },
+      // Next.js cache disabled - we use our own cache layer
+      cache: 'no-store',
+    });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('❌ KLARA API Error Response:', errorText);
-    throw new Error(`KLARA API error: ${response.status} ${response.statusText} - ${errorText}`);
-  }
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ KLARA API Error Response:', errorText);
+      console.error('❌ Status:', response.status, response.statusText);
+      console.error('❌ Headers:', Object.fromEntries(response.headers.entries()));
 
-  const rawArticles: KlaraArticle[] = await response.json();
+      // Return empty array instead of throwing to prevent 500 errors
+      console.log('⚠️  Returning empty array due to KLARA API error');
+      return [];
+    }
 
-  console.log(`✅ KLARA API returned ${rawArticles.length} articles`);
+    const rawArticles: KlaraArticle[] = await response.json();
+    console.log(`✅ KLARA API returned ${rawArticles.length} articles`);
 
-  // Parse and filter articles (exactly like old PHP version)
-  const articles: ParsedArticle[] = [];
+    // Parse and filter articles (exactly like old PHP version)
+    const articles: ParsedArticle[] = [];
 
-  for (const article of rawArticles) {
+    for (const article of rawArticles) {
     // Get price from pricePeriods
     let price = 0;
     if (article.pricePeriods && article.pricePeriods.length > 0) {
@@ -154,15 +168,23 @@ export async function fetchKlaraArticles(
       }
     }
 
-    articles.push(parsed);
+      articles.push(parsed);
+    }
+
+    console.log(`✅ Processed ${articles.length} filtered KLARA articles`);
+
+    // Store in cache for 15 minutes for better performance
+    klaraCache.set(cacheKey, articles, 15 * 60 * 1000);
+
+    return articles;
+  } catch (fetchError: any) {
+    console.error('❌ KLARA API Fetch Error:', fetchError.message);
+    console.error('❌ This could be a network issue or invalid API configuration');
+
+    // Return empty array instead of throwing to prevent 500 errors
+    console.log('⚠️  Returning empty array due to fetch error');
+    return [];
   }
-
-  console.log(`✅ Processed ${articles.length} filtered KLARA articles`);
-
-  // Store in cache for 15 minutes for better performance
-  klaraCache.set(cacheKey, articles, 15 * 60 * 1000);
-
-  return articles;
 }
 
 /**
@@ -204,47 +226,60 @@ export async function fetchKlaraCategories(): Promise<KlaraCategory[]> {
 
   console.log('📡 Calling KLARA Categories API:', url);
 
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'accept': 'application/json',
-      'Accept-Language': 'de',
-      'X-API-KEY': apiKey, // WICHTIG: X-API-KEY (uppercase KEY)
-    },
-    // Next.js cache disabled - we use our own cache layer
-    cache: 'no-store',
-  });
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'accept': 'application/json',
+        'Accept-Language': 'de',
+        'X-API-KEY': apiKey, // WICHTIG: X-API-KEY (uppercase KEY)
+      },
+      // Next.js cache disabled - we use our own cache layer
+      cache: 'no-store',
+    });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('❌ KLARA Categories API Error Response:', errorText);
-    throw new Error(`KLARA Categories API error: ${response.status} ${response.statusText} - ${errorText}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ KLARA Categories API Error Response:', errorText);
+      console.error('❌ Status:', response.status, response.statusText);
+
+      // Return empty array instead of throwing to prevent 500 errors
+      console.log('⚠️  Returning empty categories due to KLARA API error');
+      return [];
+    }
+
+    const rawCategories: any[] = await response.json();
+
+    console.log(`✅ KLARA API returned ${rawCategories.length} categories`);
+
+    // Parse categories (exactly like old PHP version)
+    const categories: KlaraCategory[] = rawCategories.map((cat) => ({
+      id: cat.id,
+      nameDE: cat.nameDE || cat.nameEN || 'Kategorie',
+      nameEN: cat.nameEN,
+    }));
+
+    // Sort by order field (like old PHP version)
+    categories.sort((a: any, b: any) => {
+      const orderA = a.order ?? 9999;
+      const orderB = b.order ?? 9999;
+      return orderA - orderB;
+    });
+
+    console.log(`✅ Processed ${categories.length} KLARA categories`);
+
+    // Store in cache for 15 minutes for better performance
+    klaraCache.set(cacheKey, categories, 15 * 60 * 1000);
+
+    return categories;
+  } catch (fetchError: any) {
+    console.error('❌ KLARA Categories Fetch Error:', fetchError.message);
+    console.error('❌ This could be a network issue or invalid API configuration');
+
+    // Return empty array instead of throwing to prevent 500 errors
+    console.log('⚠️  Returning empty categories due to fetch error');
+    return [];
   }
-
-  const rawCategories: any[] = await response.json();
-
-  console.log(`✅ KLARA API returned ${rawCategories.length} categories`);
-
-  // Parse categories (exactly like old PHP version)
-  const categories: KlaraCategory[] = rawCategories.map((cat) => ({
-    id: cat.id,
-    nameDE: cat.nameDE || cat.nameEN || 'Kategorie',
-    nameEN: cat.nameEN,
-  }));
-
-  // Sort by order field (like old PHP version)
-  categories.sort((a: any, b: any) => {
-    const orderA = a.order ?? 9999;
-    const orderB = b.order ?? 9999;
-    return orderA - orderB;
-  });
-
-  console.log(`✅ Processed ${categories.length} KLARA categories`);
-
-  // Store in cache for 15 minutes for better performance
-  klaraCache.set(cacheKey, categories, 15 * 60 * 1000);
-
-  return categories;
 }
 
 /**
