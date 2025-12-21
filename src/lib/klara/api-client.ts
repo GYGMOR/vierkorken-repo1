@@ -159,8 +159,8 @@ export async function fetchKlaraArticles(
 
   console.log(`✅ Processed ${articles.length} filtered KLARA articles`);
 
-  // Store in cache for 5 minutes (300 seconds)
-  klaraCache.set(cacheKey, articles, 5 * 60 * 1000);
+  // Store in cache for 15 minutes for better performance
+  klaraCache.set(cacheKey, articles, 15 * 60 * 1000);
 
   return articles;
 }
@@ -241,8 +241,8 @@ export async function fetchKlaraCategories(): Promise<KlaraCategory[]> {
 
   console.log(`✅ Processed ${categories.length} KLARA categories`);
 
-  // Store in cache for 5 minutes
-  klaraCache.set(cacheKey, categories, 5 * 60 * 1000);
+  // Store in cache for 15 minutes for better performance
+  klaraCache.set(cacheKey, categories, 15 * 60 * 1000);
 
   return categories;
 }

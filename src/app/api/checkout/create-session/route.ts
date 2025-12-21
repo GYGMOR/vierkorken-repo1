@@ -10,11 +10,25 @@ export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
   try {
+    console.log('🚀 ========== STRIPE CHECKOUT SESSION START ==========');
+
     const session = await getServerSession(authOptions);
     const userId = session?.user?.email || 'guest';
+    console.log('👤 User:', userId);
 
     const body = await req.json();
     const { items, deliveryMethod, shippingMethod, paymentMethod, shippingData, billingData, giftOptions, couponCode } = body;
+
+    console.log('📦 Request body received:', {
+      itemsCount: items?.length,
+      deliveryMethod,
+      shippingMethod,
+      paymentMethod,
+      hasShippingData: !!shippingData,
+      hasBillingData: !!billingData,
+      hasGiftOptions: !!giftOptions,
+      couponCode,
+    });
 
     // Find user if logged in
     let user: any = null;
@@ -527,7 +541,17 @@ export async function POST(req: NextRequest) {
       sessionConfig.currency = 'chf';
     }
 
+    console.log('💳 Creating Stripe Checkout Session with config:', {
+      mode: sessionConfig.mode,
+      lineItemsCount: sessionConfig.line_items?.length,
+      paymentMethodTypes: sessionConfig.payment_method_types,
+      currency: sessionConfig.currency,
+      successUrl: sessionConfig.success_url?.substring(0, 100) + '...',
+      cancelUrl: sessionConfig.cancel_url,
+    });
+
     const checkoutSession = await stripe.checkout.sessions.create(sessionConfig);
+    console.log('✅ Stripe session created:', checkoutSession.id);
 
     // Update order with Stripe session ID
     await prisma.order.update({
@@ -536,6 +560,7 @@ export async function POST(req: NextRequest) {
         paymentIntentId: checkoutSession.id,
       },
     });
+    console.log('✅ Order updated with Stripe session ID');
 
     // Increment coupon usage count
     if (coupon) {
@@ -550,13 +575,36 @@ export async function POST(req: NextRequest) {
       console.log('✅ Coupon usage incremented:', coupon.code);
     }
 
+    console.log('🎉 ========== STRIPE CHECKOUT SESSION SUCCESS ==========');
+    console.log('🔗 Checkout URL:', checkoutSession.url);
+
     return NextResponse.json({ url: checkoutSession.url });
   } catch (error: any) {
-    console.error('❌ Error creating checkout session:', error);
+    console.error('💥 ========== STRIPE CHECKOUT SESSION ERROR ==========');
+    console.error('❌ Error type:', error.constructor.name);
+    console.error('❌ Error message:', error.message);
     console.error('❌ Error stack:', error.stack);
-    console.error('❌ Error details:', JSON.stringify(error, null, 2));
+
+    if (error.type === 'StripeInvalidRequestError') {
+      console.error('❌ Stripe API Error - Invalid Request');
+      console.error('❌ Stripe Error Details:', {
+        type: error.type,
+        statusCode: error.statusCode,
+        param: error.param,
+        code: error.code,
+        rawMessage: error.raw?.message,
+      });
+    }
+
+    console.error('❌ Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+
     return NextResponse.json(
-      { error: 'Fehler beim Erstellen der Checkout-Session', details: error.message, stack: error.stack },
+      {
+        error: 'Fehler beim Erstellen der Checkout-Session',
+        details: error.message,
+        type: error.type || error.constructor.name,
+        code: error.code,
+      },
       { status: 500 }
     );
   }

@@ -277,63 +277,106 @@ export default function CheckoutPage() {
     try {
       // Barzahlung bei Abholung
       if (paymentMethod === 'cash' && deliveryMethod === 'pickup') {
+        console.log('💰 Creating cash order for pickup...');
+        console.log('📦 Items:', items);
+        console.log('👤 Contact Data:', {
+          firstName: shippingData.firstName,
+          lastName: shippingData.lastName,
+          email: shippingData.email,
+          phone: shippingData.phone
+        });
+
         const response = await fetch('/api/orders/create-cash', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             items,
             deliveryMethod,
-            shippingMethod: null, // Always null for pickup
+            shippingMethod: null,
             paymentMethod: 'cash',
-            shippingData: null, // Always null for pickup
+            shippingData: {
+              firstName: shippingData.firstName,
+              lastName: shippingData.lastName,
+              email: shippingData.email,
+              phone: shippingData.phone,
+            },
             giftOptions,
             couponCode: appliedCoupon?.code || null,
           }),
         });
 
         const data = await response.json();
+        console.log('💰 Cash order response:', data);
 
         if (data.success) {
+          console.log('✅ Cash order created successfully!');
           router.push(`/checkout/success?orderId=${data.orderId}`);
         } else {
+          console.error('❌ Cash order failed:', data.error);
           throw new Error(data.error || 'Fehler beim Erstellen der Bestellung');
         }
       }
       // Stripe Payment (Karte/Twint)
       else {
-        // Log data before sending to API (for debugging)
+        console.log('💳 Creating Stripe checkout session...');
         console.log('🛒 Checkout data being sent:');
         console.log('  - Delivery Method:', deliveryMethod);
-        console.log('  - Shipping Data:', deliveryMethod === 'shipping' ? shippingData : null);
-        console.log('  - Billing Data:', !billingIsSame ? billingData : null);
-        console.log('  - Billing is same as shipping:', billingIsSame);
+        console.log('  - Payment Method:', paymentMethod);
+        console.log('  - Items:', items);
+
+        const checkoutData: any = {
+          items,
+          deliveryMethod,
+          shippingMethod: deliveryMethod === 'shipping' ? shippingMethod : null,
+          paymentMethod,
+          giftOptions,
+          couponCode: appliedCoupon?.code || null,
+        };
+
+        // Add contact/shipping data
+        if (deliveryMethod === 'pickup') {
+          // For pickup, send contact info as shippingData
+          checkoutData.shippingData = {
+            firstName: shippingData.firstName,
+            lastName: shippingData.lastName,
+            email: shippingData.email,
+            phone: shippingData.phone,
+          };
+          console.log('  - Contact Data (pickup):', checkoutData.shippingData);
+        } else {
+          // For delivery, send full address
+          checkoutData.shippingData = shippingData;
+          console.log('  - Shipping Address:', checkoutData.shippingData);
+        }
+
+        // Add billing data if different
+        if (!billingIsSame) {
+          checkoutData.billingData = billingData;
+          console.log('  - Billing Address (different):', checkoutData.billingData);
+        }
 
         const response = await fetch('/api/checkout/create-session', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            items,
-            deliveryMethod,
-            shippingMethod: deliveryMethod === 'shipping' ? shippingMethod : null,
-            paymentMethod,
-            shippingData: deliveryMethod === 'shipping' ? shippingData : null,
-            billingData: !billingIsSame ? billingData : null, // Send billing data only if different from shipping
-            giftOptions,
-            couponCode: appliedCoupon?.code || null,
-          }),
+          body: JSON.stringify(checkoutData),
         });
 
         const data = await response.json();
+        console.log('💳 Stripe response:', data);
 
         if (data.url) {
+          console.log('✅ Redirecting to Stripe checkout...');
           window.location.href = data.url;
         } else {
+          console.error('❌ Stripe checkout failed:', data.error, data.details);
           throw new Error(data.error || 'Fehler beim Erstellen der Checkout-Session');
         }
       }
     } catch (error: any) {
-      console.error('Checkout error:', error);
-      alert('Fehler beim Checkout: ' + error.message);
+      console.error('❌ Checkout error:', error);
+      console.error('❌ Error details:', error.message);
+      console.error('❌ Error stack:', error.stack);
+      alert('Fehler beim Checkout:\n\n' + error.message + '\n\nBitte versuchen Sie es erneut oder kontaktieren Sie unseren Support.');
       setIsProcessing(false);
     }
   };

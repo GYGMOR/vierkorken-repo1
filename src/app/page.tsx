@@ -33,32 +33,18 @@ export default function HomePage() {
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [newsletterEmail, setNewsletterEmail] = useState('');
 
-  // Fetch categories and count products
+  // Fetch categories with counts (API already returns count!)
   useEffect(() => {
-    async function fetchCategoriesWithCounts() {
+    async function fetchCategories() {
       try {
-        const [categoriesRes, articlesRes] = await Promise.all([
-          fetch('/api/klara/categories'),
-          fetch('/api/klara/articles'),
-        ]);
+        const response = await fetch('/api/klara/categories');
 
-        if (categoriesRes.ok && articlesRes.ok) {
-          const categoriesData = await categoriesRes.json();
-          const articlesData = await articlesRes.json();
+        if (response.ok) {
+          const data = await response.json();
 
-          if (categoriesData.success && articlesData.success) {
-            const cats = categoriesData.data;
-            const articles = articlesData.data;
-
-            // Count products per category
-            const categoriesWithCounts = cats.map((cat: KlaraCategory) => ({
-              ...cat,
-              count: articles.filter((article: any) =>
-                article.categories.includes(cat.id)
-              ).length,
-            }));
-
-            setCategories(categoriesWithCounts);
+          if (data.success) {
+            // API already returns categories with count!
+            setCategories(data.data);
           }
         }
       } catch (error) {
@@ -68,7 +54,7 @@ export default function HomePage() {
       }
     }
 
-    fetchCategoriesWithCounts();
+    fetchCategories();
   }, []);
 
   // Fetch latest news
