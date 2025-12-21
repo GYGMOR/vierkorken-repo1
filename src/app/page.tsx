@@ -1,8 +1,5 @@
 'use client';
 
-// Client-side caching for instant navigation
-export const dynamic = 'force-static';
-
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';

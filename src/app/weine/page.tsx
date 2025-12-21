@@ -3,8 +3,8 @@ import { Navigation } from '@/components/layout/Navigation';
 import { Footer } from '@/components/layout/Footer';
 import WineListContent from './WineListContent';
 
-// ISR: Revalidate every 15 minutes for INSTANT loading!
-export const revalidate = 900; // 15 minutes = 900 seconds
+// Use cache-first strategy but allow dynamic rendering for client interactions
+export const dynamic = 'auto';
 
 export const metadata = {
   title: 'Unsere Weine | Vierkorken',
