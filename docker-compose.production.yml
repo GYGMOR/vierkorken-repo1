@@ -59,16 +59,18 @@ services:
       # EMAIL / SMTP (Bestellbestätigungen, Passwort-Reset)
       # ⚠️ WICHTIG für E-Mail Benachrichtigungen!
       # ============================================================
-      # SMTP Server Einstellungen
-      SMTP_HOST: "smtp.gmail.com"           # Beispiel für Gmail
-      SMTP_PORT: "587"                      # 587 für TLS, 465 für SSL
-      SMTP_SECURE: "false"                  # "true" für Port 465, "false" für Port 587
-      SMTP_USER: "noreply@vierkorken.ch"    # Deine E-Mail Adresse
-      SMTP_PASSWORD: "DEIN_EMAIL_APP_PASSWORD"  # App-Passwort (nicht normales Passwort!)
+      # SMTP Server Einstellungen (Microsoft 365)
+      # SMTP Login erfolgt mit Hauptaccount (admin@vierkorken.ch)
+      # Mails werden mit info@ oder no-reply@ versendet (Send-As Rechte erforderlich)
+      SMTP_HOST: "smtp.office365.com"       # Microsoft 365 SMTP Server
+      SMTP_PORT: "587"                      # 587 für STARTTLS
+      SMTP_SECURE: "false"                  # false für STARTTLS (Port 587)
+      SMTP_USER: "admin@vierkorken.ch"      # Hauptaccount für SMTP Login
+      SMTP_PASS: "DEIN_MICROSOFT_365_PASSWORD"  # Microsoft 365 Passwort
 
-      # Absender-Adresse
-      EMAIL_FROM: "VIERKORKEN <noreply@vierkorken.ch>"
-      EMAIL_USER: "noreply@vierkorken.ch"
+      # E-Mail Absender (Shared Mailboxes mit Send-As Rechten)
+      MAIL_FROM_INFO: "info@vierkorken.ch"       # Für normale Kommunikation
+      MAIL_FROM_NOREPLY: "no-reply@vierkorken.ch" # Nur für Passwort-Reset
 
       # Admin Email für Benachrichtigungen
       ADMIN_EMAIL: "admin@vierkorken.ch"

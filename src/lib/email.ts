@@ -1,29 +1,108 @@
 import nodemailer from 'nodemailer';
+import type { Transporter } from 'nodemailer';
 
-// Email transporter configuration
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.EMAIL_PORT || '587'),
-  secure: false, // true for 465, false for other ports
+// ============================================================
+// Microsoft 365 SMTP Configuration
+// ============================================================
+// SMTP Login erfolgt immer mit dem Hauptaccount (admin@vierkorken.ch)
+// Die Mails werden aber mit dem entsprechenden From: (info@ oder no-reply@) versendet
+// Send-As Rechte müssen im Microsoft 365 Admin Center eingerichtet sein
+
+const SMTP_CONFIG = {
+  host: process.env.SMTP_HOST || 'smtp.office365.com',
+  port: parseInt(process.env.SMTP_PORT || '587'),
+  secure: process.env.SMTP_SECURE === 'true', // false für STARTTLS (Port 587), true für SSL (Port 465)
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
+    user: process.env.SMTP_USER || 'admin@vierkorken.ch',
+    pass: process.env.SMTP_PASS || '',
   },
-});
+  tls: {
+    ciphers: 'SSLv3',
+    rejectUnauthorized: false, // Für Development, in Production auf true setzen
+  },
+};
+
+// Absender-Adressen
+const MAIL_FROM_INFO = process.env.MAIL_FROM_INFO || 'info@vierkorken.ch';
+const MAIL_FROM_NOREPLY = process.env.MAIL_FROM_NOREPLY || 'no-reply@vierkorken.ch';
+
+// Zentraler E-Mail Transporter für Microsoft 365
+const transporter: Transporter = nodemailer.createTransport(SMTP_CONFIG);
+
+// ============================================================
+// Zentrale Mail Utility Funktionen
+// ============================================================
 
 /**
- * Send password reset email
+ * Sendet eine E-Mail mit info@vierkorken.ch als Absender
+ * Verwendet für: Newsletter, Kontaktformular, Bestellungen, normale Kommunikation
+ */
+export async function sendInfoMail(options: {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+  replyTo?: string;
+}) {
+  const mailOptions = {
+    from: `"VIERKORKEN" <${MAIL_FROM_INFO}>`,
+    to: options.to,
+    subject: options.subject,
+    html: options.html,
+    text: options.text,
+    replyTo: options.replyTo || MAIL_FROM_INFO,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log('✅ Info-Mail sent to:', options.to);
+  } catch (error) {
+    console.error('❌ Error sending info-mail:', error);
+    throw new Error('Failed to send info-mail');
+  }
+}
+
+/**
+ * Sendet eine E-Mail mit no-reply@vierkorken.ch als Absender
+ * Verwendet für: Passwort-Reset, Account Recovery (nur ausgehende Mails)
+ */
+export async function sendNoReplyMail(options: {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+}) {
+  const mailOptions = {
+    from: `"VIERKORKEN" <${MAIL_FROM_NOREPLY}>`,
+    to: options.to,
+    subject: options.subject,
+    html: options.html,
+    text: options.text,
+    replyTo: MAIL_FROM_INFO, // Antworten gehen an info@, falls jemand doch antwortet
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log('✅ No-Reply-Mail sent to:', options.to);
+  } catch (error) {
+    console.error('❌ Error sending no-reply-mail:', error);
+    throw new Error('Failed to send no-reply-mail');
+  }
+}
+
+// ============================================================
+// E-Mail Templates & Funktionen
+// ============================================================
+
+/**
+ * Send password reset email (verwendet no-reply@vierkorken.ch)
  */
 export async function sendPasswordResetEmail(
   to: string,
   resetUrl: string,
   firstName: string
 ) {
-  const mailOptions = {
-    from: process.env.EMAIL_FROM || '"VIERKORKEN" <noreply@vierkorken.ch>',
-    to,
-    subject: 'Passwort zurücksetzen - VIERKORKEN',
-    html: `
+  const html = `
       <!DOCTYPE html>
       <html>
         <head>
@@ -86,16 +165,14 @@ Dieser Link ist nur 1 Stunde gültig.
 Falls Sie diese Anfrage nicht gestellt haben, können Sie diese E-Mail ignorieren. Ihr Passwort bleibt unverändert.
 
 © ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop
-    `.trim(),
-  };
+    `.trim();
 
-  try {
-    await transporter.sendMail(mailOptions);
-    console.log('Password reset email sent to:', to);
-  } catch (error) {
-    console.error('Error sending password reset email:', error);
-    throw new Error('Failed to send password reset email');
-  }
+  await sendNoReplyMail({
+    to,
+    subject: 'Passwort zurücksetzen - VIERKORKEN',
+    html,
+    text,
+  });
 }
 
 /**
@@ -107,7 +184,7 @@ export async function sendWelcomeEmail(to: string, firstName: string) {
 }
 
 /**
- * Send contact form inquiry to admin
+ * Send contact form inquiry to admin (verwendet info@vierkorken.ch)
  */
 export async function sendContactEmail(
   name: string,
@@ -115,14 +192,9 @@ export async function sendContactEmail(
   subject: string,
   message: string
 ) {
-  const adminEmail = process.env.EMAIL_USER || 'info@vierkorken.ch';
+  const adminEmail = process.env.ADMIN_EMAIL || 'info@vierkorken.ch';
 
-  const mailOptions = {
-    from: process.env.EMAIL_FROM || '"VIERKORKEN" <noreply@vierkorken.ch>',
-    to: adminEmail,
-    replyTo: email, // Allow admin to reply directly to sender
-    subject: `Kontaktanfrage: ${subject}`,
-    html: `
+  const html = `
       <!DOCTYPE html>
       <html>
         <head>
@@ -180,16 +252,15 @@ ${message}
 Sie können direkt auf diese E-Mail antworten, um dem Kunden zu antworten.
 
 © ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop
-    `.trim(),
-  };
+    `.trim();
 
-  try {
-    await transporter.sendMail(mailOptions);
-    console.log('✅ Contact form email sent to admin:', adminEmail);
-  } catch (error) {
-    console.error('❌ Error sending contact form email:', error);
-    throw new Error('Failed to send contact form email');
-  }
+  await sendInfoMail({
+    to: adminEmail,
+    subject: `Kontaktanfrage: ${subject}`,
+    html,
+    text,
+    replyTo: email, // Admin kann direkt auf die E-Mail des Kunden antworten
+  });
 }
 
 /**
@@ -406,32 +477,27 @@ async function generateInvoicePDF_DISABLED(orderId: string): Promise<Buffer> {
 }
 
 /**
- * Send order confirmation email with link to PDF invoice
+ * Send order confirmation email with link to PDF invoice (verwendet info@vierkorken.ch)
  */
 export async function sendOrderConfirmationEmail(to: string, orderId: string, orderDetails: any) {
-  try {
-    // Create invoice download link instead of attaching PDF
-    const invoiceUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/orders/${orderId}/invoice`;
+  // Create invoice download link instead of attaching PDF
+  const invoiceUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/orders/${orderId}/invoice`;
 
-    // Format items list for email
-    const itemsList = orderDetails.items
-      .map(
-        (item: any) =>
-          `• ${item.quantity}x ${item.wineName} (${item.winery}, ${item.vintage || 'N/A'}, ${item.bottleSize}l) - CHF ${Number(item.totalPrice).toFixed(2)}`
-      )
-      .join('\n');
+  // Format items list for email
+  const itemsList = orderDetails.items
+    .map(
+      (item: any) =>
+        `• ${item.quantity}x ${item.wineName} (${item.winery}, ${item.vintage || 'N/A'}, ${item.bottleSize}l) - CHF ${Number(item.totalPrice).toFixed(2)}`
+    )
+    .join('\n');
 
-    const formatPrice = (price: number) => `CHF ${Number(price).toFixed(2)}`;
+  const formatPrice = (price: number) => `CHF ${Number(price).toFixed(2)}`;
 
-    // Format addresses
-    const billingAddr = orderDetails.billingAddress;
-    const shippingAddr = orderDetails.shippingAddress;
+  // Format addresses
+  const billingAddr = orderDetails.billingAddress;
+  const shippingAddr = orderDetails.shippingAddress;
 
-    const mailOptions = {
-      from: process.env.EMAIL_FROM || '"VIERKORKEN" <noreply@vierkorken.ch>',
-      to,
-      subject: `Bestellbestätigung - ${orderDetails.orderNumber}`,
-      html: `
+  const html = `
         <!DOCTYPE html>
         <html>
           <head>
@@ -590,46 +656,40 @@ Musterstrasse 1, 8000 Zürich, Schweiz
 info@vierkorken.ch | www.vierkorken.ch
 
 Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
-      `.trim(),
-    };
+      `.trim();
 
-    await transporter.sendMail(mailOptions);
-    console.log('✅ Order confirmation email sent to:', to);
-  } catch (error) {
-    console.error('❌ Error sending order confirmation email:', error);
-    throw new Error('Failed to send order confirmation email');
-  }
+  await sendInfoMail({
+    to,
+    subject: `Bestellbestätigung - ${orderDetails.orderNumber}`,
+    html,
+    text,
+  });
 }
 
 /**
- * Send new order notification to admin/vendor
+ * Send new order notification to admin/vendor (verwendet info@vierkorken.ch)
  */
 export async function sendNewOrderNotificationToAdmin(orderId: string, orderDetails: any) {
-  try {
-    const adminEmail = process.env.EMAIL_USER || 'info@vierkorken.ch';
+  const adminEmail = process.env.ADMIN_EMAIL || 'info@vierkorken.ch';
 
-    // Format items list for email
-    const itemsList = orderDetails.items
-      .map(
-        (item: any) =>
-          `<tr>
-            <td style="padding: 8px; border-bottom: 1px solid #e0e0e0;">${item.quantity}x ${item.wineName}</td>
-            <td style="padding: 8px; border-bottom: 1px solid #e0e0e0; text-align: right;">CHF ${Number(item.totalPrice).toFixed(2)}</td>
-          </tr>`
-      )
-      .join('');
+  // Format items list for email
+  const itemsList = orderDetails.items
+    .map(
+      (item: any) =>
+        `<tr>
+          <td style="padding: 8px; border-bottom: 1px solid #e0e0e0;">${item.quantity}x ${item.wineName}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #e0e0e0; text-align: right;">CHF ${Number(item.totalPrice).toFixed(2)}</td>
+        </tr>`
+    )
+    .join('');
 
-    const formatPrice = (price: number) => `CHF ${Number(price).toFixed(2)}`;
+  const formatPrice = (price: number) => `CHF ${Number(price).toFixed(2)}`;
 
-    // Format addresses
-    const billingAddr = orderDetails.billingAddress;
-    const shippingAddr = orderDetails.shippingAddress;
+  // Format addresses
+  const billingAddr = orderDetails.billingAddress;
+  const shippingAddr = orderDetails.shippingAddress;
 
-    const mailOptions = {
-      from: process.env.EMAIL_FROM || '"VIERKORKEN" <noreply@vierkorken.ch>',
-      to: adminEmail,
-      subject: `🔔 Neue Bestellung - ${orderDetails.orderNumber}`,
-      html: `
+  const html = `
         <!DOCTYPE html>
         <html>
           <head>
@@ -780,11 +840,15 @@ ${orderDetails.items.map((item: any) =>
 Gesamtbetrag: ${formatPrice(orderDetails.total)}
 
 Admin-Panel: ${process.env.NEXT_PUBLIC_APP_URL}/admin/orders
-      `.trim(),
-    };
+      `.trim();
 
-    await transporter.sendMail(mailOptions);
-    console.log('✅ Order notification sent to admin:', adminEmail);
+  try {
+    await sendInfoMail({
+      to: adminEmail,
+      subject: `🔔 Neue Bestellung - ${orderDetails.orderNumber}`,
+      html,
+      text,
+    });
   } catch (error) {
     console.error('❌ Error sending admin notification:', error);
     // Don't throw error - admin notification is not critical
@@ -792,14 +856,10 @@ Admin-Panel: ${process.env.NEXT_PUBLIC_APP_URL}/admin/orders
 }
 
 /**
- * Send maintenance mode subscription confirmation email
+ * Send maintenance mode subscription confirmation email (verwendet info@vierkorken.ch)
  */
 export async function sendMaintenanceSubscriptionEmail(to: string) {
-  const mailOptions = {
-    from: process.env.EMAIL_FROM || '"VIERKORKEN" <noreply@vierkorken.ch>',
-    to,
-    subject: 'Vielen Dank für Ihr Interesse an VIERKORKEN',
-    html: `
+  const html = `
       <!DOCTYPE html>
       <html>
         <head>
@@ -874,29 +934,23 @@ Ihr VIERKORKEN Team
 ---
 © ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop
 info@vierkorken.ch
-    `.trim(),
-  };
+    `.trim();
 
-  try {
-    await transporter.sendMail(mailOptions);
-    console.log('✅ Maintenance subscription email sent to:', to);
-  } catch (error) {
-    console.error('❌ Error sending maintenance subscription email:', error);
-    throw new Error('Failed to send subscription confirmation email');
-  }
+  await sendInfoMail({
+    to,
+    subject: 'Vielen Dank für Ihr Interesse an VIERKORKEN',
+    html,
+    text,
+  });
 }
 
 /**
- * Send launch notification email to subscribers
+ * Send launch notification email to subscribers (verwendet info@vierkorken.ch)
  */
 export async function sendLaunchNotificationEmail(to: string) {
   const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://vierkorken.ch';
 
-  const mailOptions = {
-    from: process.env.EMAIL_FROM || '"VIERKORKEN" <noreply@vierkorken.ch>',
-    to,
-    subject: '🎉 VIERKORKEN ist jetzt online!',
-    html: `
+  const html = `
       <!DOCTYPE html>
       <html>
         <head>
@@ -983,30 +1037,24 @@ Ihr VIERKORKEN Team
 ---
 © ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop
 info@vierkorken.ch | ${siteUrl}
-    `.trim(),
-  };
+    `.trim();
 
-  try {
-    await transporter.sendMail(mailOptions);
-    console.log('✅ Launch notification email sent to:', to);
-  } catch (error) {
-    console.error('❌ Error sending launch notification email:', error);
-    throw new Error('Failed to send launch notification email');
-  }
+  await sendInfoMail({
+    to,
+    subject: '🎉 VIERKORKEN ist jetzt online!',
+    html,
+    text,
+  });
 }
 
 /**
- * Send newsletter subscription confirmation email
+ * Send newsletter subscription confirmation email (verwendet info@vierkorken.ch)
  */
 export async function sendNewsletterConfirmationEmail(to: string) {
   const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://vierkorken.ch';
   const unsubscribeUrl = `${siteUrl}/newsletter/unsubscribe?email=${encodeURIComponent(to)}`;
 
-  const mailOptions = {
-    from: process.env.EMAIL_FROM || '"VIERKORKEN" <noreply@vierkorken.ch>',
-    to,
-    subject: 'Willkommen beim VIERKORKEN Newsletter',
-    html: `
+  const html = `
       <!DOCTYPE html>
       <html>
         <head>
@@ -1093,20 +1141,18 @@ Newsletter abbestellen: ${unsubscribeUrl}
 
 © ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop
 info@vierkorken.ch
-    `.trim(),
-  };
+    `.trim();
 
-  try {
-    await transporter.sendMail(mailOptions);
-    console.log('✅ Newsletter confirmation email sent to:', to);
-  } catch (error) {
-    console.error('❌ Error sending newsletter confirmation email:', error);
-    throw new Error('Failed to send newsletter confirmation email');
-  }
+  await sendInfoMail({
+    to,
+    subject: 'Willkommen beim VIERKORKEN Newsletter',
+    html,
+    text,
+  });
 }
 
 /**
- * Send news notification email to newsletter subscribers
+ * Send news notification email to newsletter subscribers (verwendet info@vierkorken.ch)
  */
 export async function sendNewsNotificationEmail(
   to: string,
@@ -1127,11 +1173,7 @@ export async function sendNewsNotificationEmail(
     ? news.content.substring(0, 500) + '...'
     : news.content;
 
-  const mailOptions = {
-    from: process.env.EMAIL_FROM || '"VIERKORKEN" <noreply@vierkorken.ch>',
-    to,
-    subject: `Neue News: ${news.title}`,
-    html: `
+  const html = `
       <!DOCTYPE html>
       <html>
         <head>
@@ -1233,14 +1275,12 @@ Newsletter abbestellen: ${unsubscribeUrl}
 
 © ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop
 info@vierkorken.ch
-    `.trim(),
-  };
+    `.trim();
 
-  try {
-    await transporter.sendMail(mailOptions);
-    console.log('✅ News notification email sent to:', to);
-  } catch (error) {
-    console.error('❌ Error sending news notification email:', error);
-    throw new Error('Failed to send news notification email');
-  }
+  await sendInfoMail({
+    to,
+    subject: `Neue News: ${news.title}`,
+    html,
+    text,
+  });
 }
