@@ -118,7 +118,7 @@ export async function sendPasswordResetEmail(
           <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
             <h2 style="color: #333; margin-top: 0;">Passwort zurücksetzen</h2>
 
-            <p>Hallo ${firstName ? firstName : ''},</p>
+            <p>Hallo ${firstName || ''},</p>
 
             <p>Sie haben eine Anfrage zum Zurücksetzen Ihres Passworts gestellt. Klicken Sie auf den untenstehenden Button, um ein neues Passwort zu erstellen:</p>
 
@@ -150,11 +150,12 @@ export async function sendPasswordResetEmail(
           </div>
         </body>
       </html>
-    `,
-    text: `
+    `;
+
+  const text = `
 Passwort zurücksetzen - VIERKORKEN
 
-Hallo ${firstName ? firstName : ''},
+Hallo ${firstName || ''},
 
 Sie haben eine Anfrage zum Zurücksetzen Ihres Passworts gestellt. Verwenden Sie den folgenden Link, um ein neues Passwort zu erstellen:
 
@@ -237,8 +238,9 @@ export async function sendContactEmail(
           </div>
         </body>
       </html>
-    `,
-    text: `
+    `;
+
+  const text = `
 VIERKORKEN - Neue Kontaktanfrage
 
 KONTAKTDATEN:
@@ -605,8 +607,9 @@ export async function sendOrderConfirmationEmail(to: string, orderId: string, or
             </div>
           </body>
         </html>
-      `,
-      text: `
+      `;
+
+  const text = `
 VIERKORKEN - Bestellbestätigung
 
 Vielen Dank für Ihre Bestellung!
@@ -823,8 +826,9 @@ export async function sendNewOrderNotificationToAdmin(orderId: string, orderDeta
             </div>
           </body>
         </html>
-      `,
-      text: `
+      `;
+
+  const text = `
 VIERKORKEN - Neue Bestellung
 
 Bestellnummer: ${orderDetails.orderNumber}
@@ -910,8 +914,9 @@ export async function sendMaintenanceSubscriptionEmail(to: string) {
           </div>
         </body>
       </html>
-    `,
-    text: `
+    `;
+
+  const text = `
 VIERKORKEN - Premium Weinshop
 
 Vielen Dank für Ihr Interesse!
@@ -1009,8 +1014,9 @@ export async function sendLaunchNotificationEmail(to: string) {
           </div>
         </body>
       </html>
-    `,
-    text: `
+    `;
+
+  const text = `
 VIERKORKEN - Premium Weinshop
 
 Wir sind jetzt online!
@@ -1114,8 +1120,9 @@ export async function sendNewsletterConfirmationEmail(to: string) {
           </div>
         </body>
       </html>
-    `,
-    text: `
+    `;
+
+  const text = `
 VIERKORKEN - Premium Weinshop
 
 Willkommen beim VIERKORKEN Newsletter!
@@ -1247,8 +1254,9 @@ export async function sendNewsNotificationEmail(
           </div>
         </body>
       </html>
-    `,
-    text: `
+    `;
+
+  const text = `
 VIERKORKEN - Premium Weinshop
 
 NEUE NEUIGKEITEN
