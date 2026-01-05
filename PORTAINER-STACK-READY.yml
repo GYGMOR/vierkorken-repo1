@@ -43,15 +43,13 @@ services:
       STRIPE_WEBHOOK_SECRET: "whsec_YOUR_STRIPE_WEBHOOK_SECRET"
 
       # ============================================================
-      # EMAIL / SMTP (Microsoft 365) - ✅ FERTIG!
-      # SMTP Login erfolgt mit Hauptaccount (admin@vierkorken.ch)
-      # Mails werden mit info@ oder no-reply@ versendet (Send-As Rechte erforderlich)
+      # EMAIL via Microsoft Graph API (Modern & Secure) - ✅ FERTIG!
+      # Verwendet OAuth2 statt SMTP - funktioniert mit Security Defaults
+      # Siehe AZURE-APP-REGISTRATION.md für Setup-Anleitung
       # ============================================================
-      SMTP_HOST: "smtp.office365.com"
-      SMTP_PORT: "587"
-      SMTP_SECURE: "false"
-      SMTP_USER: "admin@vierkorken.ch"
-      SMTP_PASS: "your-microsoft-365-password"
+      MS_TENANT_ID: "YOUR_MS_TENANT_ID"
+      MS_CLIENT_ID: "YOUR_MS_CLIENT_ID"
+      MS_CLIENT_SECRET: "YOUR_MS_CLIENT_SECRET"
       MAIL_FROM_INFO: "info@vierkorken.ch"
       MAIL_FROM_NOREPLY: "no-reply@vierkorken.ch"
       ADMIN_EMAIL: "admin@vierkorken.ch"
