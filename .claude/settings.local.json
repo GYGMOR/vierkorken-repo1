@@ -47,7 +47,9 @@
       "Bash(del nul)",
       "Bash(del robocopy.log)",
       "Bash(del:*)",
-      "Bash(del check-tickets-qr.js)"
+      "Bash(del check-tickets-qr.js)",
+      "Bash(ls:*)",
+      "Bash(git mv:*)"
     ],
     "deny": [],
     "ask": []
