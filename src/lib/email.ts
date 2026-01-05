@@ -152,7 +152,8 @@ export async function sendNoReplyMail(options: {
 // ============================================================
 
 /**
- * Send password reset email (verwendet no-reply@vierkorken.ch)
+ * Send password reset email (verwendet info@vierkorken.ch)
+ * WICHTIG: Wir verwenden info@ statt no-reply@ für bessere Zustellbarkeit
  */
 export async function sendPasswordResetEmail(
   to: string,
@@ -202,7 +203,7 @@ export async function sendPasswordResetEmail(
 
             <p style="color: #999; font-size: 12px; text-align: center;">
               © ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop<br>
-              Diese E-Mail wurde automatisch generiert. Bitte antworten Sie nicht darauf.
+              Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
             </p>
           </div>
         </body>
@@ -223,9 +224,11 @@ Dieser Link ist nur 1 Stunde gültig.
 Falls Sie diese Anfrage nicht gestellt haben, können Sie diese E-Mail ignorieren. Ihr Passwort bleibt unverändert.
 
 © ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop
+Bei Fragen: info@vierkorken.ch
     `.trim();
 
-  await sendNoReplyMail({
+  // Verwenden info@ statt no-reply@ für bessere Zustellbarkeit
+  await sendInfoMail({
     to,
     subject: 'Passwort zurücksetzen - VIERKORKEN',
     html,
