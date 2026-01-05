@@ -1,36 +1,49 @@
-import nodemailer from 'nodemailer';
-import type { Transporter } from 'nodemailer';
+/**
+ * Microsoft Graph API E-Mail System
+ *
+ * Verwendet Microsoft Graph API statt SMTP für E-Mail-Versand
+ * Vorteil: Keine SMTP-Probleme, moderne OAuth2 Authentifizierung, funktioniert mit Security Defaults
+ */
+
+import { Client } from '@microsoft/microsoft-graph-client';
+import { ClientSecretCredential } from '@azure/identity';
+import 'isomorphic-fetch';
 
 // ============================================================
-// Microsoft 365 SMTP Configuration
+// Microsoft Graph API Konfiguration
 // ============================================================
-// SMTP Login erfolgt immer mit dem Hauptaccount (admin@vierkorken.ch)
-// Die Mails werden aber mit dem entsprechenden From: (info@ oder no-reply@) versendet
-// Send-As Rechte müssen im Microsoft 365 Admin Center eingerichtet sein
-
-const SMTP_CONFIG = {
-  host: process.env.SMTP_HOST || 'smtp.office365.com',
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: process.env.SMTP_SECURE === 'true', // false für STARTTLS (Port 587), true für SSL (Port 465)
-  auth: {
-    user: process.env.SMTP_USER || 'admin@vierkorken.ch',
-    pass: process.env.SMTP_PASS || '',
-  },
-  tls: {
-    ciphers: 'SSLv3',
-    rejectUnauthorized: false, // Für Development, in Production auf true setzen
-  },
-};
-
-// Absender-Adressen
+const MS_TENANT_ID = process.env.MS_TENANT_ID || '';
+const MS_CLIENT_ID = process.env.MS_CLIENT_ID || '';
+const MS_CLIENT_SECRET = process.env.MS_CLIENT_SECRET || '';
 const MAIL_FROM_INFO = process.env.MAIL_FROM_INFO || 'info@vierkorken.ch';
 const MAIL_FROM_NOREPLY = process.env.MAIL_FROM_NOREPLY || 'no-reply@vierkorken.ch';
 
-// Zentraler E-Mail Transporter für Microsoft 365
-const transporter: Transporter = nodemailer.createTransport(SMTP_CONFIG);
+// Graph API Client erstellen
+function getGraphClient() {
+  if (!MS_TENANT_ID || !MS_CLIENT_ID || !MS_CLIENT_SECRET) {
+    throw new Error('Microsoft Graph API credentials missing. Check MS_TENANT_ID, MS_CLIENT_ID, MS_CLIENT_SECRET in .env');
+  }
+
+  const credential = new ClientSecretCredential(
+    MS_TENANT_ID,
+    MS_CLIENT_ID,
+    MS_CLIENT_SECRET
+  );
+
+  const client = Client.initWithMiddleware({
+    authProvider: {
+      getAccessToken: async () => {
+        const token = await credential.getToken('https://graph.microsoft.com/.default');
+        return token?.token || '';
+      },
+    },
+  });
+
+  return client;
+}
 
 // ============================================================
-// Zentrale Mail Utility Funktionen
+// Zentrale E-Mail Utility Funktionen
 // ============================================================
 
 /**
@@ -44,21 +57,44 @@ export async function sendInfoMail(options: {
   text: string;
   replyTo?: string;
 }) {
-  const mailOptions = {
-    from: `"VIERKORKEN" <${MAIL_FROM_INFO}>`,
-    to: options.to,
-    subject: options.subject,
-    html: options.html,
-    text: options.text,
-    replyTo: options.replyTo || MAIL_FROM_INFO,
+  const client = getGraphClient();
+
+  const message = {
+    message: {
+      subject: options.subject,
+      body: {
+        contentType: 'HTML',
+        content: options.html,
+      },
+      toRecipients: [
+        {
+          emailAddress: {
+            address: options.to,
+          },
+        },
+      ],
+      replyTo: options.replyTo
+        ? [
+            {
+              emailAddress: {
+                address: options.replyTo,
+              },
+            },
+          ]
+        : undefined,
+    },
+    saveToSentItems: true,
   };
 
   try {
-    await transporter.sendMail(mailOptions);
-    console.log('✅ Info-Mail sent to:', options.to);
-  } catch (error) {
-    console.error('❌ Error sending info-mail:', error);
-    throw new Error('Failed to send info-mail');
+    await client
+      .api(`/users/${MAIL_FROM_INFO}/sendMail`)
+      .post(message);
+
+    console.log('✅ Info-Mail sent to:', options.to, 'from:', MAIL_FROM_INFO);
+  } catch (error: any) {
+    console.error('❌ Error sending info-mail:', error.message);
+    throw new Error(`Failed to send info-mail: ${error.message}`);
   }
 }
 
@@ -72,21 +108,42 @@ export async function sendNoReplyMail(options: {
   html: string;
   text: string;
 }) {
-  const mailOptions = {
-    from: `"VIERKORKEN" <${MAIL_FROM_NOREPLY}>`,
-    to: options.to,
-    subject: options.subject,
-    html: options.html,
-    text: options.text,
-    replyTo: MAIL_FROM_INFO, // Antworten gehen an info@, falls jemand doch antwortet
+  const client = getGraphClient();
+
+  const message = {
+    message: {
+      subject: options.subject,
+      body: {
+        contentType: 'HTML',
+        content: options.html,
+      },
+      toRecipients: [
+        {
+          emailAddress: {
+            address: options.to,
+          },
+        },
+      ],
+      replyTo: [
+        {
+          emailAddress: {
+            address: MAIL_FROM_INFO, // Antworten gehen an info@, falls jemand doch antwortet
+          },
+        },
+      ],
+    },
+    saveToSentItems: true,
   };
 
   try {
-    await transporter.sendMail(mailOptions);
-    console.log('✅ No-Reply-Mail sent to:', options.to);
-  } catch (error) {
-    console.error('❌ Error sending no-reply-mail:', error);
-    throw new Error('Failed to send no-reply-mail');
+    await client
+      .api(`/users/${MAIL_FROM_NOREPLY}/sendMail`)
+      .post(message);
+
+    console.log('✅ No-Reply-Mail sent to:', options.to, 'from:', MAIL_FROM_NOREPLY);
+  } catch (error: any) {
+    console.error('❌ Error sending no-reply-mail:', error.message);
+    throw new Error(`Failed to send no-reply-mail: ${error.message}`);
   }
 }
 
@@ -262,219 +319,6 @@ Sie können direkt auf diese E-Mail antworten, um dem Kunden zu antworten.
     html,
     text,
     replyTo: email, // Admin kann direkt auf die E-Mail des Kunden antworten
-  });
-}
-
-/**
- * Generate PDF invoice buffer using the existing invoice generator
- * NOTE: This is disabled due to PDFKit font issues in Next.js
- */
-async function generateInvoicePDF_DISABLED(orderId: string): Promise<Buffer> {
-  // Import the PDF generation logic from the invoice route
-  const PDFDocument = (await import('pdfkit')).default;
-  const { prisma } = await import('@/lib/prisma');
-
-  // Fetch order from database
-  const dbOrder = await prisma.order.findUnique({
-    where: { id: orderId },
-    include: {
-      items: true,
-      user: true,
-    },
-  });
-
-  if (!dbOrder) {
-    throw new Error('Order not found');
-  }
-
-  // Parse JSON addresses
-  const shippingAddress = dbOrder.shippingAddress as any;
-  const billingAddress = dbOrder.billingAddress as any;
-
-  // Transform to format expected by PDF generator
-  const order = {
-    orderNumber: dbOrder.orderNumber,
-    date: dbOrder.createdAt.toISOString().split('T')[0],
-    customerFirstName: dbOrder.customerFirstName,
-    customerLastName: dbOrder.customerLastName,
-    billingAddress: {
-      company: billingAddress?.company || '',
-      firstName: billingAddress?.firstName || dbOrder.customerFirstName,
-      lastName: billingAddress?.lastName || dbOrder.customerLastName,
-      street: billingAddress?.street || '',
-      streetNumber: billingAddress?.streetNumber || '',
-      postalCode: billingAddress?.postalCode || '',
-      city: billingAddress?.city || '',
-      country: billingAddress?.country || 'Schweiz',
-    },
-    items: dbOrder.items.map(item => ({
-      wineName: item.wineName,
-      winery: item.winery,
-      vintage: item.vintage || 0,
-      bottleSize: Number(item.bottleSize),
-      quantity: item.quantity,
-      unitPrice: Number(item.unitPrice),
-      totalPrice: Number(item.totalPrice),
-    })),
-    subtotal: Number(dbOrder.subtotal),
-    shippingCost: Number(dbOrder.shippingCost),
-    taxAmount: Number(dbOrder.taxAmount),
-    taxRate: 8.1,
-    total: Number(dbOrder.total),
-  };
-
-  const formatPrice = (price: number): string => {
-    return new Intl.NumberFormat('de-CH', {
-      style: 'currency',
-      currency: 'CHF',
-    }).format(price);
-  };
-
-  const formatDate = (dateString: string): string => {
-    return new Intl.DateTimeFormat('de-CH', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    }).format(new Date(dateString));
-  };
-
-  // Create PDF
-  const doc = new PDFDocument({ size: 'A4', margin: 50 });
-  const chunks: Buffer[] = [];
-
-  doc.on('data', (chunk) => chunks.push(chunk));
-
-  // Company Header (no bold fonts, just normal)
-  doc
-    .fontSize(24)
-    .text('VIERKORKEN', 50, 50);
-
-  doc
-    .fontSize(10)
-    .text('Premium Weinshop', 50, 80)
-    .text('Musterstrasse 1', 50, 95)
-    .text('8000 Zürich', 50, 110)
-    .text('Schweiz', 50, 125)
-    .text('info@vierkorken.ch', 50, 140)
-    .text('www.vierkorken.ch', 50, 155);
-
-  // Invoice Title
-  doc
-    .fontSize(20)
-    .text('RECHNUNG', 50, 220);
-
-  // Invoice Info
-  doc
-    .fontSize(10)
-    .text(`Rechnungsnummer: ${order.orderNumber}`, 50, 250)
-    .text(`Datum: ${formatDate(order.date)}`, 50, 265);
-
-  // Billing Address
-  doc
-    .fontSize(12)
-    .text('Rechnungsadresse:', 350, 220);
-
-  doc.fontSize(10);
-
-  let yPos = 240;
-  if (order.billingAddress.company) {
-    doc.text(order.billingAddress.company, 350, yPos);
-    yPos += 15;
-  }
-  doc
-    .text(`${order.billingAddress.firstName} ${order.billingAddress.lastName}`, 350, yPos)
-    .text(`${order.billingAddress.street} ${order.billingAddress.streetNumber}`, 350, yPos + 15)
-    .text(`${order.billingAddress.postalCode} ${order.billingAddress.city}`, 350, yPos + 30)
-    .text(order.billingAddress.country, 350, yPos + 45);
-
-  // Items Table
-  const tableTop = 350;
-  doc.fontSize(10);
-
-  // Table Header
-  doc
-    .text('Artikel', 50, tableTop)
-    .text('Menge', 300, tableTop, { width: 50, align: 'right' })
-    .text('Einzelpreis', 370, tableTop, { width: 80, align: 'right' })
-    .text('Gesamt', 470, tableTop, { width: 80, align: 'right' });
-
-  // Line under header
-  doc
-    .moveTo(50, tableTop + 15)
-    .lineTo(550, tableTop + 15)
-    .stroke();
-
-  // Table Items
-  let yPosition = tableTop + 25;
-
-  order.items.forEach((item) => {
-    doc
-      .text(
-        `${item.wineName}\n${item.winery} • ${item.vintage} • ${item.bottleSize}l`,
-        50,
-        yPosition,
-        { width: 240 }
-      )
-      .text(item.quantity.toString(), 300, yPosition, { width: 50, align: 'right' })
-      .text(formatPrice(item.unitPrice), 370, yPosition, { width: 80, align: 'right' })
-      .text(formatPrice(item.totalPrice), 470, yPosition, { width: 80, align: 'right' });
-
-    yPosition += 45;
-  });
-
-  // Totals
-  yPosition += 20;
-  doc
-    .moveTo(350, yPosition)
-    .lineTo(550, yPosition)
-    .stroke();
-
-  yPosition += 15;
-
-  doc
-    .text('Zwischensumme:', 350, yPosition)
-    .text(formatPrice(order.subtotal), 470, yPosition, { width: 80, align: 'right' });
-
-  yPosition += 20;
-  doc
-    .text('Versand:', 350, yPosition)
-    .text(formatPrice(order.shippingCost), 470, yPosition, { width: 80, align: 'right' });
-
-  yPosition += 20;
-  doc
-    .text(`MwSt. (${order.taxRate}%):`, 350, yPosition)
-    .text(formatPrice(order.taxAmount), 470, yPosition, { width: 80, align: 'right' });
-
-  yPosition += 25;
-  doc
-    .moveTo(350, yPosition)
-    .lineTo(550, yPosition)
-    .stroke();
-
-  yPosition += 15;
-  doc
-    .fontSize(12)
-    .text('Gesamtbetrag:', 350, yPosition)
-    .text(formatPrice(order.total), 470, yPosition, { width: 80, align: 'right' });
-
-  // Footer
-  doc
-    .fontSize(8)
-    .text(
-      'Zahlungsbedingungen: Innerhalb von 30 Tagen ohne Abzug.\nVielen Dank für Ihren Einkauf!',
-      50,
-      750,
-      { align: 'center', width: 500 }
-    );
-
-  // Finalize PDF
-  doc.end();
-
-  // Wait for PDF to be generated
-  return new Promise<Buffer>((resolve) => {
-    doc.on('end', () => {
-      resolve(Buffer.concat(chunks));
-    });
   });
 }
 

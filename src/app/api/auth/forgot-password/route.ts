@@ -62,13 +62,28 @@ export async function POST(req: NextRequest) {
     // Send password reset email
     const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/passwort-zuruecksetzen?token=${resetToken}`;
 
-    await sendPasswordResetEmail(user.email, resetUrl, user.firstName || '');
+    try {
+      await sendPasswordResetEmail(user.email, resetUrl, user.firstName || '');
 
-    logSecurityEvent(
-      'Password reset email sent',
-      { userId: user.id, email: user.email },
-      'low'
-    );
+      logSecurityEvent(
+        'Password reset email sent successfully',
+        { userId: user.id, email: user.email },
+        'low'
+      );
+
+      console.log('✅ Password reset email sent successfully to:', user.email);
+    } catch (emailError: any) {
+      // Log the email error but don't expose it to the user for security reasons
+      console.error('❌ Failed to send password reset email:', emailError.message);
+      logSecurityEvent(
+        'Password reset email failed',
+        { userId: user.id, email: user.email, error: emailError.message },
+        'medium'
+      );
+
+      // Still return success message to prevent email enumeration
+      // but the email won't be sent
+    }
 
     return NextResponse.json({
       message:

@@ -56,23 +56,18 @@ services:
       STRIPE_WEBHOOK_SECRET: "whsec_DEIN_WEBHOOK_SECRET"
 
       # ============================================================
-      # EMAIL / SMTP (Bestellbestätigungen, Passwort-Reset)
+      # EMAIL via Microsoft Graph API (Modern & Secure)
       # ⚠️ WICHTIG für E-Mail Benachrichtigungen!
       # ============================================================
-      # SMTP Server Einstellungen (Microsoft 365)
-      # SMTP Login erfolgt mit Hauptaccount (admin@vierkorken.ch)
-      # Mails werden mit info@ oder no-reply@ versendet (Send-As Rechte erforderlich)
-      SMTP_HOST: "smtp.office365.com"       # Microsoft 365 SMTP Server
-      SMTP_PORT: "587"                      # 587 für STARTTLS
-      SMTP_SECURE: "false"                  # false für STARTTLS (Port 587)
-      SMTP_USER: "admin@vierkorken.ch"      # Hauptaccount für SMTP Login
-      SMTP_PASS: "DEIN_MICROSOFT_365_PASSWORD"  # Microsoft 365 Passwort
+      # Azure App Registration Credentials
+      # ⚠️ Trage hier deine echten Credentials ein (siehe AZURE-APP-REGISTRATION.md)
+      MS_TENANT_ID: "YOUR_MS_TENANT_ID"
+      MS_CLIENT_ID: "YOUR_MS_CLIENT_ID"
+      MS_CLIENT_SECRET: "YOUR_MS_CLIENT_SECRET"
 
-      # E-Mail Absender (Shared Mailboxes mit Send-As Rechten)
-      MAIL_FROM_INFO: "info@vierkorken.ch"       # Für normale Kommunikation
-      MAIL_FROM_NOREPLY: "no-reply@vierkorken.ch" # Nur für Passwort-Reset
-
-      # Admin Email für Benachrichtigungen
+      # E-Mail Absender (Shared Mailboxes)
+      MAIL_FROM_INFO: "info@vierkorken.ch"
+      MAIL_FROM_NOREPLY: "no-reply@vierkorken.ch"
       ADMIN_EMAIL: "admin@vierkorken.ch"
 
       # ============================================================
