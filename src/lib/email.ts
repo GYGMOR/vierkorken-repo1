@@ -18,6 +18,21 @@ const MS_CLIENT_SECRET = process.env.MS_CLIENT_SECRET || '';
 const MAIL_FROM_INFO = process.env.MAIL_FROM_INFO || 'info@vierkorken.ch';
 const MAIL_FROM_NOREPLY = process.env.MAIL_FROM_NOREPLY || 'no-reply@vierkorken.ch';
 
+// Timeout für E-Mail-Versand (Standard: 10 Sekunden)
+const EMAIL_TIMEOUT = parseInt(process.env.EMAIL_TIMEOUT || '10000', 10);
+
+/**
+ * Timeout Promise Wrapper für schnellere Fehlerbehandlung
+ */
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMessage: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(errorMessage)), timeoutMs)
+    ),
+  ]);
+}
+
 // Graph API Client erstellen
 function getGraphClient() {
   if (!MS_TENANT_ID || !MS_CLIENT_ID || !MS_CLIENT_SECRET) {
@@ -33,7 +48,12 @@ function getGraphClient() {
   const client = Client.initWithMiddleware({
     authProvider: {
       getAccessToken: async () => {
-        const token = await credential.getToken('https://graph.microsoft.com/.default');
+        const tokenPromise = credential.getToken('https://graph.microsoft.com/.default');
+        const token = await withTimeout(
+          tokenPromise,
+          5000,
+          'Microsoft Graph API token request timed out after 5s'
+        );
         return token?.token || '';
       },
     },
@@ -87,11 +107,21 @@ export async function sendInfoMail(options: {
   };
 
   try {
-    await client
+    const startTime = Date.now();
+    console.log('📧 Sending info-mail to:', options.to, 'subject:', options.subject);
+
+    const sendPromise = client
       .api(`/users/${MAIL_FROM_INFO}/sendMail`)
       .post(message);
 
-    console.log('✅ Info-Mail sent to:', options.to, 'from:', MAIL_FROM_INFO);
+    await withTimeout(
+      sendPromise,
+      EMAIL_TIMEOUT,
+      `Email sending timed out after ${EMAIL_TIMEOUT}ms`
+    );
+
+    const duration = Date.now() - startTime;
+    console.log(`✅ Info-Mail sent to: ${options.to} from: ${MAIL_FROM_INFO} (${duration}ms)`);
   } catch (error: any) {
     console.error('❌ Error sending info-mail:', error.message);
     throw new Error(`Failed to send info-mail: ${error.message}`);
@@ -136,11 +166,21 @@ export async function sendNoReplyMail(options: {
   };
 
   try {
-    await client
+    const startTime = Date.now();
+    console.log('📧 Sending no-reply-mail to:', options.to, 'subject:', options.subject);
+
+    const sendPromise = client
       .api(`/users/${MAIL_FROM_NOREPLY}/sendMail`)
       .post(message);
 
-    console.log('✅ No-Reply-Mail sent to:', options.to, 'from:', MAIL_FROM_NOREPLY);
+    await withTimeout(
+      sendPromise,
+      EMAIL_TIMEOUT,
+      `Email sending timed out after ${EMAIL_TIMEOUT}ms`
+    );
+
+    const duration = Date.now() - startTime;
+    console.log(`✅ No-Reply-Mail sent to: ${options.to} from: ${MAIL_FROM_NOREPLY} (${duration}ms)`);
   } catch (error: any) {
     console.error('❌ Error sending no-reply-mail:', error.message);
     throw new Error(`Failed to send no-reply-mail: ${error.message}`);
