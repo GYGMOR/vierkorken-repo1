@@ -4,6 +4,30 @@ Eine digitale Weinwelt, die Einkauf, Kultur, Beratung, Genuss und Gemeinschaft v
 
 ![VIERKORKEN](https://via.placeholder.com/1200x400/FAF8F5/3D3D3D?text=VIERKORKEN)
 
+## 🚀 Schnellstart
+
+```bash
+# Repository klonen
+git clone https://github.com/GYGMOR/vierkorken-repo1.git
+cd vierkorken-repo1
+
+# Dependencies installieren
+npm install
+
+# .env konfigurieren
+cp .env.example .env
+# Bearbeite .env mit deinen Credentials
+
+# Entwicklungsserver starten
+npm run dev
+```
+
+Dann öffne [http://localhost:3000](http://localhost:3000)
+
+📚 **Mehr Details:** Siehe [docs/SCHNELLSTART.md](./docs/SCHNELLSTART.md)
+
+---
+
 ## Übersicht
 
 VIERKORKEN ist eine professionelle E-Commerce-Plattform für Weinliebhaber, die weit über einen klassischen Online-Shop hinausgeht. Die Plattform kombiniert:
@@ -20,11 +44,11 @@ VIERKORKEN ist eine professionelle E-Commerce-Plattform für Weinliebhaber, die 
 
 - **Frontend:** Next.js 15, React 19, TypeScript
 - **Styling:** Tailwind CSS (Custom Design System)
-- **Datenbank:** PostgreSQL mit Prisma ORM
+- **Datenbank:** MariaDB/MySQL mit Prisma ORM
 - **Zahlungen:** Stripe (Nexi-Vorbereitung)
-- **Suche:** Meilisearch
+- **E-Mail:** Microsoft Graph API (OAuth2)
+- **Produktdaten:** Klara API Integration
 - **Bilder:** Sharp für Optimierung
-- **E-Mail:** Nodemailer
 - **QR-Codes:** qrcode Library
 
 ## Markenidentität
@@ -184,35 +208,60 @@ npm run dev
 
 Die Anwendung läuft auf [http://localhost:3000](http://localhost:3000)
 
-## Projektstruktur
+## 📁 Projektstruktur
 
 ```
 vierkorken/
-├── prisma/
-│   └── schema.prisma          # Datenbank Schema
-├── src/
-│   ├── app/                   # Next.js App Router
-│   │   ├── api/              # API Routes
-│   │   ├── weine/            # Wine Catalog Pages
-│   │   ├── club/             # Loyalty Club Pages
-│   │   ├── events/           # Event Pages
+├── docs/                      # 📚 Dokumentation
+│   ├── README.md             # Dokumentations-Übersicht
+│   ├── EMAIL-SETUP-QUICKSTART.md
+│   ├── AZURE-APP-REGISTRATION.md
+│   ├── MICROSOFT-365-SETUP.md
+│   ├── PRODUCTION-SETUP.md
+│   ├── SCHNELLSTART.md
+│   └── API-KEYS-ANLEITUNG.md
+│
+├── deployment/               # 🚀 Deployment Konfigurationen
+│   ├── README.md            # Deployment-Anleitung
+│   ├── docker-compose.production.yml
+│   ├── PORTAINER-STACK-READY.yml
+│   └── docker-compose.FERTIG.yml
+│
+├── scripts/                  # 🛠️ Hilfsskripte
+│   ├── README.md            # Script-Dokumentation
+│   └── mariadb-setup.sql    # Datenbank Setup
+│
+├── prisma/                   # 🗄️ Datenbank
+│   └── schema.prisma        # Datenbank Schema
+│
+├── src/                      # 💻 Source Code
+│   ├── app/                 # Next.js App Router
+│   │   ├── api/            # API Routes
+│   │   ├── weine/          # Wine Catalog Pages
+│   │   ├── club/           # Loyalty Club Pages
+│   │   ├── events/         # Event Pages
 │   │   └── ...
 │   ├── components/
-│   │   ├── ui/               # Base UI Components
-│   │   ├── layout/           # Layout Components
-│   │   ├── wine/             # Wine-specific Components
-│   │   └── loyalty/          # Loyalty Components
+│   │   ├── ui/             # Base UI Components
+│   │   ├── layout/         # Layout Components
+│   │   ├── wine/           # Wine-specific Components
+│   │   └── loyalty/        # Loyalty Components
 │   ├── lib/
-│   │   ├── prisma.ts         # Prisma Client
-│   │   ├── utils.ts          # Utility Functions
-│   │   └── loyalty.ts        # Loyalty Logic
+│   │   ├── prisma.ts       # Prisma Client
+│   │   ├── email.ts        # Email (Microsoft Graph API)
+│   │   ├── utils.ts        # Utility Functions
+│   │   └── loyalty.ts      # Loyalty Logic
 │   ├── styles/
-│   │   └── globals.css       # Global Styles
-│   └── types/                # TypeScript Types
-├── public/                   # Static Assets
-├── tailwind.config.ts        # Tailwind Configuration
-├── next.config.mjs           # Next.js Configuration
-└── package.json
+│   │   └── globals.css     # Global Styles
+│   └── types/              # TypeScript Types
+│
+├── public/                   # 📦 Static Assets
+├── .env.example             # Environment Beispiel
+├── Dockerfile               # Docker Build
+├── next.config.js           # Next.js Konfiguration
+├── tailwind.config.ts       # Tailwind Config
+├── package.json             # Dependencies
+└── README.md                # Dieses Dokument
 ```
 
 ## Datenbank-Schema
@@ -247,23 +296,38 @@ npm run db:push          # Push schema to database
 npm run db:studio        # Open Prisma Studio
 ```
 
-## Deployment
+## 🚀 Deployment
 
-### Vercel (empfohlen)
+### Docker + Portainer (Production)
 
-1. Repository mit Vercel verbinden
-2. Umgebungsvariablen in Vercel Dashboard setzen
-3. PostgreSQL-Datenbank bereitstellen (z.B. Neon, Supabase)
-4. Deploy
+Die Produktionsumgebung läuft mit Docker und Portainer.
 
-### Docker
+**Deployment-Dateien:** Siehe [deployment/](./deployment/)
+
+**Schnellstart:**
+
+1. Kopiere `deployment/PORTAINER-STACK-READY.yml`
+2. Trage echte Credentials ein
+3. Deploye in Portainer als neuen Stack
+
+📚 **Detaillierte Anleitung:** [deployment/README.md](./deployment/README.md)
+
+### Lokale Entwicklung
+
+```bash
+npm run dev              # Development Server
+npm run build            # Production Build
+npm run start            # Production Server (lokal)
+```
+
+### Docker Build
 
 ```bash
 # Build
-docker build -t vierkorken .
+docker build -t ghcr.io/gygmor/vierkorken-repo1:latest .
 
-# Run
-docker run -p 3000:3000 --env-file .env vierkorken
+# Push zu GitHub Container Registry
+docker push ghcr.io/gygmor/vierkorken-repo1:latest
 ```
 
 ## Klara-Integration
@@ -307,11 +371,21 @@ Webhook-Endpunkt: `/api/webhooks/stripe`
 - **Secure Cookies** (httpOnly, sameSite)
 - **Input Validation** mit Zod
 
-## Support & Dokumentation
+## 📚 Dokumentation
 
-- **Issues:** [GitHub Issues](https://github.com/your-org/vierkorken/issues)
-- **Wiki:** [GitHub Wiki](https://github.com/your-org/vierkorken/wiki)
-- **E-Mail:** support@vierkorken.ch
+Alle Dokumentationen findest du im [docs/](./docs/) Verzeichnis:
+
+- **[Schnellstart](./docs/SCHNELLSTART.md)** - Entwicklungsumgebung einrichten
+- **[Email Setup](./docs/EMAIL-SETUP-QUICKSTART.md)** - Microsoft Graph API konfigurieren
+- **[Azure App Registration](./docs/AZURE-APP-REGISTRATION.md)** - Azure Setup für E-Mails
+- **[Production Setup](./docs/PRODUCTION-SETUP.md)** - Production Deployment
+- **[API Keys](./docs/API-KEYS-ANLEITUNG.md)** - API-Schlüssel einrichten
+- **[VLAN Setup](./docs/VLAN-DB-SETUP.md)** - Netzwerk & Datenbank
+
+## Support
+
+- **Issues:** [GitHub Issues](https://github.com/GYGMOR/vierkorken-repo1/issues)
+- **E-Mail:** admin@vierkorken.ch
 
 ## Lizenz
 
