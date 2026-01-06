@@ -53,7 +53,7 @@ export async function sendInfoMail(options: {
       subject: options.subject,
       html: options.html,
       text: options.text,
-      reply_to: options.replyTo,
+      replyTo: options.replyTo,
     });
 
     const duration = Date.now() - startTime;
@@ -88,7 +88,7 @@ export async function sendNoReplyMail(options: {
       subject: options.subject,
       html: options.html,
       text: options.text,
-      reply_to: MAIL_FROM_INFO, // Antworten gehen an info@, falls jemand doch antwortet
+      replyTo: MAIL_FROM_INFO, // Antworten gehen an info@, falls jemand doch antwortet
     });
 
     const duration = Date.now() - startTime;
