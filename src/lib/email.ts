@@ -106,8 +106,7 @@ export async function sendNoReplyMail(options: {
 // ============================================================
 
 /**
- * Send password reset email (verwendet info@vierkorken.ch)
- * WICHTIG: Wir verwenden info@ statt no-reply@ für bessere Zustellbarkeit
+ * Send password reset email (verwendet no-reply@vierkorken.ch)
  */
 export async function sendPasswordResetEmail(
   to: string,
@@ -181,8 +180,8 @@ Falls Sie diese Anfrage nicht gestellt haben, können Sie diese E-Mail ignoriere
 Bei Fragen: info@vierkorken.ch
     `.trim();
 
-  // Verwenden info@ statt no-reply@ für bessere Zustellbarkeit
-  await sendInfoMail({
+  // Verwenden no-reply@ für Passwort-Reset
+  await sendNoReplyMail({
     to,
     subject: 'Passwort zurücksetzen - VIERKORKEN',
     html,
