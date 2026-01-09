@@ -2,6 +2,16 @@
 const nextConfig = {
   // output: "standalone", // DISABLED: Causes issues with static file serving
 
+  // Rewrites for dynamic file serving (workaround for Next.js public directory caching)
+  async rewrites() {
+    return [
+      {
+        source: '/uploads/:path*',
+        destination: '/api/uploads/:path*',
+      },
+    ];
+  },
+
   // Performance Optimierungen
   reactStrictMode: true,
   swcMinify: true,
