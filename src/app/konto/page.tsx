@@ -1009,7 +1009,28 @@ function ProfilePictureUpload() {
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useState<HTMLInputElement | null>(null);
+
+  // Load user profile on mount
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const res = await fetch('/api/user/profile');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.user?.profileImage) {
+            setImageUrl(data.user.profileImage);
+            setOriginalImageUrl(data.user.profileImage);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      }
+    };
+
+    loadProfile();
+  }, []);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1030,6 +1051,9 @@ function ProfilePictureUpload() {
     setIsUploading(true);
 
     try {
+      // Store the file for later upload
+      setSelectedFile(file);
+
       // Create preview URL
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -1047,18 +1071,57 @@ function ProfilePictureUpload() {
   };
 
   const handleSave = async () => {
+    if (!selectedFile) {
+      alert('Kein Bild ausgewählt');
+      return;
+    }
+
     setIsUploading(true);
     try {
-      // TODO: Upload to server
-      console.log('Saving image to server...');
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate upload
+      // Upload file to server
+      console.log('Uploading image to server...');
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      const uploadRes = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!uploadRes.ok) {
+        const errorData = await uploadRes.json();
+        throw new Error(errorData.error || 'Upload failed');
+      }
+
+      const uploadData = await uploadRes.json();
+      const uploadedUrl = uploadData.url;
+
+      console.log('Image uploaded successfully:', uploadedUrl);
+
+      // Update user profile with new image URL
+      const profileRes = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          profileImage: uploadedUrl,
+        }),
+      });
+
+      if (!profileRes.ok) {
+        throw new Error('Failed to update profile');
+      }
+
+      console.log('Profile updated successfully');
 
       setOriginalImageUrl(imageUrl);
       setHasChanges(false);
+      setSelectedFile(null);
       alert('Profilbild erfolgreich gespeichert!');
     } catch (error) {
       console.error('Error saving image:', error);
-      alert('Fehler beim Speichern des Bildes');
+      alert(`Fehler beim Speichern des Bildes: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsUploading(false);
     }
@@ -1067,6 +1130,7 @@ function ProfilePictureUpload() {
   const handleCancel = () => {
     setImageUrl(originalImageUrl);
     setHasChanges(false);
+    setSelectedFile(null);
   };
 
   const handleRemove = () => {

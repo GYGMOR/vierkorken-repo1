@@ -32,6 +32,7 @@ export async function GET(req: NextRequest) {
         firstName: true,
         lastName: true,
         phone: true,
+        profileImage: true,
         role: true,
         loyaltyPoints: true,
         loyaltyLevel: true,
@@ -65,6 +66,7 @@ export async function GET(req: NextRequest) {
         firstName: user.firstName || '',
         lastName: user.lastName || '',
         phone: user.phone || '',
+        profileImage: user.profileImage || '',
         role: user.role,
         loyaltyPoints: user.loyaltyPoints,
         loyaltyLevel: user.loyaltyLevel,
@@ -78,6 +80,75 @@ export async function GET(req: NextRequest) {
     logSecurityEvent('Error fetching user profile', { error: String(error) }, 'medium');
     return NextResponse.json(
       { error: 'Fehler beim Laden des Profils' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  try {
+    // Apply rate limiting: 20 updates per minute
+    const rateLimitResponse = await applyRateLimit(req, 20, 60000);
+    if (rateLimitResponse) return rateLimitResponse;
+
+    const session = await requireAuth(req);
+    if (session instanceof NextResponse) return session;
+
+    const body = await req.json();
+    const { profileImage } = body;
+
+    // Validate profileImage URL if provided
+    if (profileImage && typeof profileImage !== 'string') {
+      return NextResponse.json(
+        { error: 'Invalid profile image URL' },
+        { status: 400 }
+      );
+    }
+
+    // Update user profile
+    const user = await prisma.user.update({
+      where: { email: session.user.email },
+      data: {
+        profileImage: profileImage || null,
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        phone: true,
+        profileImage: true,
+        role: true,
+        loyaltyPoints: true,
+        loyaltyLevel: true,
+        totalSpent: true,
+        createdAt: true,
+      },
+    });
+
+    logSecurityEvent('Profile updated', { email: session.user.email, hasImage: !!profileImage }, 'low');
+
+    return NextResponse.json({
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        phone: user.phone || '',
+        profileImage: user.profileImage || '',
+        role: user.role,
+        loyaltyPoints: user.loyaltyPoints,
+        loyaltyLevel: user.loyaltyLevel,
+        totalSpent: Number(user.totalSpent),
+        memberSince: user.createdAt.toISOString(),
+      },
+    });
+  } catch (error: any) {
+    console.error('Error updating user profile:', error);
+    logSecurityEvent('Error updating user profile', { error: String(error) }, 'medium');
+    return NextResponse.json(
+      { error: 'Fehler beim Aktualisieren des Profils' },
       { status: 500 }
     );
   }
