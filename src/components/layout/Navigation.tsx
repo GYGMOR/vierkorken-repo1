@@ -20,6 +20,7 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
 
   const user = session?.user ? {
     firstName: session.user.name?.split(' ')[0] || '',
@@ -27,19 +28,28 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
     email: session.user.email || '',
   } : null;
 
-  // Check if user is admin
+  // Check if user is admin and load profile image
   useEffect(() => {
     if (session?.user?.email) {
       fetch('/api/user/profile')
         .then(res => res.json())
         .then(data => {
-          if (data.success && data.user.role === 'ADMIN') {
-            setIsAdmin(true);
+          if (data.success) {
+            if (data.user.role === 'ADMIN') {
+              setIsAdmin(true);
+            }
+            if (data.user.profileImage) {
+              setProfileImage(data.user.profileImage);
+            }
           }
         })
-        .catch(() => setIsAdmin(false));
+        .catch(() => {
+          setIsAdmin(false);
+          setProfileImage(null);
+        });
     } else {
       setIsAdmin(false);
+      setProfileImage(null);
     }
   }, [session]);
 
@@ -107,6 +117,7 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
                         firstName={user.firstName}
                         lastName={user.lastName}
                         email={user.email}
+                        imageUrl={profileImage}
                         size="sm"
                       />
                     </button>
