@@ -18,9 +18,20 @@ RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-COPY --from=build /app/.next/standalone ./
-COPY --from=build /app/.next/static ./.next/static
+
+# Copy all necessary files for production
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/.next ./.next
 COPY --from=build /app/public ./public
+COPY --from=build /app/package.json ./package.json
+
+# Create uploads directory with correct permissions
+RUN mkdir -p /app/public/uploads && chown -R node:node /app/public/uploads
+
 EXPOSE 3000
 ENV PORT=3000
-CMD ["node", "server.js"]
+
+# Run as node user for security
+USER node
+
+CMD ["npm", "start"]

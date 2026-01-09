@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: "standalone",
+  // output: "standalone", // DISABLED: Causes issues with static file serving
 
   // Performance Optimierungen
   reactStrictMode: true,
