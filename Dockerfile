@@ -25,8 +25,9 @@ COPY --from=build /app/.next ./.next
 COPY --from=build /app/public ./public
 COPY --from=build /app/package.json ./package.json
 
-# Create uploads directory with correct permissions
-RUN mkdir -p /app/public/uploads && chown -R node:node /app/public/uploads
+# Create directories with correct permissions for node user
+RUN mkdir -p /app/public/uploads /app/.next/cache/images && \
+    chown -R node:node /app
 
 EXPOSE 3000
 ENV PORT=3000
