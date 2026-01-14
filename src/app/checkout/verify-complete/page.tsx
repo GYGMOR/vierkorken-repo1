@@ -13,12 +13,20 @@ function VerifyCompleteContent() {
 
   useEffect(() => {
     const checkVerificationStatus = async () => {
-      // Get verification session ID from URL
-      const verificationSessionId = searchParams.get('verification_session');
+      // Get verification session ID from URL (try multiple parameter names)
+      const verificationSessionId =
+        searchParams.get('verification_session') ||
+        searchParams.get('session_id') ||
+        searchParams.get('vs') ||
+        searchParams.get('id');
+
+      console.log('🔍 All URL params:', Object.fromEntries(searchParams.entries()));
+      console.log('🔍 Verification Session ID:', verificationSessionId);
 
       if (!verificationSessionId) {
         setStatus('error');
-        setErrorMessage('Keine Verifizierungs-Session gefunden');
+        setErrorMessage('Keine Verifizierungs-Session gefunden. Bitte versuchen Sie es erneut.');
+        console.error('❌ No verification session ID found in URL');
         return;
       }
 
