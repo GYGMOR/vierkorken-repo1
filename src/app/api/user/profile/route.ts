@@ -38,6 +38,9 @@ export async function GET(req: NextRequest) {
         loyaltyLevel: true,
         totalSpent: true,
         createdAt: true,
+        identityVerified: true,
+        identityVerificationId: true,
+        identityVerifiedAt: true,
         _count: {
           select: {
             orders: {
@@ -73,6 +76,9 @@ export async function GET(req: NextRequest) {
         totalSpent: Number(user.totalSpent),
         totalOrders: user._count.orders,
         memberSince: user.createdAt.toISOString(),
+        identityVerified: user.identityVerified,
+        identityVerificationId: user.identityVerificationId,
+        identityVerifiedAt: user.identityVerifiedAt?.toISOString(),
       },
     });
   } catch (error: any) {

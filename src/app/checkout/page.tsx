@@ -22,9 +22,11 @@ type ShippingMethod = 'standard' | 'express';
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const { items, total } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
 
   // Delivery & Payment Selection
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('shipping');
@@ -105,6 +107,50 @@ export default function CheckoutPage() {
       fetchSavedAddresses();
     }
   }, [session]);
+
+  // Check if user is already verified or returning from verification
+  useEffect(() => {
+    const checkVerificationStatus = async () => {
+      // Check if returning from verification
+      const verified = searchParams.get('verified');
+      if (verified === 'true') {
+        console.log('✅ Returned from successful verification');
+        setIsVerified(true);
+
+        // Auto-proceed to payment
+        setTimeout(() => {
+          proceedWithCheckout();
+        }, 500);
+        return;
+      }
+
+      // Check localStorage for verification status
+      const localVerified = localStorage.getItem('identityVerified');
+      if (localVerified === 'true') {
+        setIsVerified(true);
+        return;
+      }
+
+      // Check if logged-in user is already verified in database
+      if (session?.user?.id) {
+        try {
+          const response = await fetch('/api/user/profile');
+          if (response.ok) {
+            const data = await response.json();
+            if (data.user?.identityVerified) {
+              console.log('✅ User already verified in database');
+              setIsVerified(true);
+              localStorage.setItem('identityVerified', 'true');
+            }
+          }
+        } catch (error) {
+          console.error('Error checking verification status:', error);
+        }
+      }
+    };
+
+    checkVerificationStatus();
+  }, [session, searchParams]);
 
   const fetchSavedAddresses = async () => {
     try {
@@ -267,8 +313,52 @@ export default function CheckoutPage() {
       }
     }
 
+    // ⚠️ SCHWEIZER RICHTLINIEN: Identity Verification vor Payment
+    // Check if user needs identity verification (18+ for alcohol)
+    if (!isVerified) {
+      console.log('🔐 Identity verification required, redirecting...');
+      await startIdentityVerification();
+      return;
+    }
+
     // Continue with checkout
     await proceedWithCheckout();
+  };
+
+  const startIdentityVerification = async () => {
+    try {
+      setIsProcessing(true);
+      console.log('🔐 Starting identity verification...');
+
+      const response = await fetch('/api/checkout/create-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerEmail: shippingData.email || session?.user?.email,
+          customerName: `${shippingData.firstName} ${shippingData.lastName}`,
+        }),
+      });
+
+      const data = await response.json();
+      console.log('🔐 Verification response:', data);
+
+      if (data.alreadyVerified) {
+        // User is already verified, skip to payment
+        console.log('✅ User already verified, proceeding to payment');
+        setIsVerified(true);
+        await proceedWithCheckout();
+      } else if (data.url) {
+        // Redirect to Stripe Identity verification
+        console.log('🔗 Redirecting to verification:', data.url);
+        window.location.href = data.url;
+      } else {
+        throw new Error(data.error || 'Fehler beim Starten der Identitätsprüfung');
+      }
+    } catch (error: any) {
+      console.error('❌ Identity verification error:', error);
+      alert('Fehler bei der Identitätsprüfung:\n\n' + error.message);
+      setIsProcessing(false);
+    }
   };
 
   const proceedWithCheckout = async () => {
