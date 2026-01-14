@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -20,7 +20,7 @@ type DeliveryMethod = 'shipping' | 'pickup';
 type PaymentMethod = 'card' | 'twint' | 'cash';
 type ShippingMethod = 'standard' | 'express';
 
-export default function CheckoutPage() {
+function CheckoutPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session } = useSession();
@@ -1420,5 +1420,38 @@ function WineBottleIcon({ className }: { className?: string }) {
         d="M12 3v9m0 0l-4 8h8l-4-8zm0 0a5 5 0 01-5-5h10a5 5 0 01-5 5z"
       />
     </svg>
+  );
+}
+
+// Export with Suspense wrapper for useSearchParams
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <MainLayout>
+        <div className="min-h-screen bg-warmwhite py-12">
+          <div className="container-custom">
+            <div className="max-w-6xl mx-auto">
+              <div className="mb-8">
+                <h1 className="text-h1 font-serif font-light text-graphite-dark mb-4">
+                  Checkout
+                </h1>
+              </div>
+              <div className="grid lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2">
+                  <Card>
+                    <CardContent className="py-12 text-center">
+                      <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-accent-burgundy mx-auto mb-4"></div>
+                      <p className="text-body text-graphite">Lädt...</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </MainLayout>
+    }>
+      <CheckoutPageContent />
+    </Suspense>
   );
 }

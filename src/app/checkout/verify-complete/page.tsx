@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 
-export default function VerifyCompletePage() {
+function VerifyCompleteContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<'checking' | 'success' | 'error'>('checking');
@@ -165,5 +165,35 @@ export default function VerifyCompletePage() {
         </div>
       </div>
     </MainLayout>
+  );
+}
+
+export default function VerifyCompletePage() {
+  return (
+    <Suspense fallback={
+      <MainLayout>
+        <div className="min-h-screen bg-warmwhite py-12">
+          <div className="container-custom">
+            <div className="max-w-2xl mx-auto">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Identitätsprüfung</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-accent-burgundy mx-auto mb-4"></div>
+                    <p className="text-body text-graphite">
+                      Lädt...
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </MainLayout>
+    }>
+      <VerifyCompleteContent />
+    </Suspense>
   );
 }
