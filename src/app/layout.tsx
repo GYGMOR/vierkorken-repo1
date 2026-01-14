@@ -21,32 +21,32 @@ const cormorant = Cormorant_Garamond({
 
 export const metadata: Metadata = {
   title: {
-    default: 'VIERKORKEN – Premium Weinshop',
-    template: '%s | VIERKORKEN',
+    default: 'VIER KORKEN – Premium Weinshop',
+    template: '%s | VIER KORKEN',
   },
-  description: 'Entdecken Sie exquisite Weine aus aller Welt. VIERKORKEN verbindet Weinkompetenz, Kultur und Genuss in einer stilvollen digitalen Weinwelt.',
+  description: 'Entdecken Sie exquisite Weine aus aller Welt. VIER KORKEN verbindet Weinkompetenz, Kultur und Genuss in einer stilvollen digitalen Weinwelt.',
   keywords: ['Wein', 'Weinshop', 'Premium Weine', 'Weingut', 'Weinverkostung', 'Schweiz'],
-  authors: [{ name: 'VIERKORKEN' }],
-  creator: 'VIERKORKEN',
+  authors: [{ name: 'VIER KORKEN' }],
+  creator: 'VIER KORKEN',
   openGraph: {
     type: 'website',
     locale: 'de_CH',
     url: process.env.NEXT_PUBLIC_APP_URL,
-    siteName: 'VIERKORKEN',
-    title: 'VIERKORKEN – Premium Weinshop',
+    siteName: 'VIER KORKEN',
+    title: 'VIER KORKEN – Premium Weinshop',
     description: 'Entdecken Sie exquisite Weine aus aller Welt.',
     images: [
       {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'VIERKORKEN',
+        alt: 'VIER KORKEN',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'VIERKORKEN – Premium Weinshop',
+    title: 'VIER KORKEN – Premium Weinshop',
     description: 'Entdecken Sie exquisite Weine aus aller Welt.',
     images: ['/og-image.jpg'],
   },

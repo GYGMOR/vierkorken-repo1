@@ -92,7 +92,7 @@ export default function NewsPage() {
             </div>
 
             <p className="text-body-lg text-graphite">
-              Bleiben Sie auf dem Laufenden über neue Weine, Events und alles rund um VIERKORKEN.
+              Bleiben Sie auf dem Laufenden über neue Weine, Events und alles rund um VIER KORKEN.
             </p>
           </div>
         </div>

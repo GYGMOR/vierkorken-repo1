@@ -52,7 +52,7 @@ export default function ComingSoonPage() {
       <div className="absolute inset-0 z-0">
         <Image
           src="/images/layout/coming soon page.png"
-          alt="VIERKORKEN Background"
+          alt="VIER KORKEN Background"
           fill
           priority
           className="object-contain opacity-40"
@@ -102,7 +102,7 @@ export default function ComingSoonPage() {
           {/* Logo */}
           <div className="mb-8 animate-fade-in">
             <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-light text-graphite-dark tracking-wider">
-              VIERKORKEN
+              VIER KORKEN
             </h1>
             <div className="mt-3 h-px w-32 mx-auto bg-gradient-to-r from-transparent via-accent-gold to-transparent"></div>
           </div>

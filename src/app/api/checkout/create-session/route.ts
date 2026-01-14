@@ -211,7 +211,7 @@ export async function POST(req: NextRequest) {
       } else if (item.type === 'event') {
         description = item.eventDate ? `Event am ${item.eventDate}` : 'Event-Ticket';
       } else {
-        description = 'VIERKORKEN Produkt';
+        description = 'VIER KORKEN Produkt';
       }
 
       return {
