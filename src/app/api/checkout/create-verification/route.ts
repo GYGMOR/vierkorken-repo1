@@ -41,9 +41,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Create return URL with Stripe placeholder for session ID
+    // Create return URL
+    // Note: Stripe doesn't append session ID automatically, so we use localStorage fallback
     const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-    const returnUrl = `${baseUrl}/checkout/verify-complete?session_id={VERIFICATION_SESSION_ID}`;
+    const returnUrl = `${baseUrl}/checkout/verify-complete`;
 
     console.log('📍 Return URL:', returnUrl);
     console.log('📧 Customer Email:', customerEmail);
