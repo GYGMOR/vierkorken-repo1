@@ -348,6 +348,12 @@ function CheckoutPageContent() {
         setIsVerified(true);
         await proceedWithCheckout();
       } else if (data.url) {
+        // Store verification session ID in localStorage before redirect
+        if (data.verificationId) {
+          localStorage.setItem('pendingVerificationId', data.verificationId);
+          console.log('💾 Stored verification ID:', data.verificationId);
+        }
+
         // Redirect to Stripe Identity verification
         console.log('🔗 Redirecting to verification:', data.url);
         window.location.href = data.url;
