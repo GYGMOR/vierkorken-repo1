@@ -7,71 +7,103 @@ import { prisma } from '@/lib/prisma';
 export const runtime = 'nodejs';
 
 /**
- * GET /api/checkout/verify-status?sessionId=vs_xxx
+ * GET /api/checkout/verify-status?state=xxx
  *
- * Checks the status of a Stripe Identity Verification Session
- * and updates the user's verification status in the database
+ * PROFESSIONAL: Validates state token and checks verification status
  */
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const verificationSessionId = searchParams.get('sessionId');
+    const stateToken = searchParams.get('state');
 
-    if (!verificationSessionId) {
+    if (!stateToken) {
       return NextResponse.json(
-        { success: false, error: 'Verification Session ID is required' },
+        { success: false, error: 'State token is required' },
         { status: 400 }
       );
     }
 
-    console.log('🔍 Checking verification status for:', verificationSessionId);
+    console.log('🔍 Checking verification for state:', stateToken);
 
-    // Retrieve the verification session from Stripe
+    // Load from database
+    const verificationRecord = await prisma.verificationSession.findUnique({
+      where: { stateToken: stateToken },
+    });
+
+    if (!verificationRecord) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid verification session' },
+        { status: 404 }
+      );
+    }
+
+    // Check expiry
+    if (new Date() > verificationRecord.expiresAt) {
+      await prisma.verificationSession.update({
+        where: { id: verificationRecord.id },
+        data: { status: 'EXPIRED' },
+      });
+      return NextResponse.json(
+        { success: false, error: 'Session expired', status: 'EXPIRED' },
+        { status: 400 }
+      );
+    }
+
+    // Already verified
+    if (verificationRecord.status === 'VERIFIED') {
+      return NextResponse.json({
+        success: true,
+        verified: true,
+        status: 'VERIFIED',
+      });
+    }
+
+    // Check Stripe
     const verificationSession = await stripe.identity.verificationSessions.retrieve(
-      verificationSessionId
+      verificationRecord.verificationSessionId
     );
 
-    console.log('📊 Verification Status:', verificationSession.status);
-    console.log('📄 Last Verification Report:', verificationSession.last_verification_report);
+    console.log('📊 Stripe Status:', verificationSession.status);
 
     const isVerified = verificationSession.status === 'verified';
     const session = await getServerSession(authOptions);
 
-    // If verified and user is logged in, update the database
-    if (isVerified && session?.user?.id) {
-      console.log('✅ Verification successful, updating user profile...');
-
-      await prisma.user.update({
-        where: { id: session.user.id },
-        data: {
-          identityVerified: true,
-          identityVerificationId: verificationSessionId,
-          identityVerifiedAt: new Date(),
-        },
+    if (isVerified) {
+      await prisma.verificationSession.update({
+        where: { id: verificationRecord.id },
+        data: { status: 'VERIFIED', completedAt: new Date() },
       });
 
-      console.log('💾 User verification status updated in database');
+      if (verificationRecord.userId && session?.user?.id === verificationRecord.userId) {
+        await prisma.user.update({
+          where: { id: verificationRecord.userId },
+          data: {
+            identityVerified: true,
+            identityVerificationId: verificationRecord.verificationSessionId,
+            identityVerifiedAt: new Date(),
+          },
+        });
+      }
+    } else if (verificationSession.status !== 'requires_input') {
+      await prisma.verificationSession.update({
+        where: { id: verificationRecord.id },
+        data: { status: 'FAILED' },
+      });
     }
 
     return NextResponse.json({
       success: true,
       verified: isVerified,
       status: verificationSession.status,
-      verificationSessionId: verificationSessionId,
-      metadata: verificationSession.metadata,
       lastError: verificationSession.last_error,
     });
 
   } catch (error: any) {
-    console.error('❌ Error checking verification status:', error);
-    console.error('❌ Error details:', error.message);
-
+    console.error('❌ Error:', error);
     return NextResponse.json(
-      {
-        success: false,
-        error: error.message || 'Fehler beim Prüfen der Verifizierung',
-      },
+      { success: false, error: error.message },
       { status: 500 }
     );
   }
 }
+

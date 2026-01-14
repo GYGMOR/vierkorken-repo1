@@ -348,14 +348,9 @@ function CheckoutPageContent() {
         setIsVerified(true);
         await proceedWithCheckout();
       } else if (data.url) {
-        // Store verification session ID in localStorage before redirect
-        if (data.verificationId) {
-          localStorage.setItem('pendingVerificationId', data.verificationId);
-          console.log('💾 Stored verification ID:', data.verificationId);
-        }
-
-        // Redirect to Stripe Identity verification
+        // PROFESSIONAL: State token in URL, no localStorage needed
         console.log('🔗 Redirecting to verification:', data.url);
+        console.log('🎫 State token:', data.stateToken);
         window.location.href = data.url;
       } else {
         throw new Error(data.error || 'Fehler beim Starten der Identitätsprüfung');

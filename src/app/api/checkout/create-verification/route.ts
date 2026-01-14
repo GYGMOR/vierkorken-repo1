@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
+import crypto from 'crypto';
 
 export const runtime = 'nodejs';
 
@@ -41,11 +42,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Create return URL
-    // Note: Stripe doesn't append session ID automatically, so we use localStorage fallback
-    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-    const returnUrl = `${baseUrl}/checkout/verify-complete`;
+    // PROFESSIONAL: Generate secure state token
+    const stateToken = crypto.randomUUID();
+    console.log('🎫 Generated state token:', stateToken);
 
+    // Create return URL with state token
+    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    const returnUrl = `${baseUrl}/checkout/verify-complete?state=${stateToken}`;
     console.log('📍 Return URL:', returnUrl);
     console.log('📧 Customer Email:', customerEmail);
 
@@ -56,6 +59,7 @@ export async function POST(req: NextRequest) {
         userId: session?.user?.id || 'guest',
         customerEmail: customerEmail || '',
         customerName: customerName || '',
+        stateToken: stateToken,
       },
       options: {
         document: {
@@ -69,7 +73,22 @@ export async function POST(req: NextRequest) {
     console.log('✅ Verification Session created:', verificationSession.id);
     console.log('🔗 Verification URL:', verificationSession.url);
 
-    // If user is logged in, save the verification session ID to database
+    // Store verification session in database with state token
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    await prisma.verificationSession.create({
+      data: {
+        stateToken: stateToken,
+        verificationSessionId: verificationSession.id,
+        userId: session?.user?.id || null,
+        customerEmail: customerEmail || null,
+        customerName: customerName || null,
+        status: 'PENDING',
+        expiresAt: expiresAt,
+      },
+    });
+    console.log('💾 Verification session stored in database');
+
+    // If user is logged in, also update user profile
     if (session?.user?.id) {
       await prisma.user.update({
         where: { id: session.user.id },
@@ -83,6 +102,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       verificationId: verificationSession.id,
+      stateToken: stateToken,
       url: verificationSession.url,
       clientSecret: verificationSession.client_secret,
     });
