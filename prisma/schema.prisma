@@ -35,6 +35,11 @@ model User {
   twoFactorSecret   String?
   role              UserRole  @default(CUSTOMER)
 
+  // Identity Verification (Stripe Identity)
+  identityVerified           Boolean   @default(false)
+  identityVerificationId     String?   // Stripe Verification Session ID
+  identityVerifiedAt         DateTime?
+
   // Newsletter Subscription
   newsletterSubscribed Boolean  @default(false)
   newsletterSubscribedAt DateTime?
