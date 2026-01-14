@@ -117,6 +117,28 @@ function CheckoutPageContent() {
         console.log('✅ Returned from successful verification');
         setIsVerified(true);
 
+        // RESTORE form data from sessionStorage
+        const savedFormData = sessionStorage.getItem('checkoutFormData');
+        if (savedFormData) {
+          try {
+            const formData = JSON.parse(savedFormData);
+            console.log('📋 Restoring form data from session');
+
+            setShippingData(formData.shippingData);
+            setBillingData(formData.billingData);
+            setBillingIsSame(formData.billingIsSame);
+            setDeliveryMethod(formData.deliveryMethod);
+            setShippingMethod(formData.shippingMethod);
+            setPaymentMethod(formData.paymentMethod);
+            setGiftOptions(formData.giftOptions);
+
+            // Clean up sessionStorage
+            sessionStorage.removeItem('checkoutFormData');
+          } catch (error) {
+            console.error('Error restoring form data:', error);
+          }
+        }
+
         // Auto-proceed to payment
         setTimeout(() => {
           proceedWithCheckout();
@@ -341,6 +363,19 @@ function CheckoutPageContent() {
         setIsVerified(true);
         await proceedWithCheckout();
       } else if (data.url) {
+        // SAVE form data to sessionStorage before redirect
+        const formData = {
+          shippingData,
+          billingData,
+          billingIsSame,
+          deliveryMethod,
+          shippingMethod,
+          paymentMethod,
+          giftOptions,
+        };
+        sessionStorage.setItem('checkoutFormData', JSON.stringify(formData));
+        console.log('💾 Saved form data to session storage');
+
         // PROFESSIONAL: State token in URL, no localStorage needed
         console.log('🔗 Redirecting to verification:', data.url);
         console.log('🎫 State token:', data.stateToken);
