@@ -1061,3 +1061,32 @@ model Settings {
 
   @@map("settings")
 }
+
+// ============================================================
+// IDENTITY VERIFICATION (Stripe Identity)
+// ============================================================
+
+model VerificationSession {
+  id                      String    @id @default(cuid())
+  stateToken              String    @unique
+  verificationSessionId   String
+  userId                  String?
+  customerEmail           String?
+  customerName            String?
+  status                  VerificationStatus @default(PENDING)
+  createdAt               DateTime  @default(now())
+  expiresAt               DateTime
+  completedAt             DateTime?
+
+  @@index([stateToken])
+  @@index([verificationSessionId])
+  @@index([userId])
+  @@map("verification_session")
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  FAILED
+  EXPIRED
+}
