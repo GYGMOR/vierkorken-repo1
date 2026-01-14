@@ -50,11 +50,17 @@ export async function POST(req: NextRequest) {
 
     // Create Stripe Identity Verification Session
     const verificationSession = await stripe.identity.verificationSessions.create({
-      type: 'verification_flow',
+      type: 'document',
       metadata: {
         userId: session?.user?.id || 'guest',
         customerEmail: customerEmail || '',
         customerName: customerName || '',
+      },
+      options: {
+        document: {
+          allowed_types: ['driving_license', 'passport', 'id_card'],
+          require_matching_selfie: true,
+        },
       },
       return_url: returnUrl,
     });
