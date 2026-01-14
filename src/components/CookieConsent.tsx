@@ -19,6 +19,16 @@ export function CookieConsent() {
     // Set that we're on client side
     setIsClient(true);
 
+    // HIDE banner on legal pages (AGB, Datenschutz, Impressum)
+    const currentPath = window.location.pathname;
+    const isLegalPage = ['/agb', '/datenschutz', '/impressum'].some(path => currentPath.includes(path));
+
+    if (isLegalPage) {
+      console.log('Legal page detected, hiding banner');
+      setShowBanner(false);
+      return;
+    }
+
     // Check if user has already made a choice
     try {
       const consent = localStorage.getItem('vierkorken-cookie-consent');
