@@ -13,40 +13,25 @@ function VerifyCompleteContent() {
 
   useEffect(() => {
     const checkVerificationStatus = async () => {
-      // Get verification session ID from URL (try multiple parameter names)
-      let verificationSessionId =
-        searchParams.get('verification_session') ||
-        searchParams.get('session_id') ||
-        searchParams.get('vs') ||
-        searchParams.get('id');
+      // PROFESSIONAL: Get state token from URL parameter
+      const stateToken = searchParams.get('state');
 
       console.log('🔍 All URL params:', Object.fromEntries(searchParams.entries()));
-      console.log('🔍 Verification Session ID from URL:', verificationSessionId);
+      console.log('🎫 State token from URL:', stateToken);
 
-      // If no ID in URL, try localStorage (fallback)
-      if (!verificationSessionId) {
-        verificationSessionId = localStorage.getItem('pendingVerificationId') || '';
-        console.log('🔍 Verification Session ID from localStorage:', verificationSessionId);
-
-        if (verificationSessionId) {
-          // Clean up localStorage after retrieving
-          localStorage.removeItem('pendingVerificationId');
-        }
-      }
-
-      if (!verificationSessionId) {
+      if (!stateToken) {
         setStatus('error');
         setErrorMessage('Keine Verifizierungs-Session gefunden. Bitte versuchen Sie es erneut.');
-        console.error('❌ No verification session ID found in URL or localStorage');
+        console.error('❌ No state token found in URL');
         return;
       }
 
       try {
-        console.log('🔍 Checking verification status...');
+        console.log('🔍 Checking verification status with state token...');
 
-        // Check the verification status
+        // PROFESSIONAL: Check verification status using state token
         const response = await fetch(
-          `/api/checkout/verify-status?sessionId=${verificationSessionId}`
+          `/api/checkout/verify-status?state=${stateToken}`
         );
 
         const data = await response.json();
@@ -55,10 +40,6 @@ function VerifyCompleteContent() {
         if (data.success && data.verified) {
           console.log('✅ Verification successful!');
           setStatus('success');
-
-          // Store verification success in localStorage
-          localStorage.setItem('identityVerified', 'true');
-          localStorage.setItem('verificationSessionId', verificationSessionId);
 
           // Redirect back to checkout after 2 seconds
           setTimeout(() => {

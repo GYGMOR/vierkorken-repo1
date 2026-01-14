@@ -124,14 +124,8 @@ function CheckoutPageContent() {
         return;
       }
 
-      // Check localStorage for verification status
-      const localVerified = localStorage.getItem('identityVerified');
-      if (localVerified === 'true') {
-        setIsVerified(true);
-        return;
-      }
-
-      // Check if logged-in user is already verified in database
+      // PROFESSIONAL: ONLY check DB for logged-in users
+      // NO localStorage - guests must verify every time
       if (session?.user?.id) {
         try {
           const response = await fetch('/api/user/profile');
@@ -140,7 +134,6 @@ function CheckoutPageContent() {
             if (data.user?.identityVerified) {
               console.log('✅ User already verified in database');
               setIsVerified(true);
-              localStorage.setItem('identityVerified', 'true');
             }
           }
         } catch (error) {

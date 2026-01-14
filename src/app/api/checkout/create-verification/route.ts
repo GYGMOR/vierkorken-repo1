@@ -33,11 +33,32 @@ export async function POST(req: NextRequest) {
       });
 
       if (user?.identityVerified && user.identityVerifiedAt) {
-        console.log('✅ User already verified, skipping...');
+        console.log('✅ Logged-in user already verified, skipping...');
         return NextResponse.json({
           success: true,
           alreadyVerified: true,
           verificationId: user.identityVerificationId,
+        });
+      }
+    }
+
+    // PROFESSIONAL: Also check if guest email belongs to verified user
+    if (!session?.user?.id && customerEmail) {
+      const existingUser = await prisma.user.findUnique({
+        where: { email: customerEmail },
+        select: {
+          identityVerified: true,
+          identityVerificationId: true,
+          identityVerifiedAt: true,
+        },
+      });
+
+      if (existingUser?.identityVerified && existingUser.identityVerifiedAt) {
+        console.log('✅ Email belongs to verified user, skipping...');
+        return NextResponse.json({
+          success: true,
+          alreadyVerified: true,
+          verificationId: existingUser.identityVerificationId,
         });
       }
     }
