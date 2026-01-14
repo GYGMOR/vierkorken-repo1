@@ -129,7 +129,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         <div className="flex items-center justify-between h-16 px-6 bg-accent-burgundy">
           <Link href="/admin" className="flex items-center">
             <span className="text-xl font-serif font-bold text-warmwhite">
-              VIERKORKEN
+              VIER KORKEN
             </span>
           </Link>
           <button

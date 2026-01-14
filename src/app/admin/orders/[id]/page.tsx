@@ -231,7 +231,7 @@ export default function OrderDetailPage() {
         {/* Print Header - Only visible when printing */}
         <div className="hidden print:block">
           <h1 className="text-2xl font-serif font-bold text-graphite-dark">
-            VIERKORKEN - Packzettel
+            VIER KORKEN - Packzettel
           </h1>
           <p className="text-lg mt-2">Bestellung: {order.orderNumber}</p>
           <p className="text-sm text-graphite">

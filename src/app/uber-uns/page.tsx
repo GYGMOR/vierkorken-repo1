@@ -13,7 +13,7 @@ export default function UberUnsPage() {
             <section className="card p-8">
               <h2 className="text-h3 font-serif text-graphite-dark mb-4">Unsere Geschichte</h2>
               <p className="text-graphite leading-relaxed">
-                VIERKORKEN ist mehr als nur ein Weinshop – wir sind eine Gemeinschaft von
+                VIER KORKEN ist mehr als nur ein Weinshop – wir sind eine Gemeinschaft von
                 Weinliebhabern, die Qualität, Genuss und Kultur vereint. Seit unserer Gründung
                 haben wir es uns zur Aufgabe gemacht, exquisite Weine aus aller Welt zugänglich
                 zu machen und unsere Leidenschaft für edle Tropfen mit Ihnen zu teilen.
@@ -99,10 +99,10 @@ export default function UberUnsPage() {
               <h2 className="text-h3 font-serif text-graphite-dark mb-4">Besuchen Sie uns</h2>
               <div className="max-w-md mx-auto">
                 <p className="text-graphite mb-4">
-                  Erleben Sie VIERKORKEN persönlich in unserem Laden in Seengen
+                  Erleben Sie VIER KORKEN persönlich in unserem Laden in Seengen
                 </p>
                 <div className="bg-rose-light/30 p-4 rounded-lg mb-4">
-                  <p className="font-semibold text-graphite-dark">VIERKORKEN</p>
+                  <p className="font-semibold text-graphite-dark">VIER KORKEN</p>
                   <p className="text-graphite">Steinbrunnengasse 3A</p>
                   <p className="text-graphite">5707 Seengen</p>
                 </div>

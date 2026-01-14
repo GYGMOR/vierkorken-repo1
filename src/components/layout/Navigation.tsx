@@ -66,7 +66,7 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
           <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
             <Image
               src="/images/layout/Wein Boutique_edited.png"
-              alt="VIERKORKEN Logo"
+              alt="VIER KORKEN Logo"
               width={120}
               height={40}
               className="h-10 w-auto"
@@ -315,7 +315,7 @@ function SearchModal({ onClose }: { onClose: () => void }) {
     { title: 'Weine', url: '/weine', description: 'Entdecken Sie unsere Weinauswahl' },
     { title: 'Events', url: '/events', description: 'Exklusive Weinerlebnisse' },
     { title: 'Loyalty Club', url: '/club', description: 'Punkte sammeln und Vorteile genießen' },
-    { title: 'Über uns', url: '/uber-uns', description: 'Erfahren Sie mehr über VIERKORKEN' },
+    { title: 'Über uns', url: '/uber-uns', description: 'Erfahren Sie mehr über VIER KORKEN' },
     { title: 'Kontakt', url: '/kontakt', description: 'Nehmen Sie Kontakt mit uns auf' },
   ];
 

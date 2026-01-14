@@ -64,11 +64,11 @@ export async function generateTicketPDF(ticket: EventTicketData): Promise<void> 
   doc.setFillColor(burgundy);
   doc.rect(0, 0, 210, 40, 'F');
 
-  // VIERKORKEN Logo/Header
+  // VIER KORKEN Logo/Header
   doc.setFontSize(32);
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
-  doc.text('VIERKORKEN', 105, 20, { align: 'center' });
+  doc.text('VIER KORKEN', 105, 20, { align: 'center' });
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
@@ -220,7 +220,7 @@ export async function generateTicketPDF(ticket: EventTicketData): Promise<void> 
   doc.setFontSize(8);
   doc.setTextColor(gray);
   doc.setFont('helvetica', 'normal');
-  doc.text('VIERKORKEN Weinhandel & Events', 105, 275, { align: 'center' });
+  doc.text('VIER KORKEN Weinhandel & Events', 105, 275, { align: 'center' });
   doc.text('Musterstrasse 1, 8000 Zürich | www.vierkorken.ch | info@vierkorken.ch', 105, 280, { align: 'center' });
 
   // Watermark
@@ -230,5 +230,5 @@ export async function generateTicketPDF(ticket: EventTicketData): Promise<void> 
   doc.text('TICKET', 105, 150, { align: 'center', angle: 45 });
 
   // Save PDF
-  doc.save(`VIERKORKEN-Ticket-${ticket.ticketNumber}.pdf`);
+  doc.save(`VIER KORKEN-Ticket-${ticket.ticketNumber}.pdf`);
 }

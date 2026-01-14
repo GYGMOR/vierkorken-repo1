@@ -40,6 +40,10 @@ export async function sendInfoMail(options: {
   html: string;
   text: string;
   replyTo?: string;
+  attachments?: Array<{
+    filename: string;
+    content: Buffer;
+  }>;
 }) {
   const resend = getResendClient();
 
@@ -54,6 +58,7 @@ export async function sendInfoMail(options: {
       html: options.html,
       text: options.text,
       replyTo: options.replyTo,
+      attachments: options.attachments,
     });
 
     const duration = Date.now() - startTime;
@@ -123,7 +128,7 @@ export async function sendPasswordResetEmail(
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background-color: #8B4513; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">VIERKORKEN</h1>
+            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">VIER KORKEN</h1>
           </div>
 
           <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
@@ -155,7 +160,7 @@ export async function sendPasswordResetEmail(
             <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop<br>
+              © ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop<br>
               Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
             </p>
           </div>
@@ -164,7 +169,7 @@ export async function sendPasswordResetEmail(
     `;
 
   const text = `
-Passwort zurücksetzen - VIERKORKEN
+Passwort zurücksetzen - VIER KORKEN
 
 Hallo ${firstName || ''},
 
@@ -176,14 +181,14 @@ Dieser Link ist nur 1 Stunde gültig.
 
 Falls Sie diese Anfrage nicht gestellt haben, können Sie diese E-Mail ignorieren. Ihr Passwort bleibt unverändert.
 
-© ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop
+© ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop
 Bei Fragen: info@vierkorken.ch
     `.trim();
 
   // Verwenden no-reply@ für Passwort-Reset
   await sendNoReplyMail({
     to,
-    subject: 'Passwort zurücksetzen - VIERKORKEN',
+    subject: 'Passwort zurücksetzen - VIER KORKEN',
     html,
     text,
   });
@@ -218,7 +223,7 @@ export async function sendContactEmail(
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background-color: #8B4513; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">VIERKORKEN</h1>
+            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">VIER KORKEN</h1>
           </div>
 
           <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
@@ -245,7 +250,7 @@ export async function sendContactEmail(
             <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop<br>
+              © ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop<br>
               Diese E-Mail wurde automatisch vom Kontaktformular generiert.
             </p>
           </div>
@@ -254,7 +259,7 @@ export async function sendContactEmail(
     `;
 
   const text = `
-VIERKORKEN - Neue Kontaktanfrage
+VIER KORKEN - Neue Kontaktanfrage
 
 KONTAKTDATEN:
 Name: ${name}
@@ -266,7 +271,7 @@ ${message}
 
 Sie können direkt auf diese E-Mail antworten, um dem Kunden zu antworten.
 
-© ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop
+© ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop
     `.trim();
 
   await sendInfoMail({
@@ -279,10 +284,35 @@ Sie können direkt auf diese E-Mail antworten, um dem Kunden zu antworten.
 }
 
 /**
- * Send order confirmation email with link to PDF invoice (verwendet info@vierkorken.ch)
+ * Send order confirmation email with PDF invoice attached (verwendet info@vierkorken.ch)
  */
 export async function sendOrderConfirmationEmail(to: string, orderId: string, orderDetails: any) {
-  // Create invoice download link instead of attaching PDF
+  // Import PDF generator
+  const { generateInvoicePDFBuffer } = await import('./pdf-invoice-buffer');
+
+  // Generate PDF as buffer
+  let pdfBuffer: Buffer | null = null;
+  try {
+    pdfBuffer = await generateInvoicePDFBuffer({
+      orderNumber: orderDetails.orderNumber,
+      date: orderDetails.createdAt,
+      customerFirstName: orderDetails.customerFirstName,
+      customerLastName: orderDetails.customerLastName,
+      billingAddress: orderDetails.billingAddress,
+      items: orderDetails.items,
+      subtotal: orderDetails.subtotal,
+      shippingCost: orderDetails.shippingCost,
+      taxAmount: orderDetails.taxAmount,
+      taxRate: 8.1,
+      total: orderDetails.total,
+    });
+    console.log('✅ PDF invoice generated successfully');
+  } catch (error) {
+    console.error('❌ Error generating PDF:', error);
+    // Continue without PDF attachment
+  }
+
+  // Create invoice download link as backup
   const invoiceUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/orders/${orderId}/invoice`;
 
   // Format items list for email
@@ -309,7 +339,7 @@ export async function sendOrderConfirmationEmail(to: string, orderId: string, or
           </head>
           <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="background-color: #8B4513; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-              <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">VIERKORKEN</h1>
+              <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">VIER KORKEN</h1>
             </div>
 
             <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
@@ -369,17 +399,11 @@ export async function sendOrderConfirmationEmail(to: string, orderId: string, or
                 <p style="margin: 5px 0;">${shippingAddr.country}</p>
               </div>
 
-              <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107; margin: 20px 0;">
-                <p style="margin: 0; color: #856404;">
-                  <strong>📎 Rechnung herunterladen</strong><br>
-                  Sie können Ihre Rechnung jederzeit als PDF herunterladen.
+              <div style="background-color: #d4edda; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745; margin: 20px 0;">
+                <p style="margin: 0; color: #155724;">
+                  <strong>📎 Ihre Rechnung</strong><br>
+                  Ihre Rechnung als PDF ist dieser E-Mail als Anhang beigefügt. Sie können sie direkt öffnen und speichern.
                 </p>
-              </div>
-
-              <div style="text-align: center; margin: 20px 0;">
-                <a href="${invoiceUrl}" style="background-color: #28a745; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: 500;">
-                  📄 Rechnung als PDF herunterladen
-                </a>
               </div>
 
               <h3 style="color: #333;">Nächste Schritte:</h3>
@@ -398,7 +422,7 @@ export async function sendOrderConfirmationEmail(to: string, orderId: string, or
               <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
               <p style="color: #999; font-size: 12px; text-align: center;">
-                © ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop<br>
+                © ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop<br>
                 Musterstrasse 1, 8000 Zürich, Schweiz<br>
                 info@vierkorken.ch | www.vierkorken.ch<br><br>
                 Diese E-Mail wurde automatisch generiert. Bitte antworten Sie nicht direkt darauf.<br>
@@ -410,7 +434,7 @@ export async function sendOrderConfirmationEmail(to: string, orderId: string, or
       `;
 
   const text = `
-VIERKORKEN - Bestellbestätigung
+VIER KORKEN - Bestellbestätigung
 
 Vielen Dank für Ihre Bestellung!
 
@@ -444,8 +468,8 @@ ${shippingAddr.street} ${shippingAddr.streetNumber}
 ${shippingAddr.postalCode} ${shippingAddr.city}
 ${shippingAddr.country}
 
-RECHNUNG HERUNTERLADEN:
-${invoiceUrl}
+📎 IHRE RECHNUNG:
+Ihre Rechnung als PDF ist dieser E-Mail als Anhang beigefügt.
 
 NÄCHSTE SCHRITTE:
 1. Wir bereiten Ihre Bestellung sorgfältig vor
@@ -454,18 +478,29 @@ NÄCHSTE SCHRITTE:
 
 Bestellung verfolgen: ${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/konto/bestellungen
 
-© ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop
+© ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop
 Musterstrasse 1, 8000 Zürich, Schweiz
 info@vierkorken.ch | www.vierkorken.ch
 
 Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
       `.trim();
 
+  // Prepare attachments
+  const attachments = pdfBuffer
+    ? [
+        {
+          filename: `Rechnung_${orderDetails.orderNumber}.pdf`,
+          content: pdfBuffer,
+        },
+      ]
+    : undefined;
+
   await sendInfoMail({
     to,
     subject: `Bestellbestätigung - ${orderDetails.orderNumber}`,
     html,
     text,
+    attachments,
   });
 }
 
@@ -502,7 +537,7 @@ export async function sendNewOrderNotificationToAdmin(orderId: string, orderDeta
           </head>
           <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 700px; margin: 0 auto; padding: 20px;">
             <div style="background-color: #8B4513; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-              <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">VIERKORKEN</h1>
+              <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">VIER KORKEN</h1>
               <p style="color: #fff; margin: 10px 0 0 0; font-size: 14px;">Admin-Benachrichtigung</p>
             </div>
 
@@ -620,7 +655,7 @@ export async function sendNewOrderNotificationToAdmin(orderId: string, orderDeta
               <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
               <p style="color: #999; font-size: 12px; text-align: center;">
-                © ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop<br>
+                © ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop<br>
                 Diese E-Mail wurde automatisch generiert.
               </p>
             </div>
@@ -629,7 +664,7 @@ export async function sendNewOrderNotificationToAdmin(orderId: string, orderDeta
       `;
 
   const text = `
-VIERKORKEN - Neue Bestellung
+VIER KORKEN - Neue Bestellung
 
 Bestellnummer: ${orderDetails.orderNumber}
 Kunde: ${orderDetails.customerFirstName} ${orderDetails.customerLastName}
@@ -673,7 +708,7 @@ export async function sendMaintenanceSubscriptionEmail(to: string) {
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); padding: 30px 20px; text-align: center; border-radius: 12px 12px 0 0;">
-            <h1 style="color: #fff; margin: 0; font-size: 32px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">VIERKORKEN</h1>
+            <h1 style="color: #fff; margin: 0; font-size: 32px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">VIER KORKEN</h1>
             <div style="margin-top: 12px; height: 1px; width: 80px; background: linear-gradient(to right, transparent, #C9A961, transparent); margin-left: auto; margin-right: auto;"></div>
           </div>
 
@@ -702,13 +737,13 @@ export async function sendMaintenanceSubscriptionEmail(to: string) {
 
             <p style="margin-top: 30px;">
               Mit besten Grüßen,<br>
-              <strong style="color: #6D2932;">Ihr VIERKORKEN Team</strong>
+              <strong style="color: #6D2932;">Ihr VIER KORKEN Team</strong>
             </p>
 
             <hr style="border: none; border-top: 1px solid #E8E3DF; margin: 30px 0;">
 
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop<br>
+              © ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop<br>
               <a href="mailto:info@vierkorken.ch" style="color: #6D2932; text-decoration: none;">info@vierkorken.ch</a>
             </p>
           </div>
@@ -717,7 +752,7 @@ export async function sendMaintenanceSubscriptionEmail(to: string) {
     `;
 
   const text = `
-VIERKORKEN - Premium Weinshop
+VIER KORKEN - Premium Weinshop
 
 Vielen Dank für Ihr Interesse!
 
@@ -734,16 +769,16 @@ Was Sie erwarten können:
 Wir melden uns bei Ihnen, sobald es soweit ist!
 
 Mit besten Grüßen,
-Ihr VIERKORKEN Team
+Ihr VIER KORKEN Team
 
 ---
-© ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop
+© ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop
 info@vierkorken.ch
     `.trim();
 
   await sendInfoMail({
     to,
-    subject: 'Vielen Dank für Ihr Interesse an VIERKORKEN',
+    subject: 'Vielen Dank für Ihr Interesse an VIER KORKEN',
     html,
     text,
   });
@@ -765,7 +800,7 @@ export async function sendLaunchNotificationEmail(to: string) {
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); padding: 40px 20px; text-align: center; border-radius: 12px 12px 0 0;">
-            <h1 style="color: #fff; margin: 0; font-size: 36px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">VIERKORKEN</h1>
+            <h1 style="color: #fff; margin: 0; font-size: 36px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">VIER KORKEN</h1>
             <div style="margin-top: 12px; height: 1px; width: 80px; background: linear-gradient(to right, transparent, #C9A961, transparent); margin-left: auto; margin-right: auto;"></div>
             <p style="color: #FAF8F5; font-size: 18px; margin-top: 20px; margin-bottom: 0;">Wir sind jetzt online!</p>
           </div>
@@ -797,17 +832,17 @@ export async function sendLaunchNotificationEmail(to: string) {
               </ul>
             </div>
 
-            <p>Wir freuen uns darauf, Sie bei VIERKORKEN begrüßen zu dürfen!</p>
+            <p>Wir freuen uns darauf, Sie bei VIER KORKEN begrüßen zu dürfen!</p>
 
             <p style="margin-top: 30px;">
               Prost und beste Grüße,<br>
-              <strong style="color: #6D2932;">Ihr VIERKORKEN Team</strong>
+              <strong style="color: #6D2932;">Ihr VIER KORKEN Team</strong>
             </p>
 
             <hr style="border: none; border-top: 1px solid #E8E3DF; margin: 30px 0;">
 
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop<br>
+              © ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop<br>
               <a href="mailto:info@vierkorken.ch" style="color: #6D2932; text-decoration: none;">info@vierkorken.ch</a> |
               <a href="${siteUrl}" style="color: #6D2932; text-decoration: none;">www.vierkorken.ch</a>
             </p>
@@ -817,7 +852,7 @@ export async function sendLaunchNotificationEmail(to: string) {
     `;
 
   const text = `
-VIERKORKEN - Premium Weinshop
+VIER KORKEN - Premium Weinshop
 
 Wir sind jetzt online!
 
@@ -835,19 +870,19 @@ BESONDERE HIGHLIGHTS:
 • Kostenloser Versand ab CHF 150
 • Sichere Zahlung mit Stripe oder Klara
 
-Wir freuen uns darauf, Sie bei VIERKORKEN begrüßen zu dürfen!
+Wir freuen uns darauf, Sie bei VIER KORKEN begrüßen zu dürfen!
 
 Prost und beste Grüße,
-Ihr VIERKORKEN Team
+Ihr VIER KORKEN Team
 
 ---
-© ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop
+© ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop
 info@vierkorken.ch | ${siteUrl}
     `.trim();
 
   await sendInfoMail({
     to,
-    subject: '🎉 VIERKORKEN ist jetzt online!',
+    subject: '🎉 VIER KORKEN ist jetzt online!',
     html,
     text,
   });
@@ -870,13 +905,13 @@ export async function sendNewsletterConfirmationEmail(to: string) {
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); padding: 30px 20px; text-align: center; border-radius: 12px 12px 0 0;">
-            <h1 style="color: #fff; margin: 0; font-size: 32px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">VIERKORKEN</h1>
+            <h1 style="color: #fff; margin: 0; font-size: 32px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">VIER KORKEN</h1>
             <div style="margin-top: 12px; height: 1px; width: 80px; background: linear-gradient(to right, transparent, #C9A961, transparent); margin-left: auto; margin-right: auto;"></div>
           </div>
 
           <div style="background-color: #FAF8F5; padding: 40px 30px; border-radius: 0 0 12px 12px;">
             <h2 style="color: #6D2932; margin-top: 0; font-family: Georgia, serif; font-weight: 300; font-size: 24px;">
-              Willkommen beim VIERKORKEN Newsletter!
+              Willkommen beim VIER KORKEN Newsletter!
             </h2>
 
             <p>Vielen Dank für Ihr Interesse an unserem Newsletter. Sie sind jetzt angemeldet und erhalten ab sofort:</p>
@@ -903,7 +938,7 @@ export async function sendNewsletterConfirmationEmail(to: string) {
 
             <p style="margin-top: 30px;">
               Prost und beste Grüße,<br>
-              <strong style="color: #6D2932;">Ihr VIERKORKEN Team</strong>
+              <strong style="color: #6D2932;">Ihr VIER KORKEN Team</strong>
             </p>
 
             <hr style="border: none; border-top: 1px solid #E8E3DF; margin: 30px 0;">
@@ -914,7 +949,7 @@ export async function sendNewsletterConfirmationEmail(to: string) {
             </p>
 
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop<br>
+              © ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop<br>
               <a href="mailto:info@vierkorken.ch" style="color: #6D2932; text-decoration: none;">info@vierkorken.ch</a>
             </p>
           </div>
@@ -923,9 +958,9 @@ export async function sendNewsletterConfirmationEmail(to: string) {
     `;
 
   const text = `
-VIERKORKEN - Premium Weinshop
+VIER KORKEN - Premium Weinshop
 
-Willkommen beim VIERKORKEN Newsletter!
+Willkommen beim VIER KORKEN Newsletter!
 
 Vielen Dank für Ihr Interesse an unserem Newsletter. Sie sind jetzt angemeldet und erhalten ab sofort:
 
@@ -940,19 +975,19 @@ Account erstellen: ${siteUrl}/registrieren?email=${encodeURIComponent(to)}
 Wir freuen uns, Sie auf dem Laufenden zu halten!
 
 Prost und beste Grüße,
-Ihr VIERKORKEN Team
+Ihr VIER KORKEN Team
 
 ---
 Sie erhalten diese E-Mail, weil Sie sich für unseren Newsletter angemeldet haben.
 Newsletter abbestellen: ${unsubscribeUrl}
 
-© ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop
+© ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop
 info@vierkorken.ch
     `.trim();
 
   await sendInfoMail({
     to,
-    subject: 'Willkommen beim VIERKORKEN Newsletter',
+    subject: 'Willkommen beim VIER KORKEN Newsletter',
     html,
     text,
   });
@@ -989,9 +1024,9 @@ export async function sendNewsNotificationEmail(
           <title>${news.title}</title>
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #FAF8F5;">
-          <!-- Header with VIERKORKEN branding -->
+          <!-- Header with VIER KORKEN branding -->
           <div style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); padding: 30px 20px; text-align: center; border-radius: 12px 12px 0 0;">
-            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">VIERKORKEN</h1>
+            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">VIER KORKEN</h1>
             <div style="margin-top: 12px; height: 1px; width: 80px; background: linear-gradient(to right, transparent, #C9A961, transparent); margin-left: auto; margin-right: auto;"></div>
             <p style="color: #FAF8F5; margin-top: 15px; margin-bottom: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 2px;">Neue Neuigkeiten</p>
           </div>
@@ -1048,7 +1083,7 @@ export async function sendNewsNotificationEmail(
             </p>
 
             <p style="color: #999; font-size: 12px; margin: 10px 0 0;">
-              © ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop<br>
+              © ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop<br>
               <a href="mailto:info@vierkorken.ch" style="color: #6D2932; text-decoration: none;">info@vierkorken.ch</a>
             </p>
           </div>
@@ -1057,7 +1092,7 @@ export async function sendNewsNotificationEmail(
     `;
 
   const text = `
-VIERKORKEN - Premium Weinshop
+VIER KORKEN - Premium Weinshop
 
 NEUE NEUIGKEITEN
 
@@ -1081,7 +1116,7 @@ Weitere Links:
 Sie erhalten diese E-Mail, weil Sie unseren Newsletter abonniert haben.
 Newsletter abbestellen: ${unsubscribeUrl}
 
-© ${new Date().getFullYear()} VIERKORKEN - Premium Weinshop
+© ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop
 info@vierkorken.ch
     `.trim();
 
