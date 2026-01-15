@@ -103,9 +103,9 @@ export async function GET(
       .fontSize(10)
       .font('Helvetica')
       .text('Premium Weinshop', 50, 80)
-      .text('Musterstrasse 1', 50, 95)
-      .text('8000 Zürich', 50, 110)
-      .text('Schweiz', 50, 125)
+      .text('Steinbrunnengasse 3a', 50, 95)
+      .text('5707 Seengen', 50, 110)
+      .text('Tel: 062 390 04 04', 50, 125)
       .text('info@vierkorken.ch', 50, 140)
       .text('www.vierkorken.ch', 50, 155);
 

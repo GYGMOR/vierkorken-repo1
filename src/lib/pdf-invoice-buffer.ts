@@ -41,52 +41,55 @@ interface OrderForPDF {
 export async function generateInvoicePDFBuffer(order: OrderForPDF): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     try {
-      const doc = new PDFDocument({ size: 'A4', margin: 50 });
+      // Use bufferPages: true to avoid font loading issues in production
+      const doc = new PDFDocument({
+        size: 'A4',
+        margin: 50,
+        bufferPages: true,
+        autoFirstPage: true,
+      });
       const chunks: Buffer[] = [];
 
       doc.on('data', (chunk) => chunks.push(chunk));
       doc.on('end', () => resolve(Buffer.concat(chunks)));
-      doc.on('error', reject);
+      doc.on('error', (err) => {
+        console.error('PDF generation error:', err);
+        reject(err);
+      });
 
-      // Company Header
+      // Company Header - use simple text without font switching
       doc
         .fontSize(24)
-        .font('Helvetica-Bold')
-        .text('VIER KORKEN', 50, 50);
+        .text('VIER KORKEN', 50, 50, { continued: false });
 
       doc
         .fontSize(10)
-        .font('Helvetica')
         .text('Premium Weinshop', 50, 80)
-        .text('Steinbrunnengasse 3A', 50, 95)
-        .text('5707 Seengen AG', 50, 110)
-        .text('Schweiz', 50, 125)
+        .text('Steinbrunnengasse 3a', 50, 95)
+        .text('5707 Seengen', 50, 110)
+        .text('Tel: 062 390 04 04', 50, 125)
         .text('info@vierkorken.ch', 50, 140)
         .text('www.vierkorken.ch', 50, 155);
 
       // Invoice Title
       doc
         .fontSize(20)
-        .font('Helvetica-Bold')
         .text('RECHNUNG', 50, 220);
 
       // Invoice Info
       const dateStr = typeof order.date === 'string' ? order.date : order.date.toISOString().split('T')[0];
       doc
         .fontSize(10)
-        .font('Helvetica')
         .text(`Rechnungsnummer: ${order.orderNumber}`, 50, 250)
         .text(`Datum: ${formatDate(dateStr)}`, 50, 265);
 
       // Billing Address
       doc
         .fontSize(12)
-        .font('Helvetica-Bold')
         .text('Rechnungsadresse:', 350, 220);
 
       doc
-        .fontSize(10)
-        .font('Helvetica');
+        .fontSize(10);
 
       let yPos = 240;
       if (order.billingAddress.company) {
