@@ -345,6 +345,49 @@ export async function POST(req: NextRequest) {
     // Generate order number
     const orderNumber = `VK-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
 
+    // Get customer data (handle empty strings properly)
+    const customerEmail = (shippingData?.email && shippingData.email.trim() !== '')
+      ? shippingData.email.trim()
+      : (user?.email || 'FEHLER_KEINE_EMAIL');
+
+    const customerFirstName = (shippingData?.firstName && shippingData.firstName.trim() !== '')
+      ? shippingData.firstName.trim()
+      : (user?.firstName || 'FEHLER_KEIN_NAME');
+
+    const customerLastName = (shippingData?.lastName && shippingData.lastName.trim() !== '')
+      ? shippingData.lastName.trim()
+      : (user?.lastName || '');
+
+    const customerPhone = (shippingData?.phone && shippingData.phone.trim() !== '')
+      ? shippingData.phone.trim()
+      : (user?.phone || null);
+
+    console.log('👤 Customer data extracted:', {
+      customerEmail,
+      customerFirstName,
+      customerLastName,
+      customerPhone,
+      fromShippingData: !!shippingData?.email,
+      fromUser: !!user?.email,
+    });
+
+    // Validate customer data
+    if (!customerEmail || customerEmail === 'FEHLER_KEINE_EMAIL') {
+      console.error('❌ No valid email provided');
+      return NextResponse.json(
+        { error: 'Bitte geben Sie Ihre E-Mail-Adresse ein' },
+        { status: 400 }
+      );
+    }
+
+    if (!customerFirstName || customerFirstName === 'FEHLER_KEIN_NAME') {
+      console.error('❌ No valid first name provided');
+      return NextResponse.json(
+        { error: 'Bitte geben Sie Ihren Vornamen ein' },
+        { status: 400 }
+      );
+    }
+
     // Create order in database IMMEDIATELY (with PENDING status)
     // First create order without items
     const order = await prisma.order.create({
@@ -357,10 +400,10 @@ export async function POST(req: NextRequest) {
             },
           },
         }),
-        customerEmail: shippingData?.email || userId || 'guest@vierkorken.ch',
-        customerFirstName: shippingData?.firstName || user?.firstName || 'Gast',
-        customerLastName: shippingData?.lastName || user?.lastName || '',
-        customerPhone: shippingData?.phone || user?.phone || null,
+        customerEmail,
+        customerFirstName,
+        customerLastName,
+        customerPhone,
         shippingAddress: finalShippingAddress,
         billingAddress: billingAddress,
         subtotal: subtotal,
