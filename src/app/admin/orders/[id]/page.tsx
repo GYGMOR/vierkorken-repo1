@@ -209,10 +209,18 @@ export default function OrderDetailPage() {
     if (!address) return 'Keine Adresse';
     return (
       <>
-        <p>{address.street}</p>
+        {(address.firstName || address.lastName) && (
+          <p className="font-semibold">{address.firstName} {address.lastName}</p>
+        )}
+        {address.company && <p>{address.company}</p>}
+        <p>
+          {address.street}
+          {address.streetNumber && ` ${address.streetNumber}`}
+        </p>
         {address.additional && <p>{address.additional}</p>}
         <p>{address.postalCode} {address.city}</p>
         <p>{address.country}</p>
+        {address.phone && <p>Tel: {address.phone}</p>}
       </>
     );
   };

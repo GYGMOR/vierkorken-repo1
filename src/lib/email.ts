@@ -287,12 +287,21 @@ Sie können direkt auf diese E-Mail antworten, um dem Kunden zu antworten.
  * Send order confirmation email with PDF invoice attached (verwendet info@vierkorken.ch)
  */
 export async function sendOrderConfirmationEmail(to: string, orderId: string, orderDetails: any) {
+  console.log('📧 [sendOrderConfirmationEmail] Starting...', {
+    to,
+    orderId,
+    orderNumber: orderDetails.orderNumber,
+    customerName: `${orderDetails.customerFirstName} ${orderDetails.customerLastName}`,
+    itemCount: orderDetails.items?.length,
+  });
+
   // Import PDF generator
   const { generateInvoicePDFBuffer } = await import('./pdf-invoice-buffer');
 
   // Generate PDF as buffer
   let pdfBuffer: Buffer | null = null;
   try {
+    console.log('📄 Generating PDF invoice...');
     pdfBuffer = await generateInvoicePDFBuffer({
       orderNumber: orderDetails.orderNumber,
       date: orderDetails.createdAt,
