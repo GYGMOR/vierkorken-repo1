@@ -120,16 +120,71 @@ export async function POST(req: NextRequest) {
     // Generate order number
     const orderNumber = `VK-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
-    // Prepare address data
+    // Get customer data (handle empty strings properly)
+    const customerEmail = (shippingData?.email && shippingData.email.trim() !== '')
+      ? shippingData.email
+      : (session?.user?.email || 'gast@vierkorken.ch');
+
+    const customerFirstName = (shippingData?.firstName && shippingData.firstName.trim() !== '')
+      ? shippingData.firstName
+      : (session?.user?.firstName || 'Gast');
+
+    const customerLastName = (shippingData?.lastName && shippingData.lastName.trim() !== '')
+      ? shippingData.lastName
+      : (session?.user?.lastName || 'Kunde');
+
+    const customerPhone = (shippingData?.phone && shippingData.phone.trim() !== '')
+      ? shippingData.phone
+      : (session?.user?.phone || null);
+
+    console.log('👤 Customer data for order:', {
+      email: customerEmail,
+      firstName: customerFirstName,
+      lastName: customerLastName,
+      phone: customerPhone,
+    });
+
+    // Validate required customer data
+    if (!customerEmail || customerEmail === 'gast@vierkorken.ch') {
+      return NextResponse.json(
+        { error: 'Bitte geben Sie Ihre E-Mail-Adresse ein' },
+        { status: 400 }
+      );
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(customerEmail)) {
+      return NextResponse.json(
+        { error: 'Bitte geben Sie eine gültige E-Mail-Adresse ein' },
+        { status: 400 }
+      );
+    }
+
+    if (!customerFirstName || customerFirstName === 'Gast') {
+      return NextResponse.json(
+        { error: 'Bitte geben Sie Ihren Vornamen ein' },
+        { status: 400 }
+      );
+    }
+
+    if (!customerLastName || customerLastName === 'Kunde') {
+      return NextResponse.json(
+        { error: 'Bitte geben Sie Ihren Nachnamen ein' },
+        { status: 400 }
+      );
+    }
+
+    // Prepare address data for pickup
     const pickupAddress = {
-      firstName: shippingData?.firstName || 'Abholung',
-      lastName: shippingData?.lastName || 'Kunde',
-      street: 'Weinlounge',
-      streetNumber: '1',
-      postalCode: '8000',
-      city: 'Zürich',
+      firstName: customerFirstName,
+      lastName: customerLastName,
+      street: 'Steinbrunnengasse',
+      streetNumber: '3A',
+      postalCode: '5707',
+      city: 'Seengen AG',
       country: 'CH',
-      phone: shippingData?.phone || '',
+      phone: customerPhone || '',
     };
 
     // Create order
@@ -139,10 +194,10 @@ export async function POST(req: NextRequest) {
         userId: session?.user?.id || undefined,
 
         // Customer info
-        customerEmail: shippingData?.email || session?.user?.email || 'gast@vierkorken.ch',
-        customerFirstName: shippingData?.firstName || 'Gast',
-        customerLastName: shippingData?.lastName || 'Kunde',
-        customerPhone: shippingData?.phone || null,
+        customerEmail,
+        customerFirstName,
+        customerLastName,
+        customerPhone,
 
         // Addresses (both same for pickup)
         shippingAddress: pickupAddress,
@@ -212,23 +267,43 @@ export async function POST(req: NextRequest) {
       customerFirstName: order.customerFirstName,
       customerLastName: order.customerLastName,
       customerEmail: order.customerEmail,
+      customerPhone: order.customerPhone,
       createdAt: order.createdAt,
       items: order.items,
       subtotal: order.subtotal,
       shippingCost: order.shippingCost,
       taxAmount: order.taxAmount,
+      discountAmount: order.discountAmount,
       total: order.total,
       billingAddress: pickupAddress,
       shippingAddress: pickupAddress,
+      paymentMethod: 'cash',
+      deliveryMethod: 'PICKUP',
     };
 
     // Send confirmation email
+    let emailSent = false;
+    let emailError: any = null;
+
     try {
       console.log('📧 Sending cash order confirmation email to:', order.customerEmail);
+      console.log('📧 Order data:', {
+        orderNumber: orderData.orderNumber,
+        customerName: `${orderData.customerFirstName} ${orderData.customerLastName}`,
+        items: orderData.items.length,
+        total: orderData.total,
+      });
+
       await sendOrderConfirmationEmail(order.customerEmail, order.id, orderData);
       console.log('✅ Cash order confirmation email sent successfully');
-    } catch (emailError) {
-      console.error('❌ Failed to send cash order confirmation email:', emailError);
+      emailSent = true;
+    } catch (error: any) {
+      emailError = error;
+      console.error('❌ Failed to send cash order confirmation email:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        stack: error.stack?.split('\n').slice(0, 3),
+      });
       // Continue with order creation even if email fails
     }
 
@@ -237,8 +312,12 @@ export async function POST(req: NextRequest) {
       console.log('📧 Sending admin notification for cash order:', order.orderNumber);
       await sendNewOrderNotificationToAdmin(order.id, orderData);
       console.log('✅ Admin notification sent successfully');
-    } catch (adminEmailError) {
-      console.error('❌ Failed to send admin notification:', adminEmailError);
+    } catch (error: any) {
+      console.error('❌ Failed to send admin notification:', error);
+      console.error('❌ Admin email error details:', {
+        message: error.message,
+        stack: error.stack?.split('\n').slice(0, 3),
+      });
       // Continue - admin email is non-critical
     }
 
