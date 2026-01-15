@@ -1127,3 +1127,389 @@ info@vierkorken.ch
     text,
   });
 }
+
+/**
+ * Send order processing email (verwendet info@vierkorken.ch)
+ */
+export async function sendOrderProcessingEmail(
+  to: string,
+  orderNumber: string,
+  customerFirstName: string
+) {
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const orderUrl = `${siteUrl}/konto/bestellungen`;
+
+  const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Bestellung in Bearbeitung</title>
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background-color: #8B4513; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">VIER KORKEN</h1>
+          </div>
+
+          <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
+            <h2 style="color: #333; margin-top: 0;">Ihre Bestellung wird bearbeitet</h2>
+
+            <p>Hallo ${customerFirstName},</p>
+
+            <p>Wir haben mit der Bearbeitung Ihrer Bestellung begonnen und stellen gerade alles für Sie zusammen.</p>
+
+            <div style="background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #8B4513;">
+              <p style="margin: 0;"><strong>Bestellnummer:</strong> ${orderNumber}</p>
+              <p style="margin: 10px 0 0;"><strong>Status:</strong> In Bearbeitung</p>
+            </div>
+
+            <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107; margin: 20px 0;">
+              <p style="margin: 0; color: #856404;">
+                <strong>📦 Nächster Schritt:</strong> Sobald Ihre Bestellung versendet wurde, erhalten Sie eine weitere E-Mail mit der Tracking-Nummer.
+              </p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${orderUrl}" style="background-color: #8B4513; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: 500;">
+                Bestellung verfolgen
+              </a>
+            </div>
+
+            <p>Vielen Dank für Ihr Vertrauen!</p>
+
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              © ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop<br>
+              Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
+            </p>
+          </div>
+        </body>
+      </html>
+    `;
+
+  const text = `
+VIER KORKEN - Bestellung in Bearbeitung
+
+Hallo ${customerFirstName},
+
+Wir haben mit der Bearbeitung Ihrer Bestellung begonnen und stellen gerade alles für Sie zusammen.
+
+Bestellnummer: ${orderNumber}
+Status: In Bearbeitung
+
+Nächster Schritt: Sobald Ihre Bestellung versendet wurde, erhalten Sie eine weitere E-Mail mit der Tracking-Nummer.
+
+Bestellung verfolgen: ${orderUrl}
+
+Vielen Dank für Ihr Vertrauen!
+
+© ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop
+Bei Fragen: info@vierkorken.ch
+    `.trim();
+
+  await sendInfoMail({
+    to,
+    subject: `Bestellung ${orderNumber} - In Bearbeitung`,
+    html,
+    text,
+  });
+}
+
+/**
+ * Send order shipped email with tracking (verwendet info@vierkorken.ch)
+ */
+export async function sendOrderShippedEmail(
+  to: string,
+  orderNumber: string,
+  customerFirstName: string,
+  trackingNumber?: string
+) {
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const orderUrl = `${siteUrl}/konto/bestellungen`;
+
+  // Swiss Post tracking URL
+  const trackingUrl = trackingNumber
+    ? `https://service.post.ch/vgn/showTrackAndTrace.do?formattedParcelCodes=${trackingNumber}`
+    : null;
+
+  const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Bestellung versendet</title>
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background-color: #8B4513; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">VIER KORKEN</h1>
+          </div>
+
+          <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
+            <div style="background-color: #d4edda; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px;">
+              <h2 style="color: #155724; margin: 0; font-size: 24px;">📦 Ihre Bestellung ist unterwegs!</h2>
+            </div>
+
+            <p>Hallo ${customerFirstName},</p>
+
+            <p>Gute Neuigkeiten! Ihre Bestellung wurde soeben versendet und ist nun auf dem Weg zu Ihnen.</p>
+
+            <div style="background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #28a745;">
+              <p style="margin: 0;"><strong>Bestellnummer:</strong> ${orderNumber}</p>
+              <p style="margin: 10px 0 0;"><strong>Status:</strong> Versendet</p>
+              ${trackingNumber ? `
+              <p style="margin: 10px 0 0;"><strong>Tracking-Nummer:</strong></p>
+              <p style="margin: 5px 0 0; font-family: monospace; font-size: 14px; background-color: #f5f5f5; padding: 8px; border-radius: 4px;">${trackingNumber}</p>
+              ` : ''}
+            </div>
+
+            ${trackingUrl ? `
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${trackingUrl}" style="background-color: #28a745; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: 500; margin-bottom: 10px;">
+                📍 Sendung verfolgen
+              </a>
+              <p style="margin: 10px 0 0; font-size: 13px; color: #666;">
+                Klicken Sie hier, um Ihre Sendung bei der Post zu verfolgen
+              </p>
+            </div>
+            ` : ''}
+
+            <div style="background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #333; margin-top: 0; font-size: 16px;">📅 Voraussichtliche Lieferung</h3>
+              <p style="margin: 5px 0 0; color: #666;">Ihre Bestellung sollte innerhalb von 2-3 Werktagen bei Ihnen eintreffen.</p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${orderUrl}" style="background-color: #8B4513; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: 500;">
+                Bestelldetails ansehen
+              </a>
+            </div>
+
+            <p>Vielen Dank für Ihre Bestellung. Wir hoffen, Sie genießen Ihre Weine!</p>
+
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              © ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop<br>
+              Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
+            </p>
+          </div>
+        </body>
+      </html>
+    `;
+
+  const text = `
+VIER KORKEN - Bestellung versendet
+
+Hallo ${customerFirstName},
+
+Gute Neuigkeiten! Ihre Bestellung wurde soeben versendet und ist nun auf dem Weg zu Ihnen.
+
+Bestellnummer: ${orderNumber}
+Status: Versendet
+${trackingNumber ? `Tracking-Nummer: ${trackingNumber}` : ''}
+
+${trackingUrl ? `Sendung verfolgen: ${trackingUrl}` : ''}
+
+Voraussichtliche Lieferung: 2-3 Werktage
+
+Bestelldetails ansehen: ${orderUrl}
+
+Vielen Dank für Ihre Bestellung. Wir hoffen, Sie genießen Ihre Weine!
+
+© ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop
+Bei Fragen: info@vierkorken.ch
+    `.trim();
+
+  await sendInfoMail({
+    to,
+    subject: `Bestellung ${orderNumber} - Versendet ${trackingNumber ? '📦' : ''}`,
+    html,
+    text,
+  });
+}
+
+/**
+ * Send order delivered email (verwendet info@vierkorken.ch)
+ */
+export async function sendOrderDeliveredEmail(
+  to: string,
+  orderNumber: string,
+  customerFirstName: string
+) {
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const orderUrl = `${siteUrl}/konto/bestellungen`;
+
+  const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Bestellung zugestellt</title>
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background-color: #8B4513; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">VIER KORKEN</h1>
+          </div>
+
+          <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
+            <div style="background-color: #d4edda; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px;">
+              <h2 style="color: #155724; margin: 0; font-size: 24px;">✅ Ihre Bestellung wurde zugestellt!</h2>
+            </div>
+
+            <p>Hallo ${customerFirstName},</p>
+
+            <p>Ihre Bestellung wurde erfolgreich zugestellt. Wir hoffen, dass alles zu Ihrer Zufriedenheit ist!</p>
+
+            <div style="background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #28a745;">
+              <p style="margin: 0;"><strong>Bestellnummer:</strong> ${orderNumber}</p>
+              <p style="margin: 10px 0 0;"><strong>Status:</strong> Zugestellt</p>
+            </div>
+
+            <div style="background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #333; margin-top: 0; font-size: 16px;">🍷 Genießen Sie Ihre Weine</h3>
+              <p style="margin: 5px 0 0; color: #666;">
+                Wir empfehlen, die Flaschen vor dem Genuss einige Stunden ruhen zu lassen.
+                Bei Fragen zur optimalen Serviertemperatur oder Dekantierung kontaktieren Sie uns gerne.
+              </p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${orderUrl}" style="background-color: #8B4513; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: 500;">
+                Bestelldetails ansehen
+              </a>
+            </div>
+
+            <p>Vielen Dank für Ihr Vertrauen. Wir freuen uns darauf, Sie bald wieder bei VIER KORKEN begrüßen zu dürfen!</p>
+
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              © ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop<br>
+              Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
+            </p>
+          </div>
+        </body>
+      </html>
+    `;
+
+  const text = `
+VIER KORKEN - Bestellung zugestellt
+
+Hallo ${customerFirstName},
+
+Ihre Bestellung wurde erfolgreich zugestellt. Wir hoffen, dass alles zu Ihrer Zufriedenheit ist!
+
+Bestellnummer: ${orderNumber}
+Status: Zugestellt
+
+Genießen Sie Ihre Weine!
+Wir empfehlen, die Flaschen vor dem Genuss einige Stunden ruhen zu lassen.
+Bei Fragen zur optimalen Serviertemperatur oder Dekantierung kontaktieren Sie uns gerne.
+
+Bestelldetails ansehen: ${orderUrl}
+
+Vielen Dank für Ihr Vertrauen. Wir freuen uns darauf, Sie bald wieder bei VIER KORKEN begrüßen zu dürfen!
+
+© ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop
+Bei Fragen: info@vierkorken.ch
+    `.trim();
+
+  await sendInfoMail({
+    to,
+    subject: `Bestellung ${orderNumber} - Zugestellt ✅`,
+    html,
+    text,
+  });
+}
+
+/**
+ * Send order cancelled email (verwendet info@vierkorken.ch)
+ */
+export async function sendOrderCancelledEmail(
+  to: string,
+  orderNumber: string,
+  customerFirstName: string
+) {
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+  const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Bestellung storniert</title>
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background-color: #8B4513; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">VIER KORKEN</h1>
+          </div>
+
+          <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
+            <h2 style="color: #333; margin-top: 0;">Bestellung storniert</h2>
+
+            <p>Hallo ${customerFirstName},</p>
+
+            <p>Ihre Bestellung wurde storniert.</p>
+
+            <div style="background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc3545;">
+              <p style="margin: 0;"><strong>Bestellnummer:</strong> ${orderNumber}</p>
+              <p style="margin: 10px 0 0;"><strong>Status:</strong> Storniert</p>
+            </div>
+
+            <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107; margin: 20px 0;">
+              <p style="margin: 0; color: #856404;">
+                Falls Sie bereits bezahlt haben, wird der Betrag innerhalb von 5-7 Werktagen zurückerstattet.
+              </p>
+            </div>
+
+            <p>Bei Fragen zur Stornierung kontaktieren Sie uns bitte unter info@vierkorken.ch</p>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${siteUrl}/weine" style="background-color: #8B4513; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: 500;">
+                Weiter einkaufen
+              </a>
+            </div>
+
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              © ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop<br>
+              Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
+            </p>
+          </div>
+        </body>
+      </html>
+    `;
+
+  const text = `
+VIER KORKEN - Bestellung storniert
+
+Hallo ${customerFirstName},
+
+Ihre Bestellung wurde storniert.
+
+Bestellnummer: ${orderNumber}
+Status: Storniert
+
+Falls Sie bereits bezahlt haben, wird der Betrag innerhalb von 5-7 Werktagen zurückerstattet.
+
+Bei Fragen zur Stornierung kontaktieren Sie uns bitte unter info@vierkorken.ch
+
+Weiter einkaufen: ${siteUrl}/weine
+
+© ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop
+Bei Fragen: info@vierkorken.ch
+    `.trim();
+
+  await sendInfoMail({
+    to,
+    subject: `Bestellung ${orderNumber} - Storniert`,
+    html,
+    text,
+  });
+}

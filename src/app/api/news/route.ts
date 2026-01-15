@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
 import { notifyNewsletterSubscribers } from '@/lib/newsletter';
 import { PostStatus } from '@prisma/client';
@@ -51,6 +53,28 @@ export async function GET(request: NextRequest) {
 // POST /api/news - Create new news (Admin only)
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { error: 'Nicht authentifiziert' },
+        { status: 401 }
+      );
+    }
+
+    // Check if user is admin
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    });
+
+    if (!user || user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Keine Berechtigung' },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const { title, excerpt, content, featuredImage, status, publishedAt, isPinned, sortOrder } = body;
 
@@ -86,6 +110,7 @@ export async function POST(request: NextRequest) {
 
     // Send newsletter notifications if publishing immediately
     if (news.status === PostStatus.PUBLISHED && news.publishedAt && news.publishedAt <= new Date()) {
+      console.log(`📰 New news published - triggering newsletter notifications for: ${news.title}`);
       // Send notifications asynchronously (don't block response)
       notifyNewsletterSubscribers({
         title: news.title,
@@ -93,7 +118,9 @@ export async function POST(request: NextRequest) {
         slug: news.slug,
         featuredImage: news.featuredImage || undefined,
         content: news.content,
-      }).catch(err => console.error('Failed to send newsletter notifications:', err));
+      }).catch(err => console.error('❌ Failed to send newsletter notifications:', err));
+    } else {
+      console.log(`ℹ️  News created but not published yet. Status: ${news.status}, Published: ${news.publishedAt}`);
     }
 
     return NextResponse.json({

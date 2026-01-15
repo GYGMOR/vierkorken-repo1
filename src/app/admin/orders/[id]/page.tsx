@@ -73,6 +73,7 @@ export default function OrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [trackingNumber, setTrackingNumber] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
 
   useEffect(() => {
     if (orderId) {
@@ -87,6 +88,7 @@ export default function OrderDetailPage() {
       if (data.success) {
         setOrder(data.order);
         setTrackingNumber(data.order.trackingNumber || '');
+        setSelectedStatus(data.order.status);
       }
     } catch (error) {
       console.error('Error loading order:', error);
@@ -95,7 +97,7 @@ export default function OrderDetailPage() {
     }
   };
 
-  const updateOrderStatus = async (newStatus: string) => {
+  const saveOrderChanges = async () => {
     if (!order) return;
 
     setUpdating(true);
@@ -104,16 +106,62 @@ export default function OrderDetailPage() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          status: newStatus,
-          ...(newStatus === 'SHIPPED' && trackingNumber && { trackingNumber })
+          status: selectedStatus,
+          trackingNumber: trackingNumber || null,
         }),
       });
 
-      if (response.ok) {
+      const result = await response.json();
+
+      if (response.ok && result.success) {
         await loadOrder();
+        // Show success message
+        alert('Bestellung aktualisiert. Kunde wurde per E-Mail benachrichtigt.');
+      } else {
+        alert('Fehler beim Aktualisieren der Bestellung: ' + (result.error || 'Unbekannter Fehler'));
       }
     } catch (error) {
       console.error('Error updating order:', error);
+      alert('Fehler beim Aktualisieren der Bestellung');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const hasChanges = () => {
+    if (!order) return false;
+    return (
+      selectedStatus !== order.status ||
+      trackingNumber !== (order.trackingNumber || '')
+    );
+  };
+
+  const deleteOrder = async () => {
+    if (!order) return;
+
+    const confirmed = confirm(
+      `Möchten Sie die Bestellung ${order.orderNumber} wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`
+    );
+
+    if (!confirmed) return;
+
+    setUpdating(true);
+    try {
+      const response = await fetch(`/api/admin/orders/${orderId}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        alert('Bestellung wurde gelöscht');
+        router.push('/admin/orders');
+      } else {
+        alert('Fehler beim Löschen der Bestellung: ' + (result.error || 'Unbekannter Fehler'));
+      }
+    } catch (error) {
+      console.error('Error deleting order:', error);
+      alert('Fehler beim Löschen der Bestellung');
     } finally {
       setUpdating(false);
     }
@@ -225,6 +273,15 @@ export default function OrderDetailPage() {
             >
               Packzettel drucken
             </Button>
+            <Button
+              onClick={deleteOrder}
+              variant="secondary"
+              size="sm"
+              disabled={updating}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              Löschen
+            </Button>
           </div>
         </div>
 
@@ -297,56 +354,74 @@ export default function OrderDetailPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="flex-1">
-                  <p className="text-sm text-graphite/60 mb-2">Aktueller Status</p>
-                  <div className="flex gap-2">
-                    {order.status === 'CONFIRMED' && (
-                      <Button
-                        onClick={() => updateOrderStatus('SHIPPED')}
-                        disabled={updating}
-                        size="sm"
-                      >
-                        Als versendet markieren
-                      </Button>
-                    )}
-                    {order.status === 'SHIPPED' && (
-                      <Button
-                        onClick={() => updateOrderStatus('DELIVERED')}
-                        disabled={updating}
-                        size="sm"
-                      >
-                        Als zugestellt markieren
-                      </Button>
-                    )}
-                  </div>
-                </div>
+              {/* Status Selection */}
+              <div>
+                <label className="block text-sm text-graphite/60 mb-2">
+                  Bestellstatus
+                </label>
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="w-full px-4 py-2 border border-taupe-light rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-burgundy bg-white"
+                >
+                  <option value="PENDING">Ausstehend</option>
+                  <option value="CONFIRMED">Bestätigt</option>
+                  <option value="PROCESSING">In Bearbeitung</option>
+                  <option value="SHIPPED">Versendet</option>
+                  <option value="DELIVERED">Zugestellt</option>
+                  <option value="CANCELLED">Storniert</option>
+                  <option value="REFUNDED">Erstattet</option>
+                </select>
               </div>
 
-              {order.status === 'CONFIRMED' && (
-                <div>
-                  <label className="block text-sm text-graphite/60 mb-2">
-                    Tracking-Nummer (optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={trackingNumber}
-                    onChange={(e) => setTrackingNumber(e.target.value)}
-                    className="w-full px-4 py-2 border border-taupe-light rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-burgundy"
-                    placeholder="z.B. 00340434292135100186"
-                  />
+              {/* Tracking Number */}
+              <div>
+                <label className="block text-sm text-graphite/60 mb-2">
+                  Tracking-Nummer (optional)
+                </label>
+                <input
+                  type="text"
+                  value={trackingNumber}
+                  onChange={(e) => setTrackingNumber(e.target.value)}
+                  className="w-full px-4 py-2 border border-taupe-light rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-burgundy"
+                  placeholder="z.B. 00340434292135100186"
+                />
+                <p className="mt-1 text-xs text-graphite/60">
+                  Wird in der Versand-E-Mail an den Kunden gesendet
+                </p>
+              </div>
+
+              {/* Changes indicator */}
+              {hasChanges() && (
+                <div className="bg-accent-gold/10 border border-accent-gold/30 rounded-lg p-3">
+                  <p className="text-sm text-graphite-dark font-semibold mb-1">
+                    Nicht gespeicherte Änderungen:
+                  </p>
+                  <ul className="text-sm text-graphite space-y-1">
+                    {selectedStatus !== order.status && (
+                      <li>• Status: {getStatusBadge(order.status)} → {getStatusBadge(selectedStatus)}</li>
+                    )}
+                    {trackingNumber !== (order.trackingNumber || '') && (
+                      <li>
+                        • Tracking: {order.trackingNumber || '(leer)'} → {trackingNumber || '(leer)'}
+                      </li>
+                    )}
+                  </ul>
                 </div>
               )}
 
-              {order.trackingNumber && (
-                <div>
-                  <p className="text-sm text-graphite/60 mb-1">Tracking-Nummer</p>
-                  <p className="font-mono text-graphite-dark">{order.trackingNumber}</p>
-                </div>
-              )}
+              {/* Save Button */}
+              <Button
+                onClick={saveOrderChanges}
+                disabled={updating || !hasChanges()}
+                className="w-full"
+              >
+                {updating ? 'Speichern...' : 'Änderungen speichern & E-Mail senden'}
+              </Button>
 
+              {/* Timestamps */}
               {order.shippedAt && (
-                <div>
+                <div className="pt-4 border-t">
                   <p className="text-sm text-graphite/60 mb-1">Versendet am</p>
                   <p className="text-graphite-dark">
                     {new Date(order.shippedAt).toLocaleDateString('de-CH', {
@@ -361,7 +436,7 @@ export default function OrderDetailPage() {
               )}
 
               {order.deliveredAt && (
-                <div>
+                <div className={order.shippedAt ? '' : 'pt-4 border-t'}>
                   <p className="text-sm text-graphite/60 mb-1">Zugestellt am</p>
                   <p className="text-graphite-dark">
                     {new Date(order.deliveredAt).toLocaleDateString('de-CH', {
