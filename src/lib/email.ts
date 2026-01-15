@@ -49,7 +49,13 @@ export async function sendInfoMail(options: {
 
   try {
     const startTime = Date.now();
-    console.log('📧 Sending info-mail to:', options.to, 'subject:', options.subject);
+    console.log('📧 [sendInfoMail] Attempting to send...');
+    console.log('📧 [sendInfoMail] To:', options.to);
+    console.log('📧 [sendInfoMail] From:', MAIL_FROM_INFO);
+    console.log('📧 [sendInfoMail] Subject:', options.subject);
+    console.log('📧 [sendInfoMail] Has attachments:', !!options.attachments);
+    console.log('📧 [sendInfoMail] HTML length:', options.html?.length || 0);
+    console.log('📧 [sendInfoMail] Text length:', options.text?.length || 0);
 
     const data = await resend.emails.send({
       from: MAIL_FROM_INFO,
@@ -62,11 +68,22 @@ export async function sendInfoMail(options: {
     });
 
     const duration = Date.now() - startTime;
-    console.log(`✅ Info-Mail sent to: ${options.to} from: ${MAIL_FROM_INFO} (${duration}ms) - ID: ${data.data?.id}`);
+    console.log(`✅ [sendInfoMail] SUCCESS! Email sent in ${duration}ms`);
+    console.log(`✅ [sendInfoMail] To: ${options.to}`);
+    console.log(`✅ [sendInfoMail] From: ${MAIL_FROM_INFO}`);
+    console.log(`✅ [sendInfoMail] Resend ID: ${data.data?.id}`);
+    console.log(`✅ [sendInfoMail] Full response:`, JSON.stringify(data, null, 2));
 
     return data;
   } catch (error: any) {
-    console.error('❌ Error sending info-mail:', error.message);
+    console.error('❌ [sendInfoMail] FAILED to send email');
+    console.error('❌ [sendInfoMail] To:', options.to);
+    console.error('❌ [sendInfoMail] From:', MAIL_FROM_INFO);
+    console.error('❌ [sendInfoMail] Error type:', error.constructor?.name);
+    console.error('❌ [sendInfoMail] Error message:', error.message);
+    console.error('❌ [sendInfoMail] Error code:', error.code);
+    console.error('❌ [sendInfoMail] Error statusCode:', error.statusCode);
+    console.error('❌ [sendInfoMail] Full error:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
     throw new Error(`Failed to send info-mail: ${error.message}`);
   }
 }
@@ -505,13 +522,35 @@ Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
       ]
     : undefined;
 
-  await sendInfoMail({
+  console.log('📧 About to send order confirmation email...');
+  console.log('📧 Email details:', {
     to,
     subject: `Bestellbestätigung - ${orderDetails.orderNumber}`,
-    html,
-    text,
-    attachments,
+    hasPDF: !!pdfBuffer,
+    hasAttachments: !!attachments,
   });
+
+  try {
+    const result = await sendInfoMail({
+      to,
+      subject: `Bestellbestätigung - ${orderDetails.orderNumber}`,
+      html,
+      text,
+      attachments,
+    });
+    console.log('✅ Order confirmation email sent successfully via sendInfoMail');
+    console.log('✅ Resend response:', result);
+    return result;
+  } catch (emailSendError: any) {
+    console.error('❌ CRITICAL: Failed to send order confirmation email');
+    console.error('❌ To:', to);
+    console.error('❌ Error message:', emailSendError.message);
+    console.error('❌ Error type:', emailSendError.constructor?.name);
+    console.error('❌ Error stack:', emailSendError.stack?.split('\n').slice(0, 5));
+    // Don't throw - we want the order to succeed even if email fails
+    // But log it heavily so we can debug
+    return null;
+  }
 }
 
 /**
