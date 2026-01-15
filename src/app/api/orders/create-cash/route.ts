@@ -142,10 +142,17 @@ export async function POST(req: NextRequest) {
       firstName: customerFirstName,
       lastName: customerLastName,
       phone: customerPhone,
+      shippingDataReceived: {
+        email: shippingData?.email,
+        firstName: shippingData?.firstName,
+        lastName: shippingData?.lastName,
+        phone: shippingData?.phone,
+      }
     });
 
     // Validate required customer data
-    if (!customerEmail || customerEmail === 'gast@vierkorken.ch') {
+    if (!customerEmail || customerEmail === 'gast@vierkorken.ch' || customerEmail.trim() === '') {
+      console.error('❌ Invalid email:', customerEmail);
       return NextResponse.json(
         { error: 'Bitte geben Sie Ihre E-Mail-Adresse ein' },
         { status: 400 }
@@ -155,25 +162,30 @@ export async function POST(req: NextRequest) {
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(customerEmail)) {
+      console.error('❌ Invalid email format:', customerEmail);
       return NextResponse.json(
         { error: 'Bitte geben Sie eine gültige E-Mail-Adresse ein' },
         { status: 400 }
       );
     }
 
-    if (!customerFirstName || customerFirstName === 'Gast') {
+    if (!customerFirstName || customerFirstName === 'Gast' || customerFirstName.trim() === '') {
+      console.error('❌ Invalid firstName:', customerFirstName);
       return NextResponse.json(
         { error: 'Bitte geben Sie Ihren Vornamen ein' },
         { status: 400 }
       );
     }
 
-    if (!customerLastName || customerLastName === 'Kunde') {
+    if (!customerLastName || customerLastName === 'Kunde' || customerLastName.trim() === '') {
+      console.error('❌ Invalid lastName:', customerLastName);
       return NextResponse.json(
         { error: 'Bitte geben Sie Ihren Nachnamen ein' },
         { status: 400 }
       );
     }
+
+    console.log('✅ Customer data validation passed');
 
     // Prepare address data for pickup
     const pickupAddress = {
