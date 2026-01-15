@@ -295,13 +295,12 @@ export async function sendOrderConfirmationEmail(to: string, orderId: string, or
     itemCount: orderDetails.items?.length,
   });
 
-  // Import PDF generator
-  const { generateInvoicePDFBuffer } = await import('./pdf-invoice-buffer');
-
-  // Generate PDF as buffer
+  // Try to generate PDF but don't fail if it doesn't work
   let pdfBuffer: Buffer | null = null;
   try {
-    console.log('📄 Generating PDF invoice...');
+    console.log('📄 Attempting to generate PDF invoice...');
+    const { generateInvoicePDFBuffer } = await import('./pdf-invoice-buffer');
+
     pdfBuffer = await generateInvoicePDFBuffer({
       orderNumber: orderDetails.orderNumber,
       date: orderDetails.createdAt,
@@ -316,9 +315,11 @@ export async function sendOrderConfirmationEmail(to: string, orderId: string, or
       total: orderDetails.total,
     });
     console.log('✅ PDF invoice generated successfully');
-  } catch (error) {
-    console.error('❌ Error generating PDF:', error);
-    // Continue without PDF attachment
+  } catch (error: any) {
+    console.error('❌ Error generating PDF (will send email without PDF):', error.message);
+    console.error('❌ PDF Error stack:', error.stack?.split('\n').slice(0, 3));
+    // Continue without PDF - email is more important!
+    pdfBuffer = null;
   }
 
   // Create invoice download link as backup
