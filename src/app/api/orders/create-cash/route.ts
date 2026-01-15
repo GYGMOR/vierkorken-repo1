@@ -135,7 +135,7 @@ export async function POST(req: NextRequest) {
 
     const customerPhone = (shippingData?.phone && shippingData.phone.trim() !== '')
       ? shippingData.phone
-      : (session?.user?.phone || null);
+      : null;
 
     console.log('👤 Customer data for order:', {
       email: customerEmail,
