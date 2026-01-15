@@ -441,7 +441,7 @@ export async function sendOrderConfirmationEmail(to: string, orderId: string, or
               </ol>
 
               <div style="text-align: center; margin: 30px 0;">
-                <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/konto/bestellungen" style="background-color: #8B4513; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: 500;">
+                <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/bestellung/${orderDetails.orderNumber}" style="background-color: #8B4513; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: 500;">
                   Bestellung verfolgen
                 </a>
               </div>
@@ -450,8 +450,8 @@ export async function sendOrderConfirmationEmail(to: string, orderId: string, or
 
               <p style="color: #999; font-size: 12px; text-align: center;">
                 © ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop<br>
-                Musterstrasse 1, 8000 Zürich, Schweiz<br>
-                info@vierkorken.ch | www.vierkorken.ch<br><br>
+                Steinbrunnengasse 3a, 5707 Seengen<br>
+                Tel: 062 390 04 04 | info@vierkorken.ch<br><br>
                 Diese E-Mail wurde automatisch generiert. Bitte antworten Sie nicht direkt darauf.<br>
                 Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
               </p>
@@ -503,11 +503,11 @@ NÄCHSTE SCHRITTE:
 2. Sie erhalten eine Versandbestätigung, sobald Ihre Bestellung unterwegs ist
 3. Die Lieferung erfolgt innerhalb von 3-5 Werktagen
 
-Bestellung verfolgen: ${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/konto/bestellungen
+Bestellung verfolgen: ${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/bestellung/${orderDetails.orderNumber}
 
 © ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop
-Musterstrasse 1, 8000 Zürich, Schweiz
-info@vierkorken.ch | www.vierkorken.ch
+Steinbrunnengasse 3a, 5707 Seengen
+Tel: 062 390 04 04 | info@vierkorken.ch
 
 Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
       `.trim();

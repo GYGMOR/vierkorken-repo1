@@ -87,8 +87,30 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ received: true });
         }
 
-        // Get line items from Stripe
-        const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
+        // Get line items from Stripe with full product details
+        const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
+          expand: ['data.price.product'],
+        });
+
+        console.log('📦 Stripe line items:', lineItems.data.length);
+
+        // Parse line items for order creation
+        const orderItems = lineItems.data.map((item: any) => {
+          const product = item.price?.product as Stripe.Product;
+          const metadata = product?.metadata || {};
+
+          return {
+            wineName: product?.name || item.description || 'Produkt',
+            winery: metadata.winery || '',
+            vintage: metadata.vintage ? parseInt(metadata.vintage) : null,
+            bottleSize: metadata.bottleSize ? parseFloat(metadata.bottleSize) : 0.75,
+            quantity: item.quantity || 1,
+            unitPrice: (item.price?.unit_amount || 0) / 100,
+            totalPrice: (item.amount_total || 0) / 100,
+          };
+        });
+
+        console.log('📦 Parsed order items:', orderItems);
 
         // Find user by email
         const userEmail = session.customer_details?.email || session.client_reference_id;
@@ -107,7 +129,31 @@ export async function POST(req: NextRequest) {
         const total = (session.amount_total || 0) / 100;
         const shippingCost = total - subtotal;
 
-        // Create order in database - SIMPLIFIED without items for now
+        // Prepare address data
+        const shippingAddress = session.shipping_details?.address ? {
+          firstName: session.shipping_details.name?.split(' ')[0] || '',
+          lastName: session.shipping_details.name?.split(' ').slice(1).join(' ') || '',
+          street: session.shipping_details.address.line1 || '',
+          streetNumber: session.shipping_details.address.line2 || '',
+          postalCode: session.shipping_details.address.postal_code || '',
+          city: session.shipping_details.address.city || '',
+          country: session.shipping_details.address.country || '',
+        } : {};
+
+        const billingAddress = session.customer_details?.address ? {
+          firstName: session.customer_details.name?.split(' ')[0] || '',
+          lastName: session.customer_details.name?.split(' ').slice(1).join(' ') || '',
+          street: session.customer_details.address.line1 || '',
+          streetNumber: session.customer_details.address.line2 || '',
+          postalCode: session.customer_details.address.postal_code || '',
+          city: session.customer_details.address.city || '',
+          country: session.customer_details.address.country || '',
+        } : {};
+
+        // Calculate tax (8.1% Swiss VAT included in total)
+        const taxAmount = total * (8.1 / 108.1);
+
+        // Create order in database WITH items
         const order = await prisma.order.create({
           data: {
             orderNumber: orderNumber,
@@ -116,27 +162,11 @@ export async function POST(req: NextRequest) {
             customerFirstName: session.customer_details?.name?.split(' ')[0] || 'Gast',
             customerLastName: session.customer_details?.name?.split(' ').slice(1).join(' ') || '',
             customerPhone: session.customer_details?.phone || null,
-            shippingAddress: session.shipping_details?.address ? {
-              firstName: session.shipping_details.name?.split(' ')[0] || '',
-              lastName: session.shipping_details.name?.split(' ').slice(1).join(' ') || '',
-              street: session.shipping_details.address.line1 || '',
-              streetNumber: session.shipping_details.address.line2 || '',
-              postalCode: session.shipping_details.address.postal_code || '',
-              city: session.shipping_details.address.city || '',
-              country: session.shipping_details.address.country || '',
-            } : {},
-            billingAddress: session.customer_details?.address ? {
-              firstName: session.customer_details.name?.split(' ')[0] || '',
-              lastName: session.customer_details.name?.split(' ').slice(1).join(' ') || '',
-              street: session.customer_details.address.line1 || '',
-              streetNumber: session.customer_details.address.line2 || '',
-              postalCode: session.customer_details.address.postal_code || '',
-              city: session.customer_details.address.city || '',
-              country: session.customer_details.address.country || '',
-            } : {},
+            shippingAddress: shippingAddress,
+            billingAddress: billingAddress,
             subtotal: subtotal,
             shippingCost: shippingCost,
-            taxAmount: 0,
+            taxAmount: taxAmount,
             discountAmount: 0,
             total: total,
             pointsEarned: Math.floor(total * 1.2),
@@ -147,6 +177,22 @@ export async function POST(req: NextRequest) {
             paidAt: new Date(),
             paymentIntentId: session.payment_intent as string,
             status: 'CONFIRMED',
+            deliveryMethod: 'SHIPPING',
+            // Create order items from Stripe line items
+            items: {
+              create: orderItems.map((item) => ({
+                wineName: item.wineName,
+                winery: item.winery,
+                vintage: item.vintage,
+                bottleSize: item.bottleSize,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                totalPrice: item.totalPrice,
+              })),
+            },
+          },
+          include: {
+            items: true,
           },
         });
 
@@ -196,13 +242,14 @@ export async function POST(req: NextRequest) {
             customerLastName: order.customerLastName,
             customerEmail: order.customerEmail,
             createdAt: order.createdAt,
-            items: [], // Stripe orders don't have items stored yet - simplified
+            items: order.items, // Now includes items from Stripe
             subtotal: order.subtotal,
             shippingCost: order.shippingCost,
             taxAmount: order.taxAmount,
             total: order.total,
             billingAddress: order.billingAddress,
             shippingAddress: order.shippingAddress,
+            deliveryMethod: order.deliveryMethod,
           };
 
           await sendOrderConfirmationEmail(order.customerEmail, order.id, orderData);
