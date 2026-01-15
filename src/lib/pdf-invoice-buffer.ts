@@ -1,4 +1,4 @@
-import PDFDocument from 'pdfkit';
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 
 interface OrderItem {
   wineName: string;
@@ -37,175 +37,275 @@ interface OrderForPDF {
 
 /**
  * Generate PDF invoice as Buffer (for email attachments)
+ * Uses pdf-lib which works in serverless environments (no external font files needed)
  */
 export async function generateInvoicePDFBuffer(order: OrderForPDF): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    try {
-      // Use bufferPages: true to avoid font loading issues in production
-      const doc = new PDFDocument({
-        size: 'A4',
-        margin: 50,
-        bufferPages: true,
-        autoFirstPage: true,
-      });
-      const chunks: Buffer[] = [];
+  // Create a new PDF document
+  const pdfDoc = await PDFDocument.create();
 
-      doc.on('data', (chunk) => chunks.push(chunk));
-      doc.on('end', () => resolve(Buffer.concat(chunks)));
-      doc.on('error', (err) => {
-        console.error('PDF generation error:', err);
-        reject(err);
-      });
+  // Embed standard fonts (these are built-in, no external files needed)
+  const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-      // Company Header - use simple text without font switching
-      doc
-        .fontSize(24)
-        .text('VIER KORKEN', 50, 50, { continued: false });
+  // Add a page (A4 size: 595.28 x 841.89 points)
+  const page = pdfDoc.addPage([595.28, 841.89]);
+  const { width, height } = page.getSize();
 
-      doc
-        .fontSize(10)
-        .text('Premium Weinshop', 50, 80)
-        .text('Steinbrunnengasse 3a', 50, 95)
-        .text('5707 Seengen', 50, 110)
-        .text('Tel: 062 390 04 04', 50, 125)
-        .text('info@vierkorken.ch', 50, 140)
-        .text('www.vierkorken.ch', 50, 155);
+  // Colors
+  const black = rgb(0, 0, 0);
+  const gray = rgb(0.4, 0.4, 0.4);
+  const burgundy = rgb(0.545, 0.271, 0.075); // #8B4513
 
-      // Invoice Title
-      doc
-        .fontSize(20)
-        .text('RECHNUNG', 50, 220);
+  let y = height - 50; // Start from top
 
-      // Invoice Info
-      const dateStr = typeof order.date === 'string' ? order.date : order.date.toISOString().split('T')[0];
-      doc
-        .fontSize(10)
-        .text(`Rechnungsnummer: ${order.orderNumber}`, 50, 250)
-        .text(`Datum: ${formatDate(dateStr)}`, 50, 265);
-
-      // Billing Address
-      doc
-        .fontSize(12)
-        .text('Rechnungsadresse:', 350, 220);
-
-      doc
-        .fontSize(10);
-
-      let yPos = 240;
-      if (order.billingAddress.company) {
-        doc.text(order.billingAddress.company, 350, yPos);
-        yPos += 15;
-      }
-      doc
-        .text(`${order.billingAddress.firstName} ${order.billingAddress.lastName}`, 350, yPos)
-        .text(`${order.billingAddress.street} ${order.billingAddress.streetNumber}`, 350, yPos + 15)
-        .text(`${order.billingAddress.postalCode} ${order.billingAddress.city}`, 350, yPos + 30)
-        .text(order.billingAddress.country, 350, yPos + 45);
-
-      // Items Table
-      const tableTop = 350;
-      doc
-        .fontSize(10)
-        .font('Helvetica-Bold');
-
-      // Table Header
-      doc
-        .text('Artikel', 50, tableTop)
-        .text('Menge', 300, tableTop, { width: 50, align: 'right' })
-        .text('Einzelpreis', 370, tableTop, { width: 80, align: 'right' })
-        .text('Gesamt', 470, tableTop, { width: 80, align: 'right' });
-
-      // Line under header
-      doc
-        .moveTo(50, tableTop + 15)
-        .lineTo(550, tableTop + 15)
-        .stroke();
-
-      // Table Items
-      doc.font('Helvetica');
-      let yPosition = tableTop + 25;
-
-      order.items.forEach((item) => {
-        doc
-          .text(
-            `${item.wineName}\n${item.winery} • ${item.vintage || 'N/A'} • ${item.bottleSize}l`,
-            50,
-            yPosition,
-            { width: 240 }
-          )
-          .text(item.quantity.toString(), 300, yPosition, { width: 50, align: 'right' })
-          .text(formatPrice(item.unitPrice), 370, yPosition, { width: 80, align: 'right' })
-          .text(formatPrice(item.totalPrice), 470, yPosition, { width: 80, align: 'right' });
-
-        yPosition += 45;
-      });
-
-      // Totals
-      yPosition += 20;
-      doc
-        .moveTo(350, yPosition)
-        .lineTo(550, yPosition)
-        .stroke();
-
-      yPosition += 15;
-
-      doc
-        .text('Zwischensumme:', 350, yPosition)
-        .text(formatPrice(order.subtotal), 470, yPosition, { width: 80, align: 'right' });
-
-      yPosition += 20;
-      doc
-        .text('Versand:', 350, yPosition)
-        .text(formatPrice(order.shippingCost), 470, yPosition, { width: 80, align: 'right' });
-
-      yPosition += 20;
-      doc
-        .text(`MwSt. (${order.taxRate}%):`, 350, yPosition)
-        .text(formatPrice(order.taxAmount), 470, yPosition, { width: 80, align: 'right' });
-
-      yPosition += 25;
-      doc
-        .moveTo(350, yPosition)
-        .lineTo(550, yPosition)
-        .stroke();
-
-      yPosition += 15;
-      doc
-        .fontSize(12)
-        .font('Helvetica-Bold')
-        .text('Gesamtbetrag:', 350, yPosition)
-        .text(formatPrice(order.total), 470, yPosition, { width: 80, align: 'right' });
-
-      // Footer
-      doc
-        .fontSize(8)
-        .font('Helvetica')
-        .text(
-          'Zahlungsbedingungen: Innerhalb von 30 Tagen ohne Abzug.\nVielen Dank für Ihren Einkauf!',
-          50,
-          750,
-          { align: 'center', width: 500 }
-        );
-
-      // Finalize PDF
-      doc.end();
-    } catch (error) {
-      reject(error);
-    }
+  // ===== COMPANY HEADER =====
+  page.drawText('VIER KORKEN', {
+    x: 50,
+    y: y,
+    size: 24,
+    font: helveticaBold,
+    color: burgundy,
   });
+
+  y -= 30;
+  const companyInfo = [
+    'Premium Weinshop',
+    'Steinbrunnengasse 3a',
+    '5707 Seengen',
+    'Tel: 062 390 04 04',
+    'info@vierkorken.ch',
+    'www.vierkorken.ch',
+  ];
+
+  for (const line of companyInfo) {
+    page.drawText(line, {
+      x: 50,
+      y: y,
+      size: 10,
+      font: helvetica,
+      color: gray,
+    });
+    y -= 14;
+  }
+
+  // ===== INVOICE TITLE =====
+  y = height - 180;
+  page.drawText('RECHNUNG', {
+    x: 50,
+    y: y,
+    size: 20,
+    font: helveticaBold,
+    color: black,
+  });
+
+  // ===== INVOICE INFO =====
+  y -= 30;
+  const dateStr = typeof order.date === 'string' ? order.date : order.date.toISOString().split('T')[0];
+
+  page.drawText(`Rechnungsnummer: ${order.orderNumber}`, {
+    x: 50,
+    y: y,
+    size: 10,
+    font: helvetica,
+    color: black,
+  });
+
+  y -= 15;
+  page.drawText(`Datum: ${formatDate(dateStr)}`, {
+    x: 50,
+    y: y,
+    size: 10,
+    font: helvetica,
+    color: black,
+  });
+
+  // ===== BILLING ADDRESS (right side) =====
+  let addressY = height - 180;
+  page.drawText('Rechnungsadresse:', {
+    x: 350,
+    y: addressY,
+    size: 12,
+    font: helveticaBold,
+    color: black,
+  });
+
+  addressY -= 20;
+
+  if (order.billingAddress.company) {
+    page.drawText(order.billingAddress.company, {
+      x: 350,
+      y: addressY,
+      size: 10,
+      font: helvetica,
+      color: black,
+    });
+    addressY -= 14;
+  }
+
+  const addressLines = [
+    `${order.billingAddress.firstName} ${order.billingAddress.lastName}`,
+    `${order.billingAddress.street} ${order.billingAddress.streetNumber}`,
+    `${order.billingAddress.postalCode} ${order.billingAddress.city}`,
+    order.billingAddress.country,
+  ];
+
+  for (const line of addressLines) {
+    page.drawText(line, {
+      x: 350,
+      y: addressY,
+      size: 10,
+      font: helvetica,
+      color: black,
+    });
+    addressY -= 14;
+  }
+
+  // ===== ITEMS TABLE =====
+  y = height - 300;
+
+  // Table header
+  page.drawText('Artikel', { x: 50, y, size: 10, font: helveticaBold, color: black });
+  page.drawText('Menge', { x: 320, y, size: 10, font: helveticaBold, color: black });
+  page.drawText('Einzelpreis', { x: 380, y, size: 10, font: helveticaBold, color: black });
+  page.drawText('Gesamt', { x: 480, y, size: 10, font: helveticaBold, color: black });
+
+  // Line under header
+  y -= 5;
+  page.drawLine({
+    start: { x: 50, y },
+    end: { x: 545, y },
+    thickness: 1,
+    color: gray,
+  });
+
+  y -= 20;
+
+  // Table items
+  for (const item of order.items) {
+    // Wine name
+    page.drawText(truncateText(item.wineName, 35), {
+      x: 50,
+      y,
+      size: 10,
+      font: helveticaBold,
+      color: black,
+    });
+
+    // Wine details
+    y -= 12;
+    const details = `${item.winery} • ${item.vintage || 'N/A'} • ${item.bottleSize}l`;
+    page.drawText(truncateText(details, 40), {
+      x: 50,
+      y,
+      size: 9,
+      font: helvetica,
+      color: gray,
+    });
+
+    // Quantity, price, total (on the first line of item)
+    page.drawText(item.quantity.toString(), {
+      x: 330,
+      y: y + 12,
+      size: 10,
+      font: helvetica,
+      color: black,
+    });
+
+    page.drawText(formatPrice(item.unitPrice), {
+      x: 380,
+      y: y + 12,
+      size: 10,
+      font: helvetica,
+      color: black,
+    });
+
+    page.drawText(formatPrice(item.totalPrice), {
+      x: 480,
+      y: y + 12,
+      size: 10,
+      font: helvetica,
+      color: black,
+    });
+
+    y -= 25;
+  }
+
+  // ===== TOTALS =====
+  y -= 20;
+
+  // Line above totals
+  page.drawLine({
+    start: { x: 350, y: y + 10 },
+    end: { x: 545, y: y + 10 },
+    thickness: 1,
+    color: gray,
+  });
+
+  // Subtotal
+  page.drawText('Zwischensumme:', { x: 350, y, size: 10, font: helvetica, color: black });
+  page.drawText(formatPrice(order.subtotal), { x: 480, y, size: 10, font: helvetica, color: black });
+
+  y -= 18;
+  page.drawText('Versand:', { x: 350, y, size: 10, font: helvetica, color: black });
+  page.drawText(formatPrice(order.shippingCost), { x: 480, y, size: 10, font: helvetica, color: black });
+
+  y -= 18;
+  page.drawText(`MwSt. (${order.taxRate}%):`, { x: 350, y, size: 10, font: helvetica, color: black });
+  page.drawText(formatPrice(order.taxAmount), { x: 480, y, size: 10, font: helvetica, color: black });
+
+  y -= 10;
+  // Line above total
+  page.drawLine({
+    start: { x: 350, y },
+    end: { x: 545, y },
+    thickness: 2,
+    color: burgundy,
+  });
+
+  y -= 18;
+  page.drawText('Gesamtbetrag:', { x: 350, y, size: 12, font: helveticaBold, color: black });
+  page.drawText(formatPrice(order.total), { x: 480, y, size: 12, font: helveticaBold, color: burgundy });
+
+  // ===== FOOTER =====
+  page.drawText('Zahlungsbedingungen: Innerhalb von 30 Tagen ohne Abzug.', {
+    x: 50,
+    y: 80,
+    size: 8,
+    font: helvetica,
+    color: gray,
+  });
+
+  page.drawText('Vielen Dank für Ihren Einkauf bei VIER KORKEN!', {
+    x: 50,
+    y: 65,
+    size: 8,
+    font: helvetica,
+    color: gray,
+  });
+
+  // Serialize the PDF to bytes
+  const pdfBytes = await pdfDoc.save();
+
+  return Buffer.from(pdfBytes);
 }
 
 function formatPrice(price: number): string {
-  return new Intl.NumberFormat('de-CH', {
-    style: 'currency',
-    currency: 'CHF',
-  }).format(price);
+  return `CHF ${Number(price).toFixed(2)}`;
 }
 
 function formatDate(dateString: string): string {
-  return new Intl.DateTimeFormat('de-CH', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(new Date(dateString));
+  try {
+    return new Intl.DateTimeFormat('de-CH', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(new Date(dateString));
+  } catch {
+    return dateString;
+  }
+}
+
+function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength - 3) + '...';
 }
