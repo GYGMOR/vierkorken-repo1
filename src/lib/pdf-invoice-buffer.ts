@@ -10,6 +10,14 @@ interface OrderItem {
   totalPrice: number;
 }
 
+interface EventTicketItem {
+  ticketNumber: string;
+  eventTitle: string;
+  eventDate: string;
+  price: number;
+  holderName?: string;
+}
+
 interface Address {
   company?: string;
   firstName: string;
@@ -28,6 +36,7 @@ interface OrderForPDF {
   customerLastName: string;
   billingAddress: Address;
   items: OrderItem[];
+  tickets?: EventTicketItem[];
   subtotal: number;
   shippingCost: number;
   taxAmount: number;
@@ -228,6 +237,74 @@ export async function generateInvoicePDFBuffer(order: OrderForPDF): Promise<Buff
     });
 
     y -= 25;
+  }
+
+  // ===== EVENT TICKETS SECTION =====
+  if (order.tickets && order.tickets.length > 0) {
+    y -= 10;
+
+    // Section header for tickets
+    page.drawText('Event-Tickets', { x: 50, y, size: 10, font: helveticaBold, color: burgundy });
+    y -= 15;
+
+    // Line under tickets header
+    page.drawLine({
+      start: { x: 50, y: y + 5 },
+      end: { x: 545, y: y + 5 },
+      thickness: 0.5,
+      color: burgundy,
+    });
+
+    y -= 5;
+
+    for (const ticket of order.tickets) {
+      // Event title
+      page.drawText(truncateText(ticket.eventTitle, 35), {
+        x: 50,
+        y,
+        size: 10,
+        font: helveticaBold,
+        color: black,
+      });
+
+      // Ticket details
+      y -= 12;
+      const ticketDetails = `Ticket: ${ticket.ticketNumber} - ${ticket.eventDate}`;
+      page.drawText(truncateText(ticketDetails, 50), {
+        x: 50,
+        y,
+        size: 9,
+        font: helvetica,
+        color: gray,
+      });
+
+      // Quantity (1 per ticket) and price
+      page.drawText('1', {
+        x: 330,
+        y: y + 12,
+        size: 10,
+        font: helvetica,
+        color: black,
+      });
+
+      page.drawText(formatPrice(ticket.price), {
+        x: 380,
+        y: y + 12,
+        size: 10,
+        font: helvetica,
+        color: black,
+      });
+
+      page.drawText(formatPrice(ticket.price), {
+        x: 480,
+        y: y + 12,
+        size: 10,
+        font: helvetica,
+        color: black,
+      });
+
+      y -= 25;
+    }
   }
 
   // ===== TOTALS =====

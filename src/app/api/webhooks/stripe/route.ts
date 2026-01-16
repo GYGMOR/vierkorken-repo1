@@ -355,6 +355,7 @@ export async function POST(req: NextRequest) {
             customerEmail: order.customerEmail,
             createdAt: order.createdAt,
             items: order.items, // Now includes items from Stripe
+            tickets: order.tickets, // Include event tickets for invoice
             subtotal: order.subtotal,
             shippingCost: order.shippingCost,
             taxAmount: order.taxAmount,
@@ -522,6 +523,7 @@ export async function POST(req: NextRequest) {
                 customerEmail: orderWithItems.customerEmail,
                 createdAt: orderWithItems.createdAt,
                 items: orderWithItems.items,
+                tickets: orderWithItems.tickets, // Include event tickets for invoice
                 subtotal: orderWithItems.subtotal,
                 shippingCost: orderWithItems.shippingCost,
                 taxAmount: orderWithItems.taxAmount,

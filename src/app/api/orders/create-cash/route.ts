@@ -258,6 +258,11 @@ export async function POST(req: NextRequest) {
       },
       include: {
         items: true,
+        tickets: {
+          include: {
+            event: true,
+          },
+        },
       },
     });
 
@@ -283,6 +288,7 @@ export async function POST(req: NextRequest) {
       customerPhone: order.customerPhone,
       createdAt: order.createdAt,
       items: order.items,
+      tickets: order.tickets, // Include event tickets for invoice
       subtotal: order.subtotal,
       shippingCost: order.shippingCost,
       taxAmount: order.taxAmount,

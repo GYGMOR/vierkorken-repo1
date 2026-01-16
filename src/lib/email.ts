@@ -310,12 +310,42 @@ export async function sendOrderConfirmationEmail(to: string, orderId: string, or
     orderNumber: orderDetails.orderNumber,
     customerName: `${orderDetails.customerFirstName} ${orderDetails.customerLastName}`,
     itemCount: orderDetails.items?.length,
+    ticketCount: orderDetails.tickets?.length || 0,
   });
+
+  // Transform tickets for PDF if present
+  const ticketsForPDF = orderDetails.tickets?.map((ticket: any) => {
+    // Format event date for display
+    let eventDate = '';
+    try {
+      const dateObj = ticket.event?.startDateTime ? new Date(ticket.event.startDateTime) : null;
+      if (dateObj) {
+        eventDate = new Intl.DateTimeFormat('de-CH', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }).format(dateObj);
+      }
+    } catch {
+      eventDate = '';
+    }
+
+    return {
+      ticketNumber: ticket.ticketNumber,
+      eventTitle: ticket.event?.title || 'Event',
+      eventDate: eventDate,
+      price: Number(ticket.price),
+      holderName: `${ticket.holderFirstName || ''} ${ticket.holderLastName || ''}`.trim(),
+    };
+  }) || [];
 
   // Try to generate PDF but don't fail if it doesn't work
   let pdfBuffer: Buffer | null = null;
   try {
     console.log('📄 Attempting to generate PDF invoice...');
+    console.log('📄 Items:', orderDetails.items?.length || 0, 'Tickets:', ticketsForPDF.length);
     const { generateInvoicePDFBuffer } = await import('./pdf-invoice-buffer');
 
     pdfBuffer = await generateInvoicePDFBuffer({
@@ -325,13 +355,14 @@ export async function sendOrderConfirmationEmail(to: string, orderId: string, or
       customerLastName: orderDetails.customerLastName,
       billingAddress: orderDetails.billingAddress,
       items: orderDetails.items,
+      tickets: ticketsForPDF,
       subtotal: orderDetails.subtotal,
       shippingCost: orderDetails.shippingCost,
       taxAmount: orderDetails.taxAmount,
       taxRate: 8.1,
       total: orderDetails.total,
     });
-    console.log('✅ PDF invoice generated successfully');
+    console.log('✅ PDF invoice generated successfully (with', ticketsForPDF.length, 'tickets)');
   } catch (error: any) {
     console.error('❌ Error generating PDF (will send email without PDF):', error.message);
     console.error('❌ PDF Error stack:', error.stack?.split('\n').slice(0, 3));
@@ -342,13 +373,26 @@ export async function sendOrderConfirmationEmail(to: string, orderId: string, or
   // Create invoice download link as backup
   const invoiceUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/orders/${orderId}/invoice`;
 
-  // Format items list for email
-  const itemsList = orderDetails.items
+  // Format items list for email (wines)
+  const wineItemsList = orderDetails.items
     .map(
       (item: any) =>
         `• ${item.quantity}x ${item.wineName} (${item.winery}, ${item.vintage || 'N/A'}, ${item.bottleSize}l) - CHF ${Number(item.totalPrice).toFixed(2)}`
     )
     .join('\n');
+
+  // Format tickets list for email
+  const ticketItemsList = ticketsForPDF.length > 0
+    ? ticketsForPDF
+        .map(
+          (ticket: any) =>
+            `• Event-Ticket: ${ticket.eventTitle} (${ticket.eventDate}) - CHF ${Number(ticket.price).toFixed(2)}`
+        )
+        .join('\n')
+    : '';
+
+  // Combine all items
+  const itemsList = [wineItemsList, ticketItemsList].filter(Boolean).join('\n');
 
   const formatPrice = (price: number) => `CHF ${Number(price).toFixed(2)}`;
 
