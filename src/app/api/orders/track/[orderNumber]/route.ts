@@ -22,7 +22,7 @@ export async function GET(
       );
     }
 
-    // Find order by order number
+    // Find order by order number - including tickets!
     const order = await prisma.order.findUnique({
       where: { orderNumber },
       include: {
@@ -34,6 +34,17 @@ export async function GET(
             vintage: true,
             bottleSize: true,
             quantity: true,
+          },
+        },
+        tickets: {
+          include: {
+            event: {
+              select: {
+                title: true,
+                startDateTime: true,
+                venue: true,
+              },
+            },
           },
         },
       },
@@ -130,8 +141,10 @@ export async function GET(
         deliveryMethod: order.deliveryMethod,
         trackingNumber: order.trackingNumber,
         customerFirstName: order.customerFirstName,
+        customerEmail: order.customerEmail, // For registration
         shippingAddress: order.shippingAddress,
         items: order.items,
+        tickets: order.tickets, // Include tickets!
         createdAt: order.createdAt,
       },
       timeline,

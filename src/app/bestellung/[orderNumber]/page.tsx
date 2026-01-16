@@ -26,6 +26,19 @@ interface OrderItem {
   quantity: number;
 }
 
+interface EventTicket {
+  id: string;
+  ticketNumber: string;
+  qrCode: string;
+  holderFirstName: string | null;
+  holderLastName: string | null;
+  event: {
+    title: string;
+    startDateTime: string;
+    venue: string;
+  };
+}
+
 interface TrackingData {
   order: {
     orderNumber: string;
@@ -34,8 +47,10 @@ interface TrackingData {
     deliveryMethod: string;
     trackingNumber: string | null;
     customerFirstName: string;
+    customerEmail: string;
     shippingAddress: any;
     items: OrderItem[];
+    tickets?: EventTicket[];
     createdAt: string;
   };
   timeline: TimelineStep[];
@@ -323,6 +338,82 @@ export default function OrderTrackingPage() {
                       </div>
                     </div>
                   ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Event Tickets */}
+          {order.tickets && order.tickets.length > 0 && (
+            <Card className="mb-8 border-2 border-accent-burgundy/20">
+              <CardHeader className="bg-accent-burgundy/5">
+                <CardTitle className="flex items-center gap-2">
+                  <svg className="w-5 h-5 text-accent-burgundy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+                  </svg>
+                  Event-Tickets ({order.tickets.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="space-y-4">
+                  {order.tickets.map((ticket) => (
+                    <div
+                      key={ticket.id}
+                      className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-semibold text-graphite-dark text-lg">{ticket.event.title}</p>
+                          <p className="text-sm text-graphite mt-1">
+                            {new Intl.DateTimeFormat('de-CH', {
+                              weekday: 'long',
+                              day: '2-digit',
+                              month: 'long',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            }).format(new Date(ticket.event.startDateTime))}
+                          </p>
+                          <p className="text-sm text-graphite">{ticket.event.venue}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-graphite">Ticket-Nr.</p>
+                          <p className="font-mono text-sm font-medium text-accent-burgundy">{ticket.ticketNumber}</p>
+                        </div>
+                      </div>
+                      {(ticket.holderFirstName || ticket.holderLastName) && (
+                        <p className="text-sm text-graphite mt-2">
+                          Inhaber: {ticket.holderFirstName} {ticket.holderLastName}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Info about tickets in email */}
+                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-sm text-amber-800">
+                    <strong>Hinweis:</strong> Ihre Tickets mit QR-Codes wurden per E-Mail an <span className="font-medium">{order.customerEmail}</span> gesendet.
+                  </p>
+                </div>
+
+                {/* Register account banner */}
+                <div className="mt-4 p-4 bg-accent-burgundy/5 border border-accent-burgundy/20 rounded-lg">
+                  <p className="text-graphite-dark font-medium mb-2">
+                    Tickets jederzeit abrufen?
+                  </p>
+                  <p className="text-sm text-graphite mb-3">
+                    Erstellen Sie ein Konto mit Ihrer E-Mail-Adresse, um Ihre Tickets jederzeit im Kundenportal anzusehen.
+                  </p>
+                  <Link
+                    href={`/registrieren?email=${encodeURIComponent(order.customerEmail)}`}
+                    className="inline-flex items-center gap-2 bg-accent-burgundy text-white px-4 py-2 rounded-lg hover:bg-accent-burgundy/90 transition-colors text-sm"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Konto erstellen
+                  </Link>
                 </div>
               </CardContent>
             </Card>
