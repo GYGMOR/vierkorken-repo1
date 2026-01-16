@@ -1230,7 +1230,7 @@ export async function sendOrderProcessingEmail(
   customerFirstName: string
 ) {
   const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-  const orderUrl = `${siteUrl}/konto/bestellungen`;
+  const orderUrl = `${siteUrl}/bestellung/${orderNumber}`;
 
   const html = `
       <!DOCTYPE html>
@@ -1320,7 +1320,7 @@ export async function sendOrderShippedEmail(
   trackingNumber?: string
 ) {
   const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-  const orderUrl = `${siteUrl}/konto/bestellungen`;
+  const orderUrl = `${siteUrl}/bestellung/${orderNumber}`;
 
   // Swiss Post tracking URL
   const trackingUrl = trackingNumber
@@ -1433,7 +1433,7 @@ export async function sendOrderDeliveredEmail(
   customerFirstName: string
 ) {
   const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-  const orderUrl = `${siteUrl}/konto/bestellungen`;
+  const orderUrl = `${siteUrl}/bestellung/${orderNumber}`;
 
   const html = `
       <!DOCTYPE html>
@@ -1676,8 +1676,8 @@ export async function sendEventTicketsEmail(
           </div>
 
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${siteUrl}/konto?tab=tickets" style="background-color: #6D2932; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: 500;">
-              Tickets im Konto ansehen
+            <a href="${siteUrl}/bestellung/${orderNumber}" style="background-color: #6D2932; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: 500;">
+              Bestellung & Tickets ansehen
             </a>
           </div>
 
@@ -1708,7 +1708,7 @@ ${ticketList}
 WICHTIG:
 Bitte bringen Sie Ihre Tickets ausgedruckt oder digital auf Ihrem Smartphone zum Event mit. Der QR-Code wird beim Check-in gescannt.
 
-Tickets im Konto ansehen: ${siteUrl}/konto?tab=tickets
+Bestellung & Tickets ansehen: ${siteUrl}/bestellung/${orderNumber}
 
 Wir freuen uns auf Sie!
 

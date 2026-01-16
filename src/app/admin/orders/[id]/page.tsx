@@ -35,18 +35,28 @@ interface Order {
   customerLastName: string;
   customerPhone: string | null;
   shippingAddress: {
+    firstName?: string;
+    lastName?: string;
+    company?: string;
     street: string;
+    streetNumber?: string;
     city: string;
     postalCode: string;
     country: string;
     additional?: string;
+    phone?: string;
   };
   billingAddress: {
+    firstName?: string;
+    lastName?: string;
+    company?: string;
     street: string;
+    streetNumber?: string;
     city: string;
     postalCode: string;
     country: string;
     additional?: string;
+    phone?: string;
   };
   items: OrderItem[];
   subtotal: number | string; // Can be Decimal from Prisma
@@ -168,7 +178,183 @@ export default function OrderDetailPage() {
   };
 
   const printPackingSlip = () => {
-    window.print();
+    if (!order) return;
+
+    const shipping = order.shippingAddress;
+    const recipientName = `${shipping.firstName || order.customerFirstName} ${shipping.lastName || order.customerLastName}`.trim();
+
+    const labelHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Paketzettel - ${order.orderNumber}</title>
+          <style>
+            @page {
+              size: A6 landscape;
+              margin: 0;
+            }
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            body {
+              font-family: Arial, Helvetica, sans-serif;
+              width: 148mm;
+              height: 105mm;
+              padding: 8mm;
+              background: white;
+            }
+            .label-container {
+              width: 100%;
+              height: 100%;
+              border: 2px solid #000;
+              display: flex;
+              flex-direction: column;
+            }
+            .header {
+              background: #6D2932;
+              color: white;
+              padding: 4mm 6mm;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            }
+            .header h1 {
+              font-size: 14pt;
+              font-weight: bold;
+              letter-spacing: 2px;
+            }
+            .header .order-info {
+              text-align: right;
+              font-size: 9pt;
+            }
+            .content {
+              display: flex;
+              flex: 1;
+            }
+            .sender {
+              width: 40%;
+              padding: 5mm;
+              border-right: 1px dashed #999;
+              font-size: 9pt;
+              display: flex;
+              flex-direction: column;
+            }
+            .sender-label {
+              font-size: 7pt;
+              color: #666;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+              margin-bottom: 2mm;
+              border-bottom: 1px solid #ddd;
+              padding-bottom: 1mm;
+            }
+            .sender-address {
+              line-height: 1.5;
+            }
+            .sender-company {
+              font-weight: bold;
+              font-size: 10pt;
+              margin-bottom: 1mm;
+            }
+            .recipient {
+              width: 60%;
+              padding: 5mm;
+              display: flex;
+              flex-direction: column;
+            }
+            .recipient-label {
+              font-size: 7pt;
+              color: #666;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+              margin-bottom: 2mm;
+              border-bottom: 1px solid #ddd;
+              padding-bottom: 1mm;
+            }
+            .recipient-address {
+              font-size: 14pt;
+              font-weight: bold;
+              line-height: 1.4;
+              flex: 1;
+            }
+            .recipient-name {
+              font-size: 16pt;
+              margin-bottom: 2mm;
+            }
+            .recipient-postal {
+              font-size: 18pt;
+              margin-top: 3mm;
+            }
+            .footer {
+              border-top: 1px solid #ddd;
+              padding: 3mm 6mm;
+              font-size: 8pt;
+              color: #666;
+              display: flex;
+              justify-content: space-between;
+            }
+            @media print {
+              body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="label-container">
+            <div class="header">
+              <h1>VIER KORKEN</h1>
+              <div class="order-info">
+                <div><strong>${order.orderNumber}</strong></div>
+                <div>${new Date(order.createdAt).toLocaleDateString('de-CH')}</div>
+              </div>
+            </div>
+            <div class="content">
+              <div class="sender">
+                <div class="sender-label">Absender</div>
+                <div class="sender-address">
+                  <div class="sender-company">VIER KORKEN</div>
+                  <div>Wein-Boutique</div>
+                  <div>Steinbrunnengasse 3a</div>
+                  <div><strong>5707 Seengen</strong></div>
+                  <div style="margin-top: 2mm;">Schweiz</div>
+                </div>
+              </div>
+              <div class="recipient">
+                <div class="recipient-label">Empfänger</div>
+                <div class="recipient-address">
+                  <div class="recipient-name">${recipientName}</div>
+                  ${shipping.company ? `<div>${shipping.company}</div>` : ''}
+                  <div>${shipping.street}${shipping.streetNumber ? ' ' + shipping.streetNumber : ''}</div>
+                  ${shipping.additional ? `<div>${shipping.additional}</div>` : ''}
+                  <div class="recipient-postal">${shipping.postalCode} ${shipping.city}</div>
+                  <div>${shipping.country || 'Schweiz'}</div>
+                </div>
+              </div>
+            </div>
+            <div class="footer">
+              <span>Bitte nicht knicken - Wein</span>
+              <span>${order.items.length} Artikel | ${order.items.reduce((sum, item) => sum + item.quantity, 0)} Flaschen</span>
+            </div>
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+            };
+          </script>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank', 'width=600,height=450');
+    if (printWindow) {
+      printWindow.document.write(labelHtml);
+      printWindow.document.close();
+    }
   };
 
   // Helper to convert Decimal to number
