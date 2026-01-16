@@ -216,8 +216,8 @@ export async function POST(request: NextRequest) {
       ticket: {
         ticketNumber: updatedTicket.ticketNumber,
         event: updatedTicket.event.title,
-        holder: `${updatedTicket.user.firstName} ${updatedTicket.user.lastName}`,
-        holderEmail: updatedTicket.user.email,
+        holder: updatedTicket.user ? `${updatedTicket.user.firstName} ${updatedTicket.user.lastName}` : `${updatedTicket.holderFirstName || ''} ${updatedTicket.holderLastName || ''}`.trim() || 'Gast',
+        holderEmail: updatedTicket.user?.email || updatedTicket.holderEmail || '',
         startDateTime: updatedTicket.event.startDateTime,
         checkedInAt: updatedTicket.checkedInAt,
       },
