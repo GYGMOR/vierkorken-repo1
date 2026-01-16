@@ -1562,3 +1562,263 @@ Bei Fragen: info@vierkorken.ch
     text,
   });
 }
+
+/**
+ * Send event tickets with QR codes as PDF attachments
+ */
+export async function sendEventTicketsEmail(
+  to: string,
+  orderNumber: string,
+  customerFirstName: string,
+  tickets: Array<{
+    ticketNumber: string;
+    eventTitle: string;
+    eventDate: string;
+    pdfBuffer: Buffer;
+  }>
+) {
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+  const ticketList = tickets
+    .map((t) => `• ${t.eventTitle} - Ticket: ${t.ticketNumber}`)
+    .join('\n');
+
+  const ticketListHtml = tickets
+    .map(
+      (t) => `
+      <div style="background-color: #fff; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #6D2932;">
+        <p style="margin: 0; font-weight: bold; color: #6D2932;">${t.eventTitle}</p>
+        <p style="margin: 5px 0 0 0; font-size: 14px; color: #666;">
+          Ticket-Nr: <span style="font-family: monospace;">${t.ticketNumber}</span>
+        </p>
+        <p style="margin: 5px 0 0 0; font-size: 13px; color: #888;">${t.eventDate}</p>
+      </div>
+    `
+    )
+    .join('');
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Ihre Event-Tickets</title>
+      </head>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); padding: 30px 20px; text-align: center; border-radius: 12px 12px 0 0;">
+          <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">VIER KORKEN</h1>
+          <div style="margin-top: 12px; height: 1px; width: 80px; background: linear-gradient(to right, transparent, #C9A961, transparent); margin-left: auto; margin-right: auto;"></div>
+          <p style="color: #FAF8F5; margin-top: 15px; margin-bottom: 0; font-size: 16px;">Ihre Event-Tickets</p>
+        </div>
+
+        <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 12px 12px;">
+          <h2 style="color: #6D2932; margin-top: 0;">Hallo ${customerFirstName}!</h2>
+
+          <p>Vielen Dank für Ihren Ticketkauf! Ihre Tickets sind dieser E-Mail als PDF angehängt.</p>
+
+          <div style="background-color: #d4edda; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745; margin: 20px 0;">
+            <p style="margin: 0; color: #155724;">
+              <strong>Ihre ${tickets.length} Ticket(s):</strong>
+            </p>
+          </div>
+
+          ${ticketListHtml}
+
+          <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107; margin: 20px 0;">
+            <p style="margin: 0; color: #856404;">
+              <strong>Wichtig:</strong> Bitte bringen Sie Ihre Tickets ausgedruckt oder digital auf Ihrem Smartphone zum Event mit. Der QR-Code wird beim Check-in gescannt.
+            </p>
+          </div>
+
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${siteUrl}/konto?tab=tickets" style="background-color: #6D2932; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: 500;">
+              Tickets im Konto ansehen
+            </a>
+          </div>
+
+          <p>Wir freuen uns auf Sie!</p>
+
+          <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+
+          <p style="color: #999; font-size: 12px; text-align: center;">
+            © ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop<br>
+            Steinbrunnengasse 3a, 5707 Seengen<br>
+            Tel: 062 390 04 04 | info@vierkorken.ch
+          </p>
+        </div>
+      </body>
+    </html>
+  `;
+
+  const text = `
+VIER KORKEN - Ihre Event-Tickets
+
+Hallo ${customerFirstName}!
+
+Vielen Dank für Ihren Ticketkauf! Ihre Tickets sind dieser E-Mail als PDF angehängt.
+
+IHRE ${tickets.length} TICKET(S):
+${ticketList}
+
+WICHTIG:
+Bitte bringen Sie Ihre Tickets ausgedruckt oder digital auf Ihrem Smartphone zum Event mit. Der QR-Code wird beim Check-in gescannt.
+
+Tickets im Konto ansehen: ${siteUrl}/konto?tab=tickets
+
+Wir freuen uns auf Sie!
+
+© ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop
+Steinbrunnengasse 3a, 5707 Seengen
+Tel: 062 390 04 04 | info@vierkorken.ch
+  `.trim();
+
+  // Prepare attachments
+  const attachments = tickets.map((t) => ({
+    filename: `Ticket-${t.ticketNumber}.pdf`,
+    content: t.pdfBuffer,
+  }));
+
+  await sendInfoMail({
+    to,
+    subject: `Ihre Event-Tickets - ${orderNumber}`,
+    html,
+    text,
+    attachments,
+  });
+}
+
+/**
+ * Send gift card email to recipient with the coupon code
+ */
+export async function sendGiftCardEmail(
+  recipientEmail: string,
+  giftCard: {
+    code: string;
+    amount: number;
+    senderName: string;
+    recipientName?: string;
+    message?: string;
+  }
+) {
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://vierkorken.ch';
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Geschenkgutschein</title>
+      </head>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); padding: 40px 20px; text-align: center; border-radius: 12px 12px 0 0;">
+          <h1 style="color: #fff; margin: 0; font-size: 32px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">VIER KORKEN</h1>
+          <div style="margin-top: 12px; height: 1px; width: 80px; background: linear-gradient(to right, transparent, #C9A961, transparent); margin-left: auto; margin-right: auto;"></div>
+          <p style="color: #C9A961; margin-top: 20px; margin-bottom: 0; font-size: 18px; font-family: Georgia, serif;">Geschenkgutschein</p>
+        </div>
+
+        <div style="background-color: #FAF8F5; padding: 40px 30px; border-radius: 0 0 12px 12px;">
+          <h2 style="color: #6D2932; margin-top: 0; text-align: center; font-family: Georgia, serif; font-weight: 300;">
+            ${giftCard.recipientName ? `Liebe(r) ${giftCard.recipientName},` : 'Herzlichen Glückwunsch!'}
+          </h2>
+
+          <p style="text-align: center; font-size: 16px;">
+            ${giftCard.senderName} hat Ihnen einen Geschenkgutschein geschenkt!
+          </p>
+
+          <!-- Gift Card Box -->
+          <div style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); padding: 30px; border-radius: 12px; margin: 30px 0; text-align: center; box-shadow: 0 4px 15px rgba(109, 41, 50, 0.3);">
+            <p style="color: #C9A961; margin: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 2px;">Gutschein-Wert</p>
+            <p style="color: #fff; margin: 10px 0; font-size: 48px; font-family: Georgia, serif; font-weight: 300;">
+              CHF ${giftCard.amount.toFixed(2)}
+            </p>
+            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-top: 20px;">
+              <p style="color: #C9A961; margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Ihr Gutschein-Code</p>
+              <p style="color: #fff; margin: 10px 0 0 0; font-size: 24px; font-family: monospace; letter-spacing: 3px; font-weight: bold;">
+                ${giftCard.code}
+              </p>
+            </div>
+          </div>
+
+          ${
+            giftCard.message
+              ? `
+          <div style="background-color: #fff; padding: 20px; border-radius: 8px; border-left: 4px solid #C9A961; margin: 20px 0;">
+            <p style="margin: 0; color: #6D2932; font-style: italic;">
+              "${giftCard.message}"
+            </p>
+            <p style="margin: 10px 0 0 0; color: #888; font-size: 14px;">
+              - ${giftCard.senderName}
+            </p>
+          </div>
+          `
+              : ''
+          }
+
+          <div style="background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #6D2932; margin-top: 0; font-size: 16px;">So lösen Sie Ihren Gutschein ein:</h3>
+            <ol style="margin: 0; padding-left: 20px; color: #666;">
+              <li style="margin-bottom: 8px;">Besuchen Sie unseren Online-Shop</li>
+              <li style="margin-bottom: 8px;">Wählen Sie Ihre Lieblingsweine aus</li>
+              <li style="margin-bottom: 8px;">Geben Sie beim Checkout den Gutschein-Code ein</li>
+              <li>Geniessen Sie erstklassige Weine!</li>
+            </ol>
+          </div>
+
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${siteUrl}/weine" style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); color: #ffffff; padding: 16px 40px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 500; font-size: 16px; box-shadow: 0 4px 12px rgba(109, 41, 50, 0.3);">
+              Jetzt Weine entdecken
+            </a>
+          </div>
+
+          <p style="color: #888; font-size: 13px; text-align: center;">
+            Dieser Gutschein ist 3 Jahre gültig und kann für alle Produkte in unserem Shop eingelöst werden.
+          </p>
+
+          <hr style="border: none; border-top: 1px solid #E8E3DF; margin: 30px 0;">
+
+          <p style="color: #999; font-size: 12px; text-align: center;">
+            © ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop<br>
+            Steinbrunnengasse 3a, 5707 Seengen<br>
+            Tel: 062 390 04 04 | info@vierkorken.ch
+          </p>
+        </div>
+      </body>
+    </html>
+  `;
+
+  const text = `
+VIER KORKEN - Geschenkgutschein
+
+${giftCard.recipientName ? `Liebe(r) ${giftCard.recipientName},` : 'Herzlichen Glückwunsch!'}
+
+${giftCard.senderName} hat Ihnen einen Geschenkgutschein geschenkt!
+
+═══════════════════════════════
+GUTSCHEIN-WERT: CHF ${giftCard.amount.toFixed(2)}
+GUTSCHEIN-CODE: ${giftCard.code}
+═══════════════════════════════
+
+${giftCard.message ? `Nachricht: "${giftCard.message}" - ${giftCard.senderName}` : ''}
+
+SO LÖSEN SIE IHREN GUTSCHEIN EIN:
+1. Besuchen Sie unseren Online-Shop: ${siteUrl}/weine
+2. Wählen Sie Ihre Lieblingsweine aus
+3. Geben Sie beim Checkout den Gutschein-Code ein
+4. Geniessen Sie erstklassige Weine!
+
+Dieser Gutschein ist 3 Jahre gültig und kann für alle Produkte in unserem Shop eingelöst werden.
+
+© ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop
+Steinbrunnengasse 3a, 5707 Seengen
+Tel: 062 390 04 04 | info@vierkorken.ch
+  `.trim();
+
+  await sendInfoMail({
+    to: recipientEmail,
+    subject: `Ein Geschenk von ${giftCard.senderName} - VIER KORKEN Gutschein`,
+    html,
+    text,
+  });
+}
