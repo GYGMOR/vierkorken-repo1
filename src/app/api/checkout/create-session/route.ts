@@ -496,13 +496,13 @@ export async function POST(req: NextRequest) {
             const ticketNumber = `TK-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
             const qrCode = `QR-${ticketNumber}`;
 
-            // Use customer data from checkout form (works for both logged-in users AND guests)
+            // Build ticket data with proper Prisma relation syntax
             const ticketData: any = {
-              eventId: event.id,
+              event: { connect: { id: event.id } },
+              order: { connect: { id: order.id } },
               ticketNumber: ticketNumber,
               qrCode: qrCode,
               price: parseFloat(eventItem.price),
-              orderId: order.id,
               holderFirstName: customerFirstName,
               holderLastName: customerLastName,
               holderEmail: customerEmail,
@@ -510,7 +510,7 @@ export async function POST(req: NextRequest) {
 
             // Only link to user if logged in
             if (user?.id) {
-              ticketData.userId = user.id;
+              ticketData.user = { connect: { id: user.id } };
             }
 
             console.log(`🎫 Creating ticket ${i + 1}/${requestedQuantity}:`, JSON.stringify(ticketData, null, 2));

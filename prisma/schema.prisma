@@ -671,7 +671,7 @@ enum EventStatus {
 model EventTicket {
   id              String   @id @default(cuid())
   eventId         String
-  userId          String
+  userId          String?  // Optional - guests can buy tickets without account
 
   ticketNumber    String   @unique
   qrCode          String   @unique
@@ -695,7 +695,7 @@ model EventTicket {
   updatedAt       DateTime @updatedAt
 
   event           Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   order           Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
 
   @@index([eventId])
