@@ -3,7 +3,8 @@ import { stripe } from '@/lib/stripe';
 import Stripe from 'stripe';
 import { prisma } from '@/lib/prisma';
 import { updateUserLoyaltyLevel } from '@/lib/loyalty';
-import { sendOrderConfirmationEmail, sendNewOrderNotificationToAdmin } from '@/lib/email';
+import { sendOrderConfirmationEmail, sendNewOrderNotificationToAdmin, sendGiftCardEmail, sendEventTicketsEmail } from '@/lib/email';
+import { generateTicketPDFBuffer } from '@/lib/ticket-pdf-buffer';
 
 // WICHTIG: Next.js muss den rohen Body behalten für Stripe Signature Verification
 export const runtime = 'nodejs';
@@ -81,8 +82,42 @@ export async function POST(req: NextRequest) {
           console.log('Gift card coupon activated:', session.metadata.couponCode);
           console.log('Recipient:', session.metadata.recipientEmail);
 
-          // TODO: Send gift card email to recipient
-          // This would include the coupon code and message
+          // Get the coupon details for the email
+          const coupon = await prisma.coupon.findUnique({
+            where: { id: session.metadata.couponId },
+          });
+
+          if (coupon && session.metadata.recipientEmail) {
+            try {
+              // Parse internal note for sender info
+              let senderName = 'VIER KORKEN';
+              let recipientName = '';
+              let message = '';
+
+              if (coupon.internalNote) {
+                try {
+                  const noteData = JSON.parse(coupon.internalNote);
+                  senderName = noteData.senderName || 'VIER KORKEN';
+                  recipientName = noteData.recipientName || '';
+                  message = noteData.message || '';
+                } catch (e) {
+                  console.log('Could not parse coupon internal note');
+                }
+              }
+
+              await sendGiftCardEmail(session.metadata.recipientEmail, {
+                code: coupon.code,
+                amount: Number(coupon.value),
+                senderName,
+                recipientName,
+                message,
+              });
+
+              console.log('✅ Gift card email sent to:', session.metadata.recipientEmail);
+            } catch (emailError: any) {
+              console.error('❌ Failed to send gift card email:', emailError.message);
+            }
+          }
 
           return NextResponse.json({ received: true });
         }
@@ -264,6 +299,80 @@ export async function POST(req: NextRequest) {
             console.error('❌ Failed to send admin notification:', adminEmailError);
             // Continue - admin email is non-critical
           }
+
+          // Check for event tickets and send ticket emails with QR codes
+          try {
+            const orderWithTickets = await prisma.order.findUnique({
+              where: { id: order.id },
+              include: {
+                tickets: {
+                  include: {
+                    event: true,
+                  },
+                },
+              },
+            });
+
+            if (orderWithTickets?.tickets && orderWithTickets.tickets.length > 0) {
+              console.log(`🎫 Found ${orderWithTickets.tickets.length} event tickets for order`);
+
+              // Generate PDF for each ticket
+              const ticketPDFs = [];
+              for (const ticket of orderWithTickets.tickets) {
+                try {
+                  const pdfBuffer = await generateTicketPDFBuffer({
+                    ticketNumber: ticket.ticketNumber,
+                    qrCode: ticket.qrCode, // Same QR code as in User Portal!
+                    holderFirstName: ticket.holderFirstName || '',
+                    holderLastName: ticket.holderLastName || '',
+                    holderEmail: ticket.holderEmail || '',
+                    price: Number(ticket.price),
+                    event: {
+                      title: ticket.event.title,
+                      subtitle: ticket.event.subtitle || undefined,
+                      venue: ticket.event.venue,
+                      startDateTime: ticket.event.startDateTime.toISOString(),
+                      duration: ticket.event.duration || undefined,
+                    },
+                  });
+
+                  const eventDate = new Intl.DateTimeFormat('de-CH', {
+                    weekday: 'long',
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  }).format(ticket.event.startDateTime);
+
+                  ticketPDFs.push({
+                    ticketNumber: ticket.ticketNumber,
+                    eventTitle: ticket.event.title,
+                    eventDate: eventDate,
+                    pdfBuffer: pdfBuffer,
+                  });
+
+                  console.log(`✅ Generated PDF for ticket: ${ticket.ticketNumber}`);
+                } catch (pdfError: any) {
+                  console.error(`❌ Failed to generate PDF for ticket ${ticket.ticketNumber}:`, pdfError.message);
+                }
+              }
+
+              // Send tickets email if we have any PDFs
+              if (ticketPDFs.length > 0) {
+                await sendEventTicketsEmail(
+                  order.customerEmail,
+                  order.orderNumber,
+                  order.customerFirstName,
+                  ticketPDFs
+                );
+                console.log(`✅ Event tickets email sent with ${ticketPDFs.length} PDF attachments`);
+              }
+            }
+          } catch (ticketEmailError: any) {
+            console.error('❌ Failed to send event tickets email:', ticketEmailError.message);
+            // Continue - ticket email is non-critical
+          }
         } catch (emailError) {
           console.error('❌ Failed to send order confirmation email:', emailError);
           // Continue with webhook processing even if email fails
@@ -323,12 +432,16 @@ export async function POST(req: NextRequest) {
 
           // Send confirmation emails
           try {
-            // Reload order with items for email
+            // Reload order with items and tickets for email
             const orderWithItems = await prisma.order.findUnique({
               where: { id: order.id },
               include: {
                 items: true,
-                tickets: true,
+                tickets: {
+                  include: {
+                    event: true,
+                  },
+                },
               },
             });
 
@@ -352,6 +465,60 @@ export async function POST(req: NextRequest) {
               await sendOrderConfirmationEmail(orderWithItems.customerEmail, orderWithItems.id, orderData);
               await sendNewOrderNotificationToAdmin(orderWithItems.id, orderData);
               console.log('✅ Confirmation emails sent');
+
+              // Send event tickets email if there are tickets
+              if (orderWithItems.tickets && orderWithItems.tickets.length > 0) {
+                console.log(`🎫 Found ${orderWithItems.tickets.length} event tickets for TWINT order`);
+
+                const ticketPDFs = [];
+                for (const ticket of orderWithItems.tickets) {
+                  try {
+                    const pdfBuffer = await generateTicketPDFBuffer({
+                      ticketNumber: ticket.ticketNumber,
+                      qrCode: ticket.qrCode,
+                      holderFirstName: ticket.holderFirstName || '',
+                      holderLastName: ticket.holderLastName || '',
+                      holderEmail: ticket.holderEmail || '',
+                      price: Number(ticket.price),
+                      event: {
+                        title: ticket.event.title,
+                        subtitle: ticket.event.subtitle || undefined,
+                        venue: ticket.event.venue,
+                        startDateTime: ticket.event.startDateTime.toISOString(),
+                        duration: ticket.event.duration || undefined,
+                      },
+                    });
+
+                    const eventDate = new Intl.DateTimeFormat('de-CH', {
+                      weekday: 'long',
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    }).format(ticket.event.startDateTime);
+
+                    ticketPDFs.push({
+                      ticketNumber: ticket.ticketNumber,
+                      eventTitle: ticket.event.title,
+                      eventDate: eventDate,
+                      pdfBuffer: pdfBuffer,
+                    });
+                  } catch (pdfError: any) {
+                    console.error(`❌ Failed to generate ticket PDF:`, pdfError.message);
+                  }
+                }
+
+                if (ticketPDFs.length > 0) {
+                  await sendEventTicketsEmail(
+                    orderWithItems.customerEmail,
+                    orderWithItems.orderNumber,
+                    orderWithItems.customerFirstName,
+                    ticketPDFs
+                  );
+                  console.log(`✅ Event tickets email sent with ${ticketPDFs.length} PDFs`);
+                }
+              }
             }
           } catch (emailError) {
             console.error('❌ Error sending emails:', emailError);

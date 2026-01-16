@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
-import { sendOrderConfirmationEmail, sendNewOrderNotificationToAdmin } from '@/lib/email';
+import { sendOrderConfirmationEmail, sendNewOrderNotificationToAdmin, sendEventTicketsEmail } from '@/lib/email';
+import { generateTicketPDFBuffer } from '@/lib/ticket-pdf-buffer';
 
 // Force Node.js runtime (required for Prisma)
 export const runtime = 'nodejs';
@@ -331,6 +332,78 @@ export async function POST(req: NextRequest) {
         stack: error.stack?.split('\n').slice(0, 3),
       });
       // Continue - admin email is non-critical
+    }
+
+    // Check for event tickets and send ticket emails with QR codes
+    try {
+      const orderWithTickets = await prisma.order.findUnique({
+        where: { id: order.id },
+        include: {
+          tickets: {
+            include: {
+              event: true,
+            },
+          },
+        },
+      });
+
+      if (orderWithTickets?.tickets && orderWithTickets.tickets.length > 0) {
+        console.log(`🎫 Found ${orderWithTickets.tickets.length} event tickets for cash order`);
+
+        const ticketPDFs = [];
+        for (const ticket of orderWithTickets.tickets) {
+          try {
+            const pdfBuffer = await generateTicketPDFBuffer({
+              ticketNumber: ticket.ticketNumber,
+              qrCode: ticket.qrCode,
+              holderFirstName: ticket.holderFirstName || '',
+              holderLastName: ticket.holderLastName || '',
+              holderEmail: ticket.holderEmail || '',
+              price: Number(ticket.price),
+              event: {
+                title: ticket.event.title,
+                subtitle: ticket.event.subtitle || undefined,
+                venue: ticket.event.venue,
+                startDateTime: ticket.event.startDateTime.toISOString(),
+                duration: ticket.event.duration || undefined,
+              },
+            });
+
+            const eventDate = new Intl.DateTimeFormat('de-CH', {
+              weekday: 'long',
+              day: '2-digit',
+              month: 'long',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            }).format(ticket.event.startDateTime);
+
+            ticketPDFs.push({
+              ticketNumber: ticket.ticketNumber,
+              eventTitle: ticket.event.title,
+              eventDate: eventDate,
+              pdfBuffer: pdfBuffer,
+            });
+
+            console.log(`✅ Generated PDF for ticket: ${ticket.ticketNumber}`);
+          } catch (pdfError: any) {
+            console.error(`❌ Failed to generate ticket PDF:`, pdfError.message);
+          }
+        }
+
+        if (ticketPDFs.length > 0) {
+          await sendEventTicketsEmail(
+            order.customerEmail,
+            order.orderNumber,
+            order.customerFirstName,
+            ticketPDFs
+          );
+          console.log(`✅ Event tickets email sent with ${ticketPDFs.length} PDF attachments`);
+        }
+      }
+    } catch (ticketError: any) {
+      console.error('❌ Failed to send event tickets email:', ticketError.message);
+      // Continue - ticket email is non-critical
     }
 
     return NextResponse.json({
