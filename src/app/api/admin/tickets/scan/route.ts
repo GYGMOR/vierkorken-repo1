@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
         ticket: {
           ticketNumber: ticket.ticketNumber,
           event: ticket.event.title,
-          holder: `${ticket.user.firstName} ${ticket.user.lastName}`,
+          holder: ticket.user ? `${ticket.user.firstName} ${ticket.user.lastName}` : `${ticket.holderFirstName || ''} ${ticket.holderLastName || ''}`.trim() || 'Gast',
         },
       });
     }
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
         ticket: {
           ticketNumber: ticket.ticketNumber,
           event: ticket.event.title,
-          holder: `${ticket.user.firstName} ${ticket.user.lastName}`,
+          holder: ticket.user ? `${ticket.user.firstName} ${ticket.user.lastName}` : `${ticket.holderFirstName || ''} ${ticket.holderLastName || ''}`.trim() || 'Gast',
         },
       });
     }
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
         ticket: {
           ticketNumber: ticket.ticketNumber,
           event: ticket.event.title,
-          holder: `${ticket.user.firstName} ${ticket.user.lastName}`,
+          holder: ticket.user ? `${ticket.user.firstName} ${ticket.user.lastName}` : `${ticket.holderFirstName || ''} ${ticket.holderLastName || ''}`.trim() || 'Gast',
           checkedInAt: ticket.checkedInAt,
         },
       });
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
         ticket: {
           ticketNumber: ticket.ticketNumber,
           event: ticket.event.title,
-          holder: `${ticket.user.firstName} ${ticket.user.lastName}`,
+          holder: ticket.user ? `${ticket.user.firstName} ${ticket.user.lastName}` : `${ticket.holderFirstName || ''} ${ticket.holderLastName || ''}`.trim() || 'Gast',
         },
       });
     }
@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
         ticket: {
           ticketNumber: ticket.ticketNumber,
           event: ticket.event.title,
-          holder: `${ticket.user.firstName} ${ticket.user.lastName}`,
+          holder: ticket.user ? `${ticket.user.firstName} ${ticket.user.lastName}` : `${ticket.holderFirstName || ''} ${ticket.holderLastName || ''}`.trim() || 'Gast',
           startDateTime: ticket.event.startDateTime,
         },
       });
@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
         ticket: {
           ticketNumber: ticket.ticketNumber,
           event: ticket.event.title,
-          holder: `${ticket.user.firstName} ${ticket.user.lastName}`,
+          holder: ticket.user ? `${ticket.user.firstName} ${ticket.user.lastName}` : `${ticket.holderFirstName || ''} ${ticket.holderLastName || ''}`.trim() || 'Gast',
           endDateTime: ticket.event.endDateTime,
         },
       });
