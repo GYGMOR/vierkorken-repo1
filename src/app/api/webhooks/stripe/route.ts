@@ -122,114 +122,191 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ received: true });
         }
 
-        // Get line items from Stripe with full product details
-        const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
-          expand: ['data.price.product'],
-        });
+        // Check if order already exists (created in create-session route)
+        const existingOrderId = session.metadata?.orderId;
+        let order;
 
-        console.log('📦 Stripe line items:', lineItems.data.length);
+        if (existingOrderId) {
+          console.log('📦 Found existing order ID in metadata:', existingOrderId);
 
-        // Parse line items for order creation
-        const orderItems = lineItems.data.map((item: any) => {
-          const product = item.price?.product as Stripe.Product;
-          const metadata = product?.metadata || {};
+          // Update existing order with payment confirmation
+          order = await prisma.order.update({
+            where: { id: existingOrderId },
+            data: {
+              paymentStatus: 'PAID',
+              paidAt: new Date(),
+              status: 'CONFIRMED',
+              paymentIntentId: session.payment_intent as string,
+              // Update customer details from Stripe if available
+              customerEmail: session.customer_details?.email || undefined,
+              customerFirstName: session.customer_details?.name?.split(' ')[0] || undefined,
+              customerLastName: session.customer_details?.name?.split(' ').slice(1).join(' ') || undefined,
+              customerPhone: session.customer_details?.phone || undefined,
+              // Update addresses if provided by Stripe
+              ...(session.shipping_details?.address && {
+                shippingAddress: {
+                  firstName: session.shipping_details.name?.split(' ')[0] || '',
+                  lastName: session.shipping_details.name?.split(' ').slice(1).join(' ') || '',
+                  street: session.shipping_details.address.line1 || '',
+                  streetNumber: session.shipping_details.address.line2 || '',
+                  postalCode: session.shipping_details.address.postal_code || '',
+                  city: session.shipping_details.address.city || '',
+                  country: session.shipping_details.address.country || '',
+                },
+              }),
+              ...(session.customer_details?.address && {
+                billingAddress: {
+                  firstName: session.customer_details.name?.split(' ')[0] || '',
+                  lastName: session.customer_details.name?.split(' ').slice(1).join(' ') || '',
+                  street: session.customer_details.address.line1 || '',
+                  streetNumber: session.customer_details.address.line2 || '',
+                  postalCode: session.customer_details.address.postal_code || '',
+                  city: session.customer_details.address.city || '',
+                  country: session.customer_details.address.country || '',
+                },
+              }),
+            },
+            include: {
+              items: true,
+              tickets: {
+                include: {
+                  event: true,
+                },
+              },
+            },
+          });
 
-          return {
-            wineName: product?.name || item.description || 'Produkt',
-            winery: metadata.winery || '',
-            vintage: metadata.vintage ? parseInt(metadata.vintage) : null,
-            bottleSize: metadata.bottleSize ? parseFloat(metadata.bottleSize) : 0.75,
-            quantity: item.quantity || 1,
-            unitPrice: (item.price?.unit_amount || 0) / 100,
-            totalPrice: (item.amount_total || 0) / 100,
-          };
-        });
+          console.log('✅ Existing order updated:', order.orderNumber);
+          console.log('🎫 Order has', order.tickets?.length || 0, 'tickets');
+        } else {
+          // Fallback: Create new order if no existing order (shouldn't happen normally)
+          console.log('⚠️  No existing order found, creating new one...');
 
-        console.log('📦 Parsed order items:', orderItems);
+          // Get line items from Stripe with full product details
+          const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
+            expand: ['data.price.product'],
+          });
 
-        // Find user by email
-        const userEmail = session.customer_details?.email || session.client_reference_id;
+          console.log('📦 Stripe line items:', lineItems.data.length);
+
+          // Parse line items for order creation
+          const orderItems = lineItems.data.map((item: any) => {
+            const product = item.price?.product as Stripe.Product;
+            const metadata = product?.metadata || {};
+
+            return {
+              wineName: product?.name || item.description || 'Produkt',
+              winery: metadata.winery || '',
+              vintage: metadata.vintage ? parseInt(metadata.vintage) : null,
+              bottleSize: metadata.bottleSize ? parseFloat(metadata.bottleSize) : 0.75,
+              quantity: item.quantity || 1,
+              unitPrice: (item.price?.unit_amount || 0) / 100,
+              totalPrice: (item.amount_total || 0) / 100,
+            };
+          });
+
+          // Find user by email
+          const userEmail = session.customer_details?.email || session.client_reference_id;
+          let user = null;
+          if (userEmail && userEmail !== 'guest') {
+            user = await prisma.user.findUnique({
+              where: { email: userEmail },
+            });
+          }
+
+          // Generate order number
+          const orderNumber = `VK-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+
+          // Calculate amounts
+          const subtotal = (session.amount_subtotal || 0) / 100;
+          const total = (session.amount_total || 0) / 100;
+          const shippingCost = total - subtotal;
+
+          // Prepare address data
+          const shippingAddress = session.shipping_details?.address ? {
+            firstName: session.shipping_details.name?.split(' ')[0] || '',
+            lastName: session.shipping_details.name?.split(' ').slice(1).join(' ') || '',
+            street: session.shipping_details.address.line1 || '',
+            streetNumber: session.shipping_details.address.line2 || '',
+            postalCode: session.shipping_details.address.postal_code || '',
+            city: session.shipping_details.address.city || '',
+            country: session.shipping_details.address.country || '',
+          } : {};
+
+          const billingAddress = session.customer_details?.address ? {
+            firstName: session.customer_details.name?.split(' ')[0] || '',
+            lastName: session.customer_details.name?.split(' ').slice(1).join(' ') || '',
+            street: session.customer_details.address.line1 || '',
+            streetNumber: session.customer_details.address.line2 || '',
+            postalCode: session.customer_details.address.postal_code || '',
+            city: session.customer_details.address.city || '',
+            country: session.customer_details.address.country || '',
+          } : {};
+
+          // Calculate tax (8.1% Swiss VAT included in total)
+          const taxAmount = total * (8.1 / 108.1);
+
+          // Create order in database WITH items
+          order = await prisma.order.create({
+            data: {
+              orderNumber: orderNumber,
+              userId: user?.id,
+              customerEmail: userEmail || 'guest@vierkorken.ch',
+              customerFirstName: session.customer_details?.name?.split(' ')[0] || 'Gast',
+              customerLastName: session.customer_details?.name?.split(' ').slice(1).join(' ') || '',
+              customerPhone: session.customer_details?.phone || null,
+              shippingAddress: shippingAddress,
+              billingAddress: billingAddress,
+              subtotal: subtotal,
+              shippingCost: shippingCost,
+              taxAmount: taxAmount,
+              discountAmount: 0,
+              total: total,
+              pointsEarned: Math.floor(total * 1.2),
+              pointsUsed: 0,
+              cashbackAmount: 0,
+              paymentMethod: 'stripe',
+              paymentStatus: 'PAID',
+              paidAt: new Date(),
+              paymentIntentId: session.payment_intent as string,
+              status: 'CONFIRMED',
+              deliveryMethod: 'SHIPPING',
+              // Create order items from Stripe line items
+              items: {
+                create: orderItems.map((item) => ({
+                  wineName: item.wineName,
+                  winery: item.winery,
+                  vintage: item.vintage,
+                  bottleSize: item.bottleSize,
+                  quantity: item.quantity,
+                  unitPrice: item.unitPrice,
+                  totalPrice: item.totalPrice,
+                })),
+              },
+            },
+            include: {
+              items: true,
+              tickets: {
+                include: {
+                  event: true,
+                },
+              },
+            },
+          });
+
+          console.log('✅ New order created:', order.orderNumber);
+        }
+
+        // Find user for loyalty points
         let user = null;
+        const userEmail = session.customer_details?.email || session.client_reference_id;
         if (userEmail && userEmail !== 'guest') {
           user = await prisma.user.findUnique({
             where: { email: userEmail },
           });
         }
 
-        // Generate order number
-        const orderNumber = `VK-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
-
-        // Calculate amounts
-        const subtotal = (session.amount_subtotal || 0) / 100;
-        const total = (session.amount_total || 0) / 100;
-        const shippingCost = total - subtotal;
-
-        // Prepare address data
-        const shippingAddress = session.shipping_details?.address ? {
-          firstName: session.shipping_details.name?.split(' ')[0] || '',
-          lastName: session.shipping_details.name?.split(' ').slice(1).join(' ') || '',
-          street: session.shipping_details.address.line1 || '',
-          streetNumber: session.shipping_details.address.line2 || '',
-          postalCode: session.shipping_details.address.postal_code || '',
-          city: session.shipping_details.address.city || '',
-          country: session.shipping_details.address.country || '',
-        } : {};
-
-        const billingAddress = session.customer_details?.address ? {
-          firstName: session.customer_details.name?.split(' ')[0] || '',
-          lastName: session.customer_details.name?.split(' ').slice(1).join(' ') || '',
-          street: session.customer_details.address.line1 || '',
-          streetNumber: session.customer_details.address.line2 || '',
-          postalCode: session.customer_details.address.postal_code || '',
-          city: session.customer_details.address.city || '',
-          country: session.customer_details.address.country || '',
-        } : {};
-
-        // Calculate tax (8.1% Swiss VAT included in total)
-        const taxAmount = total * (8.1 / 108.1);
-
-        // Create order in database WITH items
-        const order = await prisma.order.create({
-          data: {
-            orderNumber: orderNumber,
-            userId: user?.id,
-            customerEmail: userEmail || 'guest@vierkorken.ch',
-            customerFirstName: session.customer_details?.name?.split(' ')[0] || 'Gast',
-            customerLastName: session.customer_details?.name?.split(' ').slice(1).join(' ') || '',
-            customerPhone: session.customer_details?.phone || null,
-            shippingAddress: shippingAddress,
-            billingAddress: billingAddress,
-            subtotal: subtotal,
-            shippingCost: shippingCost,
-            taxAmount: taxAmount,
-            discountAmount: 0,
-            total: total,
-            pointsEarned: Math.floor(total * 1.2),
-            pointsUsed: 0,
-            cashbackAmount: 0,
-            paymentMethod: 'stripe',
-            paymentStatus: 'PAID',
-            paidAt: new Date(),
-            paymentIntentId: session.payment_intent as string,
-            status: 'CONFIRMED',
-            deliveryMethod: 'SHIPPING',
-            // Create order items from Stripe line items
-            items: {
-              create: orderItems.map((item) => ({
-                wineName: item.wineName,
-                winery: item.winery,
-                vintage: item.vintage,
-                bottleSize: item.bottleSize,
-                quantity: item.quantity,
-                unitPrice: item.unitPrice,
-                totalPrice: item.totalPrice,
-              })),
-            },
-          },
-          include: {
-            items: true,
-          },
-        });
+        const total = Number(order.total);
 
         // Update user loyalty points if logged in
         if (user) {
@@ -301,24 +378,14 @@ export async function POST(req: NextRequest) {
           }
 
           // Check for event tickets and send ticket emails with QR codes
+          // Tickets are already included in the order from the update/create above
           try {
-            const orderWithTickets = await prisma.order.findUnique({
-              where: { id: order.id },
-              include: {
-                tickets: {
-                  include: {
-                    event: true,
-                  },
-                },
-              },
-            });
-
-            if (orderWithTickets?.tickets && orderWithTickets.tickets.length > 0) {
-              console.log(`🎫 Found ${orderWithTickets.tickets.length} event tickets for order`);
+            if (order.tickets && order.tickets.length > 0) {
+              console.log(`🎫 Found ${order.tickets.length} event tickets for order`);
 
               // Generate PDF for each ticket
               const ticketPDFs = [];
-              for (const ticket of orderWithTickets.tickets) {
+              for (const ticket of order.tickets) {
                 try {
                   const pdfBuffer = await generateTicketPDFBuffer({
                     ticketNumber: ticket.ticketNumber,
@@ -368,6 +435,8 @@ export async function POST(req: NextRequest) {
                 );
                 console.log(`✅ Event tickets email sent with ${ticketPDFs.length} PDF attachments`);
               }
+            } else {
+              console.log('ℹ️  No event tickets found for this order');
             }
           } catch (ticketEmailError: any) {
             console.error('❌ Failed to send event tickets email:', ticketEmailError.message);
