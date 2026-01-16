@@ -458,13 +458,13 @@ export async function POST(req: NextRequest) {
       // Order is still created, just without items
     }
 
-    // Create event tickets
+    // Create event tickets (for both logged-in users AND guests)
     console.log('🎟️  Checking event ticket creation conditions:');
     console.log('   - User exists?', !!user);
     console.log('   - User ID:', user?.id);
     console.log('   - Event items count:', eventItems.length);
 
-    if (user && eventItems.length > 0) {
+    if (eventItems.length > 0) {
       console.log('🎫 Starting event ticket creation...');
       try {
         let ticketCount = 0;
@@ -496,17 +496,22 @@ export async function POST(req: NextRequest) {
             const ticketNumber = `TK-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
             const qrCode = `QR-${ticketNumber}`;
 
-            const ticketData = {
-              eventId: event.id, // Use the actual Event ID from database
-              userId: user.id,
+            // Use customer data from checkout form (works for both logged-in users AND guests)
+            const ticketData: any = {
+              eventId: event.id,
               ticketNumber: ticketNumber,
               qrCode: qrCode,
               price: parseFloat(eventItem.price),
               orderId: order.id,
-              holderFirstName: user.firstName || '',
-              holderLastName: user.lastName || '',
-              holderEmail: user.email || '',
+              holderFirstName: customerFirstName,
+              holderLastName: customerLastName,
+              holderEmail: customerEmail,
             };
+
+            // Only link to user if logged in
+            if (user?.id) {
+              ticketData.userId = user.id;
+            }
 
             console.log(`🎫 Creating ticket ${i + 1}/${requestedQuantity}:`, JSON.stringify(ticketData, null, 2));
 
@@ -539,9 +544,6 @@ export async function POST(req: NextRequest) {
       } catch (eventError: any) {
         console.error('❌ Error creating event tickets:', eventError);
       }
-    } else if (eventItems.length > 0) {
-      console.log('⚠️  Event items present but no user - cannot create tickets');
-      console.log('   User object:', user);
     } else {
       console.log('ℹ️  No event items to process');
     }
