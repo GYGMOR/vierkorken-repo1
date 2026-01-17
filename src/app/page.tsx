@@ -25,6 +25,15 @@ interface NewsItem {
   isPinned: boolean;
 }
 
+type Season = 'winter' | 'spring' | 'summer' | 'autumn';
+
+const SEASON_VIDEOS: Record<Season, string> = {
+  winter: '/images/layout/Weinshop_Werbevideo_Winter.mp4',
+  spring: '/images/layout/Weinshop_Werbevideo_Fruehling.mp4',
+  summer: '/images/layout/Weinshop_Werbevideo_Sommer.mp4',
+  autumn: '/images/layout/Weinshop_Werbevideo_Herbst.mp4',
+};
+
 export default function HomePage() {
   const [categories, setCategories] = useState<KlaraCategory[]>([]);
   const [news, setNews] = useState<NewsItem[]>([]);
@@ -32,6 +41,23 @@ export default function HomePage() {
   const [newsLoading, setNewsLoading] = useState(true);
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [currentSeason, setCurrentSeason] = useState<Season>('winter');
+
+  // Fetch current season
+  useEffect(() => {
+    async function fetchSeason() {
+      try {
+        const res = await fetch('/api/admin/settings/season');
+        const data = await res.json();
+        if (data.success && data.season) {
+          setCurrentSeason(data.season);
+        }
+      } catch (error) {
+        console.error('Error fetching season:', error);
+      }
+    }
+    fetchSeason();
+  }, []);
 
   // Fetch categories with counts (API already returns count!)
   useEffect(() => {
@@ -82,8 +108,9 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <section className="section-padding relative overflow-hidden min-h-[500px] flex items-center">
-        {/* Background Video */}
+        {/* Background Video - Dynamic based on season */}
         <video
+          key={currentSeason}
           autoPlay
           muted
           playsInline
@@ -94,7 +121,7 @@ export default function HomePage() {
             video.pause();
           }}
         >
-          <source src="/images/layout/Weinshop_Werbevideo_Winter.mp4" type="video/mp4" />
+          <source src={SEASON_VIDEOS[currentSeason]} type="video/mp4" />
         </video>
 
         {/* Overlay for better text readability */}

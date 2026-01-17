@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Inter, Cormorant_Garamond } from 'next/font/google';
 import { SessionProvider } from '@/components/providers/SessionProvider';
 import { CartProvider } from '@/contexts/CartContext';
-import { Snowflakes } from '@/components/effects/Snowflakes';
+import { SeasonalEffects } from '@/components/effects/SeasonalEffects';
 import '@/styles/globals.css';
 
 // Fonts
@@ -80,7 +80,7 @@ export default function RootLayout({
         <SessionProvider>
           <CartProvider>
             {children}
-            <Snowflakes />
+            <SeasonalEffects />
           </CartProvider>
         </SessionProvider>
       </body>
