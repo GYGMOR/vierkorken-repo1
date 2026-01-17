@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { MainLayout } from '@/components/layout/MainLayout';
@@ -11,12 +11,70 @@ function GiftCardSuccessContent() {
   const searchParams = useSearchParams();
   const code = searchParams.get('code');
   const [copied, setCopied] = useState(false);
+  const [isActive, setIsActive] = useState<boolean | null>(null);
+  const [checkCount, setCheckCount] = useState(0);
 
-  const copyToClipboard = () => {
-    if (code) {
-      navigator.clipboard.writeText(code);
+  // Poll to check if coupon is activated (webhook might have delay)
+  useEffect(() => {
+    if (!code) return;
+
+    const checkStatus = async () => {
+      try {
+        const res = await fetch(`/api/gift-cards/status?code=${code}`);
+        const data = await res.json();
+
+        if (data.success && data.isActive) {
+          setIsActive(true);
+        } else if (checkCount < 10) {
+          // Keep polling for up to 30 seconds
+          setCheckCount((c) => c + 1);
+        } else {
+          setIsActive(false);
+        }
+      } catch (error) {
+        console.error('Error checking gift card status:', error);
+      }
+    };
+
+    // Initial check
+    checkStatus();
+
+    // Poll every 3 seconds if not yet active
+    const interval = setInterval(() => {
+      if (isActive !== true && checkCount < 10) {
+        checkStatus();
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [code, checkCount, isActive]);
+
+  const copyToClipboard = async () => {
+    if (!code) return;
+
+    try {
+      // Try modern clipboard API first
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(code);
+      } else {
+        // Fallback for older browsers or non-secure contexts
+        const textArea = document.createElement('textarea');
+        textArea.value = code;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        textArea.style.top = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      // Show the code in an alert as last resort
+      alert(`Gutschein-Code: ${code}`);
     }
   };
 
@@ -38,9 +96,39 @@ function GiftCardSuccessContent() {
                 <h1 className="text-h2 font-serif font-light text-graphite-dark mb-4">
                   Vielen Dank für Ihren Kauf!
                 </h1>
-                <p className="text-body-lg text-graphite mb-8">
+                <p className="text-body-lg text-graphite mb-4">
                   Ihr Geschenkgutschein wurde erfolgreich erstellt und per E-Mail verschickt.
                 </p>
+
+                {/* Status indicator */}
+                {isActive === null && (
+                  <div className="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                      <span className="text-blue-700">Zahlungsbestätigung wird verarbeitet...</span>
+                    </div>
+                  </div>
+                )}
+                {isActive === true && (
+                  <div className="mb-8 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center justify-center gap-2 text-green-700">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Gutschein ist aktiv und einsatzbereit!</span>
+                    </div>
+                  </div>
+                )}
+                {isActive === false && (
+                  <div className="mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-center justify-center gap-2 text-yellow-700">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      <span>Verarbeitung dauert etwas länger. E-Mail kommt in Kürze!</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Coupon Code Display */}
                 {code && (

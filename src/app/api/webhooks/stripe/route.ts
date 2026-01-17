@@ -88,34 +88,93 @@ export async function POST(req: NextRequest) {
           });
 
           if (coupon && session.metadata.recipientEmail) {
-            try {
-              // Parse internal note for sender info
-              let senderName = 'VIER KORKEN';
-              let recipientName = '';
-              let message = '';
+            // Parse internal note for sender info
+            let senderName = 'VIER KORKEN';
+            let recipientName = '';
+            let giftMessage = '';
+            const buyerEmail = session.customer_details?.email || session.client_reference_id;
 
-              if (coupon.internalNote) {
-                try {
-                  const noteData = JSON.parse(coupon.internalNote);
-                  senderName = noteData.senderName || 'VIER KORKEN';
-                  recipientName = noteData.recipientName || '';
-                  message = noteData.message || '';
-                } catch (e) {
-                  console.log('Could not parse coupon internal note');
-                }
+            if (coupon.internalNote) {
+              try {
+                const noteData = JSON.parse(coupon.internalNote);
+                senderName = noteData.senderName || 'VIER KORKEN';
+                recipientName = noteData.recipientName || '';
+                giftMessage = noteData.message || '';
+              } catch (e) {
+                console.log('Could not parse coupon internal note');
               }
+            }
 
+            // Send gift card email to recipient
+            try {
               await sendGiftCardEmail(session.metadata.recipientEmail, {
                 code: coupon.code,
                 amount: Number(coupon.value),
                 senderName,
                 recipientName,
-                message,
+                message: giftMessage,
               });
-
               console.log('✅ Gift card email sent to:', session.metadata.recipientEmail);
             } catch (emailError: any) {
               console.error('❌ Failed to send gift card email:', emailError.message);
+            }
+
+            // Send confirmation to buyer (if different from recipient)
+            if (buyerEmail && buyerEmail !== session.metadata.recipientEmail && buyerEmail !== 'guest') {
+              try {
+                await sendGiftCardEmail(buyerEmail, {
+                  code: coupon.code,
+                  amount: Number(coupon.value),
+                  senderName: 'VIER KORKEN',
+                  recipientName: senderName,
+                  message: `Sie haben erfolgreich einen Geschenkgutschein im Wert von CHF ${Number(coupon.value).toFixed(2)} für ${session.metadata.recipientEmail} gekauft. Der Gutschein wurde an den Empfänger gesendet.`,
+                });
+                console.log('✅ Gift card confirmation sent to buyer:', buyerEmail);
+              } catch (buyerEmailError: any) {
+                console.error('❌ Failed to send buyer confirmation:', buyerEmailError.message);
+              }
+            }
+
+            // Send admin notification
+            try {
+              const adminEmail = process.env.ADMIN_EMAIL || 'info@vierkorken.ch';
+              const { sendInfoMail } = await import('@/lib/email');
+
+              await sendInfoMail({
+                to: adminEmail,
+                subject: `Neuer Gutscheinkauf - ${coupon.code} - CHF ${Number(coupon.value).toFixed(2)}`,
+                text: `
+Neuer Geschenkgutschein gekauft!
+
+Gutschein-Code: ${coupon.code}
+Wert: CHF ${Number(coupon.value).toFixed(2)}
+
+Käufer: ${buyerEmail || 'Unbekannt'}
+Absender-Name: ${senderName}
+
+Empfänger-Email: ${session.metadata.recipientEmail}
+Empfänger-Name: ${recipientName || 'Nicht angegeben'}
+
+Nachricht: ${giftMessage || 'Keine'}
+
+Kaufdatum: ${new Date().toLocaleString('de-CH')}
+                `.trim(),
+                html: `
+<h2>Neuer Geschenkgutschein gekauft!</h2>
+<table style="border-collapse: collapse; width: 100%; max-width: 500px;">
+  <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Gutschein-Code:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd; font-family: monospace; font-size: 16px; color: #6D2932;">${coupon.code}</td></tr>
+  <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Wert:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">CHF ${Number(coupon.value).toFixed(2)}</td></tr>
+  <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Käufer:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${buyerEmail || 'Unbekannt'}</td></tr>
+  <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Absender-Name:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${senderName}</td></tr>
+  <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Empfänger-Email:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${session.metadata.recipientEmail}</td></tr>
+  <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Empfänger-Name:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${recipientName || 'Nicht angegeben'}</td></tr>
+  <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Nachricht:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${giftMessage || 'Keine'}</td></tr>
+</table>
+                `,
+              });
+              console.log('✅ Admin notification sent for gift card purchase');
+            } catch (adminEmailError: any) {
+              console.error('❌ Failed to send admin notification:', adminEmailError.message);
             }
           }
 
