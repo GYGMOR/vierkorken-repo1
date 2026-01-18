@@ -43,8 +43,9 @@ async function checkAdmin() {
 
 export async function POST(request: NextRequest) {
   try {
-    // Apply strict rate limiting for file uploads: 50 uploads per hour
-    const rateLimitResponse = await applyRateLimit(request, 50, 60 * 60 * 1000);
+    // Apply generous rate limiting for admin file uploads: 500 uploads per hour
+    // Admins often need to upload many product images at once
+    const rateLimitResponse = await applyRateLimit(request, 500, 60 * 60 * 1000);
     if (rateLimitResponse) return rateLimitResponse;
 
     // Require admin authentication
