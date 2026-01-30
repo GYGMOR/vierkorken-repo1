@@ -63,12 +63,11 @@ export async function POST(req: NextRequest) {
 
     let notifiedCount = 0;
 
-    // If disabling maintenance mode, notify all subscribers who haven't been notified yet
+    // If disabling maintenance mode, notify ALL active subscribers
     if (!enabled) {
       const subscribers = await prisma.maintenanceModeSubscriber.findMany({
         where: {
           isActive: true,
-          notifiedAt: null,
         },
       });
 

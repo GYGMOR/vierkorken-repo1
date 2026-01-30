@@ -48,14 +48,14 @@ export default function ComingSoonPage() {
 
   return (
     <div className="relative min-h-screen min-h-[100dvh] w-full overflow-hidden bg-black font-serif text-white">
-      {/* Background Image */}
+      {/* Background Image - shifted right */}
       <div className="absolute inset-0 z-0">
         <Image
           src="/images/layout/Coming Soon Page.png"
           alt="VIER KORKEN - Coming Soon"
           fill
           priority
-          className="object-cover"
+          className="object-cover object-[70%_center]"
           sizes="100vw"
           quality={100}
         />
