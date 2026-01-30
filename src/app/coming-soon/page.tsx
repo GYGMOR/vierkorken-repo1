@@ -47,15 +47,15 @@ export default function ComingSoonPage() {
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-[#2a2520]">
-      {/* Background Image - Full Screen */}
+    <div className="relative min-h-screen min-h-[100dvh] w-full overflow-hidden bg-[#2a2520]">
+      {/* Background Image - Full Screen for all devices */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="/images/layout/coming soon page.png"
+          src="/images/layout/Coming Soon Page.png"
           alt="VIER KORKEN - Coming Soon"
           fill
           priority
-          className="object-cover object-center"
+          className="object-cover object-right md:object-center"
           sizes="100vw"
           quality={100}
         />
@@ -93,17 +93,17 @@ export default function ComingSoonPage() {
         </svg>
       </button>
 
-      {/* Email Form - Positioned in the golden frame area */}
+      {/* Email Form - Centered in the golden frame area */}
       <div className="absolute inset-0 z-10 flex items-center justify-center">
         {/* Form Container - Centered in the golden frame */}
-        <div className="w-full max-w-[280px] sm:max-w-[320px] md:max-w-[360px] mt-[15vh] sm:mt-[18vh] md:mt-[20vh]">
+        <div className="w-full max-w-[260px] sm:max-w-[280px] md:max-w-[320px] translate-y-[5%] sm:translate-y-[8%] md:translate-y-[10%]">
           <form onSubmit={handleSubscribe} className="space-y-3">
             {message && (
               <div
                 className={`px-3 py-2 rounded text-xs sm:text-sm text-center ${
                   message.type === 'success'
-                    ? 'bg-green-900/80 border border-green-600/50 text-green-200'
-                    : 'bg-red-900/80 border border-red-600/50 text-red-200'
+                    ? 'bg-green-900/90 border border-green-600/50 text-green-200'
+                    : 'bg-red-900/90 border border-red-600/50 text-red-200'
                 }`}
               >
                 {message.text}
@@ -118,7 +118,7 @@ export default function ComingSoonPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="ihre@email.ch"
-                className="w-full px-4 py-2.5 sm:py-3 bg-white/95 backdrop-blur-sm border border-[#c9a962]/60 rounded text-sm sm:text-base text-gray-800 placeholder-gray-500 text-center focus:outline-none focus:border-[#c9a962] focus:ring-1 focus:ring-[#c9a962]/50 transition-all"
+                className="w-full px-4 py-2.5 sm:py-3 bg-white/95 backdrop-blur-sm border border-[#c9a962]/60 rounded text-sm sm:text-base text-gray-800 placeholder-gray-500 text-center focus:outline-none focus:border-[#c9a962] focus:ring-1 focus:ring-[#c9a962]/50 transition-all shadow-lg"
                 disabled={loading}
               />
             </div>
@@ -126,28 +126,12 @@ export default function ComingSoonPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#722f37] hover:bg-[#5a252c] text-white font-medium py-2.5 sm:py-3 px-4 rounded text-sm sm:text-base transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed border border-[#c9a962]/40"
+              className="w-full bg-[#722f37] hover:bg-[#5a252c] text-white font-medium py-2.5 sm:py-3 px-4 rounded text-sm sm:text-base transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed border border-[#c9a962]/40 shadow-lg"
             >
               {loading ? 'Wird gesendet...' : 'Benachrichtigen'}
             </button>
-
-            <p className="text-[10px] sm:text-xs text-white/70 text-center">
-              Keine Spam-Mails. Versprochen.
-            </p>
           </form>
         </div>
-      </div>
-
-      {/* Contact Footer - Bottom */}
-      <div className="absolute bottom-4 left-0 right-0 z-10 text-center">
-        <p className="text-xs sm:text-sm text-white/60">
-          <a
-            href="mailto:info@vierkorken.ch"
-            className="text-[#c9a962] hover:text-[#d4b872] transition-colors"
-          >
-            info@vierkorken.ch
-          </a>
-        </p>
       </div>
 
       {/* Admin Login Modal */}
