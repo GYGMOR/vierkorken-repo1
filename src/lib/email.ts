@@ -819,7 +819,6 @@ export async function sendMaintenanceSubscriptionEmail(to: string) {
                 <strong>Was Sie erwarten können:</strong>
               </p>
               <ul style="margin: 10px 0 0 0; padding-left: 20px;">
-                <li>Exklusive Weine aus aller Welt</li>
                 <li>Persönliche Beratung durch unsere Sommeliers</li>
                 <li>Schneller und sicherer Versand</li>
                 <li>Besondere Angebote für Stammkunden</li>
@@ -854,7 +853,6 @@ Wir freuen uns sehr über Ihr Interesse an unserem Premium-Weinshop.
 Unser Team arbeitet gerade an spannenden Updates, um Ihnen das beste Einkaufserlebnis zu bieten. Sie gehören zu den Ersten, die benachrichtigt werden, sobald wir wieder online sind.
 
 Was Sie erwarten können:
-• Exklusive Weine aus aller Welt
 • Persönliche Beratung durch unsere Sommeliers
 • Schneller und sicherer Versand
 • Besondere Angebote für Stammkunden
@@ -918,7 +916,6 @@ export async function sendLaunchNotificationEmail(to: string) {
                 ✨ Besondere Highlights
               </h3>
               <ul style="margin: 15px 0 0 0; padding-left: 20px; color: #3D3D3D;">
-                <li style="margin-bottom: 10px;">Über 500 exklusive Weine aus aller Welt</li>
                 <li style="margin-bottom: 10px;">Persönliche Beratung durch Sommeliers</li>
                 <li style="margin-bottom: 10px;">Kostenloser Versand ab CHF 150</li>
                 <li style="margin-bottom: 10px;">Sichere Zahlung mit Stripe oder Klara</li>
@@ -958,7 +955,6 @@ Als einer unserer geschätzten Interessenten laden wir Sie ein, unsere Auswahl a
 Jetzt Shop besuchen: ${siteUrl}
 
 BESONDERE HIGHLIGHTS:
-• Über 500 exklusive Weine aus aller Welt
 • Persönliche Beratung durch Sommeliers
 • Kostenloser Versand ab CHF 150
 • Sichere Zahlung mit Stripe oder Klara
