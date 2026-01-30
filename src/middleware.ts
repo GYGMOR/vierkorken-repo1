@@ -3,7 +3,7 @@
  * Automatically applies security headers and handles maintenance mode
  *
  * NOTE: Middleware runs in Edge Runtime - NO DATABASE ACCESS!
- * Prisma cannot run in Edge Runtime, so we only check environment variables.
+ * Uses internal API call to check database settings.
  */
 
 import { NextResponse } from 'next/server';
@@ -12,21 +12,53 @@ import { getToken } from 'next-auth/jwt';
 
 /**
  * Check if maintenance mode is enabled
- * Uses environment variable only (Edge Runtime compatible)
+ * Fetches from internal API to check database setting
  */
-function checkMaintenanceMode(): boolean {
-  // Check environment variable
-  return process.env.MAINTENANCE_MODE === 'true';
+async function checkMaintenanceMode(request: NextRequest): Promise<boolean> {
+  // First check environment variable (quick check)
+  if (process.env.MAINTENANCE_MODE === 'true') {
+    return true;
+  }
+
+  // Then check database setting via internal API
+  try {
+    const baseUrl = request.nextUrl.origin;
+    const response = await fetch(`${baseUrl}/api/maintenance/status`, {
+      method: 'GET',
+      headers: {
+        'x-middleware-request': 'true', // Internal marker
+      },
+      cache: 'no-store',
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data.enabled === true;
+    }
+  } catch (error) {
+    // Silently fail - fallback to env variable only
+    console.error('Failed to check maintenance mode from API:', error);
+  }
+
+  return false;
 }
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // ============================================================
+  // SKIP MAINTENANCE CHECK FOR STATUS API (prevents infinite loop)
+  // ============================================================
+  if (pathname === '/api/maintenance/status') {
+    const response = NextResponse.next();
+    return applySecurityHeaders(response, request);
+  }
+
+  // ============================================================
   // MAINTENANCE MODE CHECK
   // ============================================================
 
-  const isMaintenanceMode = checkMaintenanceMode();
+  const isMaintenanceMode = await checkMaintenanceMode(request);
 
   if (isMaintenanceMode) {
     // Always allow these paths (needed for admin bypass and functionality)
