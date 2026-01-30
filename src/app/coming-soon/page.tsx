@@ -47,51 +47,7 @@ export default function ComingSoonPage() {
   };
 
   return (
-    <div className="relative min-h-screen min-h-[100dvh] w-full overflow-hidden bg-[#2a2520] font-serif text-white">
-      {/* Background Images - Responsive */}
-      
-      {/* Mobile Background (< 768px) */}
-      <div className="absolute inset-0 z-0 block md:hidden">
-        <Image
-          src="/images/layout/coming_soon_mobile.png"
-          alt="VIER KORKEN - Coming Soon"
-          fill
-          priority
-          className="object-cover"
-          sizes="100vw"
-          quality={100}
-        />
-        <div className="absolute inset-0 bg-black/30" /> {/* Overlay for readability */}
-      </div>
-
-      {/* Tablet Background (>= 768px and < 1024px) */}
-      <div className="absolute inset-0 z-0 hidden md:block lg:hidden">
-        <Image
-          src="/images/layout/coming_soon_tablet.png"
-          alt="VIER KORKEN - Coming Soon"
-          fill
-          priority
-          className="object-cover"
-          sizes="100vw"
-          quality={100}
-        />
-         <div className="absolute inset-0 bg-black/30" />
-      </div>
-
-      {/* Desktop Background (>= 1024px) */}
-      <div className="absolute inset-0 z-0 hidden lg:block">
-        <Image
-          src="/images/layout/coming_soon_desktop.png"
-          alt="VIER KORKEN - Coming Soon"
-          fill
-          priority
-          className="object-cover"
-          sizes="100vw"
-          quality={100}
-        />
-         <div className="absolute inset-0 bg-black/30" />
-      </div>
-
+    <div className="relative min-h-screen min-h-[100dvh] w-full overflow-hidden bg-black font-serif text-white">
       {/* Admin Login Button */}
       <button
         onClick={() => setShowAdminModal(true)}
@@ -125,20 +81,20 @@ export default function ComingSoonPage() {
       </button>
 
       {/* Main Content Overlay */}
-      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-2xl mx-auto flex flex-col items-center gap-8 text-center bg-black/40 backdrop-blur-sm rounded-3xl p-6 sm:p-12 border border-white/10 shadow-2xl">
-          
+      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-3">
+        <div className="w-full max-w-md mx-auto flex flex-col items-center gap-4 text-center bg-black/40 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-white/10 shadow-2xl">
+
           {/* Logo Section */}
-          <div className="flex flex-col items-center gap-4">
-            <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-2 border-[#c9a962]/50 shadow-lg bg-black/20 backdrop-blur-md">
+          <div className="flex flex-col items-center gap-2">
+            <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden border-2 border-[#c9a962]/50 shadow-lg bg-black/20 backdrop-blur-md">
               <Image
                 src="/images/layout/logo_icon.png"
                 alt="Vier Korken Logo"
                 fill
-                className="object-cover p-2"
+                className="object-cover p-1"
               />
             </div>
-            <div className="relative w-64 h-16 sm:w-80 sm:h-20">
+            <div className="relative w-48 h-12 sm:w-56 sm:h-14">
               <Image
                 src="/images/layout/logo_text.png"
                 alt="VIER KORKEN"
@@ -149,21 +105,21 @@ export default function ComingSoonPage() {
           </div>
 
           {/* Coming Soon Text */}
-          <div className="space-y-2">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-light tracking-widest text-[#c9a962]">
+          <div className="space-y-1">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-light tracking-widest text-[#c9a962]">
               COMING SOON
             </h1>
-            <p className="text-lg text-white/90 font-light tracking-wide">
+            <p className="text-sm sm:text-base text-white/90 font-light tracking-wide">
               Wir arbeiten an unserem neuen Online-Erlebnis
             </p>
           </div>
 
           {/* Email Form */}
-          <div className="w-full max-w-sm">
-            <form onSubmit={handleSubscribe} className="space-y-4">
+          <div className="w-full max-w-xs">
+            <form onSubmit={handleSubscribe} className="space-y-3">
               {message && (
                 <div
-                  className={`px-3 py-2 rounded text-sm text-center ${
+                  className={`px-2 py-1.5 rounded text-xs text-center ${
                     message.type === 'success'
                       ? 'bg-green-900/80 border border-green-600/50 text-green-100'
                       : 'bg-red-900/80 border border-red-600/50 text-red-100'
@@ -181,7 +137,7 @@ export default function ComingSoonPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Ihre E-Mail für Benachrichtigung"
-                  className="w-full px-6 py-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-white placeholder-white/60 text-center focus:outline-none focus:border-[#c9a962] focus:bg-white/15 transition-all shadow-inner"
+                  className="w-full px-4 py-2.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-sm text-white placeholder-white/60 text-center focus:outline-none focus:border-[#c9a962] focus:bg-white/15 transition-all shadow-inner"
                   disabled={loading}
                 />
               </div>
@@ -189,7 +145,7 @@ export default function ComingSoonPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[#c9a962] hover:bg-[#b09351] text-[#2a2520] font-semibold py-3 px-6 rounded-full transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                className="w-full bg-[#c9a962] hover:bg-[#b09351] text-[#2a2520] font-semibold py-2 px-4 rounded-full text-sm transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
               >
                 {loading ? 'Wird angemeldet...' : 'Benachrichtigen Sie mich'}
               </button>
@@ -197,29 +153,29 @@ export default function ComingSoonPage() {
           </div>
 
           {/* Opening Hours */}
-          <div className="mt-8 pt-8 border-t border-white/20 w-full space-y-4">
-            <h3 className="text-[#c9a962] font-semibold tracking-wider text-sm uppercase mb-4">
+          <div className="mt-4 pt-4 border-t border-white/20 w-full space-y-2">
+            <h3 className="text-[#c9a962] font-semibold tracking-wider text-xs uppercase mb-2">
               Öffnungszeiten
             </h3>
-            <div className="grid gap-2 text-sm sm:text-base font-light text-white/90 leading-relaxed">
-              <div className="flex flex-col sm:flex-row justify-center gap-1 sm:gap-4">
-                <span className="font-medium min-w-[100px] text-right">Mittwoch</span>
+            <div className="grid gap-1 text-xs sm:text-sm font-light text-white/90 leading-relaxed">
+              <div className="flex flex-col sm:flex-row justify-center gap-0.5 sm:gap-3">
+                <span className="font-medium min-w-[80px] sm:text-right">Mittwoch</span>
                 <span>13:30 – 18:30 Uhr</span>
               </div>
-              <div className="flex flex-col sm:flex-row justify-center gap-1 sm:gap-4">
-                <span className="font-medium min-w-[100px] text-right">Donnerstag</span>
+              <div className="flex flex-col sm:flex-row justify-center gap-0.5 sm:gap-3">
+                <span className="font-medium min-w-[80px] sm:text-right">Donnerstag</span>
                 <span>13:30 – 18:30 Uhr</span>
               </div>
-              <div className="flex flex-col sm:flex-row justify-center gap-1 sm:gap-4">
-                <span className="font-medium min-w-[100px] text-right">Freitag</span>
+              <div className="flex flex-col sm:flex-row justify-center gap-0.5 sm:gap-3">
+                <span className="font-medium min-w-[80px] sm:text-right">Freitag</span>
                 <span className="flex flex-col sm:block">
                   <span>09:00 – 12:00 Uhr</span>
                   <span className="hidden sm:inline"> & </span>
                   <span>13:30 – 18:30 Uhr</span>
                 </span>
               </div>
-              <div className="flex flex-col sm:flex-row justify-center gap-1 sm:gap-4">
-                <span className="font-medium min-w-[100px] text-right">Samstag</span>
+              <div className="flex flex-col sm:flex-row justify-center gap-0.5 sm:gap-3">
+                <span className="font-medium min-w-[80px] sm:text-right">Samstag</span>
                 <span>09:00 – 14:00 Uhr</span>
               </div>
             </div>
