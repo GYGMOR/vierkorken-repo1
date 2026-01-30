@@ -3,6 +3,7 @@ import { Inter, Cormorant_Garamond } from 'next/font/google';
 import { SessionProvider } from '@/components/providers/SessionProvider';
 import { CartProvider } from '@/contexts/CartContext';
 import { SeasonalEffects } from '@/components/effects/SeasonalEffects';
+import { MaintenanceGuard } from '@/components/maintenance/MaintenanceGuard';
 import '@/styles/globals.css';
 
 // Fonts
@@ -81,10 +82,12 @@ export default function RootLayout({
     <html lang="de" className={`${inter.variable} ${cormorant.variable}`}>
       <body className="antialiased">
         <SessionProvider>
-          <CartProvider>
-            {children}
-            <SeasonalEffects />
-          </CartProvider>
+          <MaintenanceGuard>
+            <CartProvider>
+              {children}
+              <SeasonalEffects />
+            </CartProvider>
+          </MaintenanceGuard>
         </SessionProvider>
       </body>
     </html>
