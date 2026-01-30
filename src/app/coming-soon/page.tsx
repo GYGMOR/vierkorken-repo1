@@ -51,11 +51,11 @@ export default function ComingSoonPage() {
       {/* Background Image - shifted right */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="/images/layout/Coming Soon Page.png"
+          src="/images/layout/comingsoon.png"
           alt="VIER KORKEN - Coming Soon"
           fill
           priority
-          className="object-cover object-[15%_center]"
+          className="object-cover object-center"
           sizes="100vw"
           quality={100}
         />
