@@ -48,6 +48,19 @@ export default function ComingSoonPage() {
 
   return (
     <div className="relative min-h-screen min-h-[100dvh] w-full overflow-hidden bg-black font-serif text-white">
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/images/layout/Coming Soon Page.png"
+          alt="VIER KORKEN - Coming Soon"
+          fill
+          priority
+          className="object-cover"
+          sizes="100vw"
+          quality={100}
+        />
+      </div>
+
       {/* Admin Login Button */}
       <button
         onClick={() => setShowAdminModal(true)}
