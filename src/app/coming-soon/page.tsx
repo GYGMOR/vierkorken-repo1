@@ -47,21 +47,52 @@ export default function ComingSoonPage() {
   };
 
   return (
-    <div className="relative min-h-screen min-h-[100dvh] w-full overflow-hidden bg-[#2a2520]">
-      {/* Background Image - Full Screen for all devices */}
-      <div className="absolute inset-0 z-0">
+    <div className="relative min-h-screen min-h-[100dvh] w-full overflow-hidden bg-[#2a2520] font-serif text-white">
+      {/* Background Images - Responsive */}
+      
+      {/* Mobile Background (< 768px) */}
+      <div className="absolute inset-0 z-0 block md:hidden">
         <Image
-          src="/images/layout/Coming Soon Page.png"
+          src="/images/layout/coming_soon_mobile.png"
           alt="VIER KORKEN - Coming Soon"
           fill
           priority
-          className="object-cover object-right md:object-center"
+          className="object-cover"
           sizes="100vw"
           quality={100}
         />
+        <div className="absolute inset-0 bg-black/30" /> {/* Overlay for readability */}
       </div>
 
-      {/* Gear Icon for Admin Login - Top Right */}
+      {/* Tablet Background (>= 768px and < 1024px) */}
+      <div className="absolute inset-0 z-0 hidden md:block lg:hidden">
+        <Image
+          src="/images/layout/coming_soon_tablet.png"
+          alt="VIER KORKEN - Coming Soon"
+          fill
+          priority
+          className="object-cover"
+          sizes="100vw"
+          quality={100}
+        />
+         <div className="absolute inset-0 bg-black/30" />
+      </div>
+
+      {/* Desktop Background (>= 1024px) */}
+      <div className="absolute inset-0 z-0 hidden lg:block">
+        <Image
+          src="/images/layout/coming_soon_desktop.png"
+          alt="VIER KORKEN - Coming Soon"
+          fill
+          priority
+          className="object-cover"
+          sizes="100vw"
+          quality={100}
+        />
+         <div className="absolute inset-0 bg-black/30" />
+      </div>
+
+      {/* Admin Login Button */}
       <button
         onClick={() => setShowAdminModal(true)}
         className="absolute top-4 right-4 z-50 p-2 bg-black/20 backdrop-blur-sm border border-white/10 rounded-full hover:bg-black/40 transition-all duration-300 group"
@@ -93,44 +124,106 @@ export default function ComingSoonPage() {
         </svg>
       </button>
 
-      {/* Email Form - Centered in the golden frame area */}
-      <div className="absolute inset-0 z-10 flex items-center justify-center">
-        {/* Form Container - Centered in the golden frame */}
-        <div className="w-full max-w-[260px] sm:max-w-[280px] md:max-w-[320px] translate-y-[5%] sm:translate-y-[8%] md:translate-y-[10%]">
-          <form onSubmit={handleSubscribe} className="space-y-3">
-            {message && (
-              <div
-                className={`px-3 py-2 rounded text-xs sm:text-sm text-center ${
-                  message.type === 'success'
-                    ? 'bg-green-900/90 border border-green-600/50 text-green-200'
-                    : 'bg-red-900/90 border border-red-600/50 text-red-200'
-                }`}
-              >
-                {message.text}
-              </div>
-            )}
-
-            <div>
-              <input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="ihre@email.ch"
-                className="w-full px-4 py-2.5 sm:py-3 bg-white/95 backdrop-blur-sm border border-[#c9a962]/60 rounded text-sm sm:text-base text-gray-800 placeholder-gray-500 text-center focus:outline-none focus:border-[#c9a962] focus:ring-1 focus:ring-[#c9a962]/50 transition-all shadow-lg"
-                disabled={loading}
+      {/* Main Content Overlay */}
+      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-4">
+        <div className="w-full max-w-2xl mx-auto flex flex-col items-center gap-8 text-center bg-black/40 backdrop-blur-sm rounded-3xl p-6 sm:p-12 border border-white/10 shadow-2xl">
+          
+          {/* Logo Section */}
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-2 border-[#c9a962]/50 shadow-lg bg-black/20 backdrop-blur-md">
+              <Image
+                src="/images/layout/logo_icon.png"
+                alt="Vier Korken Logo"
+                fill
+                className="object-cover p-2"
               />
             </div>
+            <div className="relative w-64 h-16 sm:w-80 sm:h-20">
+              <Image
+                src="/images/layout/logo_text.png"
+                alt="VIER KORKEN"
+                fill
+                className="object-contain"
+              />
+            </div>
+          </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-[#722f37] hover:bg-[#5a252c] text-white font-medium py-2.5 sm:py-3 px-4 rounded text-sm sm:text-base transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed border border-[#c9a962]/40 shadow-lg"
-            >
-              {loading ? 'Wird gesendet...' : 'Benachrichtigen'}
-            </button>
-          </form>
+          {/* Coming Soon Text */}
+          <div className="space-y-2">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-light tracking-widest text-[#c9a962]">
+              COMING SOON
+            </h1>
+            <p className="text-lg text-white/90 font-light tracking-wide">
+              Wir arbeiten an unserem neuen Online-Erlebnis
+            </p>
+          </div>
+
+          {/* Email Form */}
+          <div className="w-full max-w-sm">
+            <form onSubmit={handleSubscribe} className="space-y-4">
+              {message && (
+                <div
+                  className={`px-3 py-2 rounded text-sm text-center ${
+                    message.type === 'success'
+                      ? 'bg-green-900/80 border border-green-600/50 text-green-100'
+                      : 'bg-red-900/80 border border-red-600/50 text-red-100'
+                  }`}
+                >
+                  {message.text}
+                </div>
+              )}
+
+              <div className="relative group">
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Ihre E-Mail für Benachrichtigung"
+                  className="w-full px-6 py-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-white placeholder-white/60 text-center focus:outline-none focus:border-[#c9a962] focus:bg-white/15 transition-all shadow-inner"
+                  disabled={loading}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-[#c9a962] hover:bg-[#b09351] text-[#2a2520] font-semibold py-3 px-6 rounded-full transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+              >
+                {loading ? 'Wird angemeldet...' : 'Benachrichtigen Sie mich'}
+              </button>
+            </form>
+          </div>
+
+          {/* Opening Hours */}
+          <div className="mt-8 pt-8 border-t border-white/20 w-full space-y-4">
+            <h3 className="text-[#c9a962] font-semibold tracking-wider text-sm uppercase mb-4">
+              Öffnungszeiten
+            </h3>
+            <div className="grid gap-2 text-sm sm:text-base font-light text-white/90 leading-relaxed">
+              <div className="flex flex-col sm:flex-row justify-center gap-1 sm:gap-4">
+                <span className="font-medium min-w-[100px] text-right">Mittwoch</span>
+                <span>13:30 – 18:30 Uhr</span>
+              </div>
+              <div className="flex flex-col sm:flex-row justify-center gap-1 sm:gap-4">
+                <span className="font-medium min-w-[100px] text-right">Donnerstag</span>
+                <span>13:30 – 18:30 Uhr</span>
+              </div>
+              <div className="flex flex-col sm:flex-row justify-center gap-1 sm:gap-4">
+                <span className="font-medium min-w-[100px] text-right">Freitag</span>
+                <span className="flex flex-col sm:block">
+                  <span>09:00 – 12:00 Uhr</span>
+                  <span className="hidden sm:inline"> & </span>
+                  <span>13:30 – 18:30 Uhr</span>
+                </span>
+              </div>
+              <div className="flex flex-col sm:flex-row justify-center gap-1 sm:gap-4">
+                <span className="font-medium min-w-[100px] text-right">Samstag</span>
+                <span>09:00 – 14:00 Uhr</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
