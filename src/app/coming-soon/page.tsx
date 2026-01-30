@@ -55,7 +55,7 @@ export default function ComingSoonPage() {
           alt="VIER KORKEN - Coming Soon"
           fill
           priority
-          className="object-cover object-left"
+          className="object-cover object-[15%_center]"
           sizes="100vw"
           quality={100}
         />
