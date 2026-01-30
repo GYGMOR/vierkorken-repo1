@@ -47,38 +47,35 @@ export default function ComingSoonPage() {
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden">
-      {/* Background Image with Fade Effect */}
+    <div className="relative min-h-screen w-full overflow-hidden bg-[#2a2520]">
+      {/* Background Image - Full Screen */}
       <div className="absolute inset-0 z-0">
         <Image
           src="/images/layout/coming soon page.png"
-          alt="VIER KORKEN Background"
+          alt="VIER KORKEN - Coming Soon"
           fill
           priority
-          className="object-contain opacity-40"
+          className="object-cover object-center"
           sizes="100vw"
-          quality={90}
+          quality={100}
         />
-        {/* Gradient Overlay for better text readability */}
-        <div className="absolute inset-0 bg-gradient-to-br from-warmwhite/80 via-rose-light/70 to-warmwhite-dark/80"></div>
       </div>
 
       {/* Gear Icon for Admin Login - Top Right */}
       <button
         onClick={() => setShowAdminModal(true)}
-        className="absolute top-6 right-6 z-50 p-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full hover:bg-white/20 transition-all duration-300 group"
+        className="absolute top-4 right-4 z-50 p-2 bg-black/20 backdrop-blur-sm border border-white/10 rounded-full hover:bg-black/40 transition-all duration-300 group"
         aria-label="Admin Login"
         title="Admin Login"
       >
         <svg
-          width="24"
-          height="24"
+          width="20"
+          height="20"
           viewBox="0 0 24 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="text-graphite-dark group-hover:rotate-90 transition-transform duration-500"
+          className="text-white/60 group-hover:text-white group-hover:rotate-90 transition-all duration-500"
         >
-          {/* Gear/Settings Icon */}
           <path
             d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
             stroke="currentColor"
@@ -96,88 +93,61 @@ export default function ComingSoonPage() {
         </svg>
       </button>
 
-      {/* Main Content - Centered */}
-      <div className="relative z-10 flex items-center justify-center min-h-screen px-4 py-12">
-        <div className="max-w-2xl w-full text-center">
-          {/* Logo */}
-          <div className="mb-8 animate-fade-in">
-            <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-light text-graphite-dark tracking-wider">
-              VIER KORKEN
-            </h1>
-            <div className="mt-3 h-px w-32 mx-auto bg-gradient-to-r from-transparent via-accent-gold to-transparent"></div>
-          </div>
-
-          {/* Main Message */}
-          <div className="mb-12 animate-slide-up">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-serif font-light text-graphite mb-4">
-              Wir sind bald wieder für Sie verfügbar
-            </h2>
-            <p className="text-base md:text-lg text-graphite-light max-w-xl mx-auto">
-              Unser Premium-Weinshop wird gerade aktualisiert.
-              Registrieren Sie sich, um benachrichtigt zu werden, sobald wir online sind.
-            </p>
-          </div>
-
-          {/* Email Subscription Form */}
-          <div className="mb-8 animate-scale-in">
-            <div className="card bg-white/90 backdrop-blur-sm p-6 md:p-8 max-w-md mx-auto shadow-strong">
-              <form onSubmit={handleSubscribe} className="space-y-4">
-                {message && (
-                  <div
-                    className={`px-4 py-3 rounded-lg text-sm ${
-                      message.type === 'success'
-                        ? 'bg-green-50 border border-green-200 text-green-700'
-                        : 'bg-red-50 border border-red-200 text-red-700'
-                    }`}
-                  >
-                    {message.text}
-                  </div>
-                )}
-
-                <div>
-                  <label htmlFor="email" className="sr-only">
-                    E-Mail-Adresse
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="ihre@email.ch"
-                    className="input w-full text-center"
-                    disabled={loading}
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-accent-burgundy hover:bg-accent-burgundy/90 text-white font-medium py-3 px-6 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? 'Wird gesendet...' : 'Benachrichtigung erhalten'}
-                </button>
-
-                <p className="text-xs text-graphite-light">
-                  Wir respektieren Ihre Privatsphäre. Keine Spam-Mails.
-                </p>
-              </form>
-            </div>
-          </div>
-
-          {/* Footer Info */}
-          <div className="text-sm text-graphite-light animate-fade-in">
-            <p>
-              Bei Fragen kontaktieren Sie uns:{' '}
-              <a
-                href="mailto:info@vierkorken.ch"
-                className="text-accent-burgundy hover:text-accent-burgundy/80 transition-colors underline"
+      {/* Email Form - Positioned in the golden frame area */}
+      <div className="absolute inset-0 z-10 flex items-center justify-center">
+        {/* Form Container - Centered in the golden frame */}
+        <div className="w-full max-w-[280px] sm:max-w-[320px] md:max-w-[360px] mt-[15vh] sm:mt-[18vh] md:mt-[20vh]">
+          <form onSubmit={handleSubscribe} className="space-y-3">
+            {message && (
+              <div
+                className={`px-3 py-2 rounded text-xs sm:text-sm text-center ${
+                  message.type === 'success'
+                    ? 'bg-green-900/80 border border-green-600/50 text-green-200'
+                    : 'bg-red-900/80 border border-red-600/50 text-red-200'
+                }`}
               >
-                info@vierkorken.ch
-              </a>
+                {message.text}
+              </div>
+            )}
+
+            <div>
+              <input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="ihre@email.ch"
+                className="w-full px-4 py-2.5 sm:py-3 bg-white/95 backdrop-blur-sm border border-[#c9a962]/60 rounded text-sm sm:text-base text-gray-800 placeholder-gray-500 text-center focus:outline-none focus:border-[#c9a962] focus:ring-1 focus:ring-[#c9a962]/50 transition-all"
+                disabled={loading}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[#722f37] hover:bg-[#5a252c] text-white font-medium py-2.5 sm:py-3 px-4 rounded text-sm sm:text-base transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed border border-[#c9a962]/40"
+            >
+              {loading ? 'Wird gesendet...' : 'Benachrichtigen'}
+            </button>
+
+            <p className="text-[10px] sm:text-xs text-white/70 text-center">
+              Keine Spam-Mails. Versprochen.
             </p>
-          </div>
+          </form>
         </div>
+      </div>
+
+      {/* Contact Footer - Bottom */}
+      <div className="absolute bottom-4 left-0 right-0 z-10 text-center">
+        <p className="text-xs sm:text-sm text-white/60">
+          <a
+            href="mailto:info@vierkorken.ch"
+            className="text-[#c9a962] hover:text-[#d4b872] transition-colors"
+          >
+            info@vierkorken.ch
+          </a>
+        </p>
       </div>
 
       {/* Admin Login Modal */}
