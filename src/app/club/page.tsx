@@ -1,30 +1,16 @@
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
+import { Card, CardContent } from '@/components/ui/Card';
 import { LoyaltyProgress } from '@/components/loyalty/LoyaltyProgress';
 import { BadgeDisplay } from '@/components/loyalty/BadgeDisplay';
-import { LevelEditor } from '@/components/loyalty/LevelEditor';
 import { BackButton } from '@/components/ui/BackButton';
 import { MainLayout } from '@/components/layout/MainLayout';
+import { PointsGrid } from '@/components/loyalty/PointsGrid';
+import { LevelsGrid } from '@/components/loyalty/LevelsGrid';
 import Link from 'next/link';
 import Image from 'next/image';
-
-// Color mapping helper (same as before)
-function getLevelColor(level: number): string {
-  switch (level) {
-    case 1: return 'from-taupe-light to-taupe';
-    case 2: return 'from-sand to-sand-medium';
-    case 3: return 'from-rose-medium to-rose-deep';
-    case 4: return 'from-wine/50 to-wine/70';
-    case 5: return 'from-wine/70 to-wine';
-    case 6: return 'from-accent-gold/60 to-accent-gold/80';
-    case 7: return 'from-accent-gold to-wine';
-    default: return 'from-taupe-light to-taupe';
-  }
-}
+import { Button } from '@/components/ui/Button';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,17 +39,20 @@ export default async function LoyaltyClubPage() {
         badges: dbUser.badges.map(b => ({
           ...b.badge,
           earnedAt: b.earnedAt,
-          // map missing properties if needed or adjust BadgeDisplay type
         })) as any,
         isAdmin: dbUser.role === 'ADMIN'
       };
     }
   }
 
-  // Fetch Levels from DB
-  const dbLevels = await prisma.loyaltyLevel.findMany({
-    orderBy: { level: 'asc' }
-  });
+  // Fetch Levels and Rules from DB
+  const [dbLevels, dbRules] = await Promise.all([
+    prisma.loyaltyLevel.findMany({ orderBy: { level: 'asc' } }),
+    prisma.loyaltyProgramRule.findMany({ orderBy: { updatedAt: 'asc' } }) // Or another order
+  ]);
+
+  // If no rules exist (first run before migration seed), fallback to empty or ensure seed ran.
+  // We assume seed ran.
 
   return (
     <MainLayout>
@@ -112,12 +101,10 @@ export default async function LoyaltyClubPage() {
                 <h3 className="font-serif text-h4 text-graphite-dark mb-4">
                   Punkte sammeln
                 </h3>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <PointsCard iconType="cart" label="Einkauf" points="1 CHF = 1 Punkt" />
-                  <PointsCard iconType="review" label="Bewertung" points="+40 Punkte" />
-                  <PointsCard iconType="event" label="Event-Teilnahme" points="+100 Punkte" />
-                  <PointsCard iconType="referral" label="Empfehlung" points="+25 Punkte" />
-                </div>
+
+                {/* Interactive Points Grid */}
+                <PointsGrid rules={dbRules} isAdmin={userData.isAdmin} />
+
               </div>
             </Card>
           </div>
@@ -134,66 +121,12 @@ export default async function LoyaltyClubPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {dbLevels.map((level) => {
-              const isCurrent = level.level === userData.loyaltyLevel;
-              // Cast benefits to string[] safely
-              const benefits = Array.isArray(level.benefits) ? level.benefits as string[] : [];
-              const pointsDisplay = level.maxPoints
-                ? `${level.minPoints.toLocaleString('de-CH')}–${level.maxPoints.toLocaleString('de-CH')}`
-                : `${level.minPoints.toLocaleString('de-CH')}+`;
-
-              return (
-                <Card
-                  key={level.level}
-                  hover
-                  className={`relative group ${isCurrent ? 'ring-2 ring-accent-burgundy border-2 border-taupe-light shadow-lg' : 'border-2 border-taupe-light shadow-lg'}`}
-                >
-                  {/* ADMIN EDITOR */}
-                  {userData.isAdmin && (
-                    <LevelEditor
-                      level={level.level}
-                      initialName={level.name}
-                      initialBenefits={benefits}
-                    />
-                  )}
-
-                  <CardHeader>
-                    <div className="flex items-start justify-between mb-4">
-                      <div
-                        className={`flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br ${getLevelColor(level.level)} text-warmwhite`}
-                      >
-                        <span className="font-serif text-2xl font-bold">
-                          {level.level}
-                        </span>
-                      </div>
-                      {isCurrent && (
-                        <Badge variant="accent" className="text-xs">
-                          Aktuell
-                        </Badge>
-                      )}
-                    </div>
-                    <CardTitle>{level.name}</CardTitle>
-                    <div className="space-y-1 mt-2">
-                      <p className="text-body-sm text-graphite/60">
-                        {pointsDisplay} Punkte
-                      </p>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                      {benefits.map((benefit, i) => (
-                        <li key={i} className="flex items-start gap-2 text-body-sm text-graphite">
-                          <CheckIcon className="w-5 h-5 text-accent-burgundy flex-shrink-0 mt-0.5" />
-                          <span>{benefit}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
+          {/* Interactive Levels Grid */}
+          <LevelsGrid
+            levels={dbLevels}
+            currentLevel={userData.loyaltyLevel}
+            isAdmin={userData.isAdmin}
+          />
         </section>
 
         {/* Badges */}
@@ -235,7 +168,6 @@ export default async function LoyaltyClubPage() {
     </MainLayout>
   );
 }
-
 function PointsCard({ iconType, label, points }: { iconType: string; label: string; points: string }) {
   const icons: Record<string, React.ReactNode> = {
     cart: <CartIcon />,

@@ -8,6 +8,7 @@ const updateLevelSchema = z.object({
     level: z.number().int().min(1).max(7),
     benefits: z.array(z.string()).min(1),
     name: z.string().min(1).optional(),
+    description: z.string().optional(),
 });
 
 export type UpdateLevelState = {
@@ -44,6 +45,7 @@ export async function updateLoyaltyLevel(
         level: Number(formData.get('level')),
         benefits: benefits,
         name: formData.get('name')?.toString(),
+        description: formData.get('description')?.toString(),
     });
 
     if (!result.success) {
@@ -53,7 +55,7 @@ export async function updateLoyaltyLevel(
         };
     }
 
-    const { level, benefits: validBenefits, name } = result.data;
+    const { level, benefits: validBenefits, name, description } = result.data;
 
     try {
         // Check if user is admin (this check assumes middleware or layout handles loose auth, 
@@ -65,6 +67,7 @@ export async function updateLoyaltyLevel(
                 benefits: validBenefits, // Prisma supports string[] on JSON fields automatically? Or needs explicit JSON.
                 // Prisma Client handles string[] -> JSON mapping for JSON fields usually.
                 ...(name && { name }),
+                ...(description && { description }),
             },
         });
 

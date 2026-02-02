@@ -279,9 +279,53 @@ export default function WineDetailPage({ params }: { params: Promise<{ slug: str
               <span className="text-graphite">/ Flasche</span>
             </div>
 
+            <div className="border-y border-taupe-light py-6 my-6 space-y-4">
+              {/* Professional Icons for Attributes */}
+              {wine.customData && (
+                <div className="space-y-3">
+                  {wine.customData.grapes && (
+                    <AttributeRow icon={<GrapeIcon />} text={wine.customData.grapes} />
+                  )}
+                  {wine.customData.nose && (
+                    <AttributeRow icon={<NoseIcon />} text={wine.customData.nose} />
+                  )}
+                  {wine.customData.food && (
+                    <AttributeRow icon={<FoodIcon />} text={wine.customData.food} />
+                  )}
+                  {wine.customData.temp && (
+                    <AttributeRow icon={<TempIcon />} text={wine.customData.temp} />
+                  )}
+                  {wine.customData.alcohol && (
+                    <AttributeRow icon={<AlcoholIcon />} text={wine.customData.alcohol} />
+                  )}
+                </div>
+              )}
+            </div>
+
+
+            {/* Rich Text Description */}
             {wine.description && (
-              <div className="prose prose-lg max-w-none">
-                <p className="text-graphite leading-relaxed">{wine.description}</p>
+              <div className="relative">
+                <div
+                  className={`prose prose-lg max-w-none text-graphite leading-relaxed overflow-hidden transition-all duration-500 ${isExpanded ? 'max-h-full' : 'max-h-[200px]'}`}
+                  dangerouslySetInnerHTML={{ __html: wine.description }}
+                />
+
+                {!isExpanded && wine.description.length > 300 && (
+                  <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-warmwhite to-transparent pointer-events-none" />
+                )}
+
+                {wine.description.length > 300 && (
+                  <button
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="mt-4 text-accent-burgundy font-medium hover:text-accent-burgundy-dark flex items-center gap-1"
+                  >
+                    {isExpanded ? 'Weniger anzeigen' : 'Mehr lesen'}
+                    <svg className={`w-4 h-4 transform transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                )}
               </div>
             )}
 
@@ -383,11 +427,10 @@ export default function WineDetailPage({ params }: { params: Promise<{ slug: str
                         className="transition-transform hover:scale-110"
                       >
                         <svg
-                          className={`w-10 h-10 transition-colors ${
-                            star <= (hoverRating || rating)
-                              ? 'text-accent-gold fill-accent-gold'
-                              : 'text-taupe/30 fill-taupe/30'
-                          }`}
+                          className={`w-10 h-10 transition-colors ${star <= (hoverRating || rating)
+                            ? 'text-accent-gold fill-accent-gold'
+                            : 'text-taupe/30 fill-taupe/30'
+                            }`}
                           viewBox="0 0 20 20"
                         >
                           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
@@ -435,9 +478,8 @@ export default function WineDetailPage({ params }: { params: Promise<{ slug: str
                 {[1, 2, 3, 4, 5].map((star) => (
                   <svg
                     key={star}
-                    className={`w-8 h-8 ${
-                      star <= Math.round(avgRating) ? 'text-accent-gold' : 'text-taupe/40'
-                    }`}
+                    className={`w-8 h-8 ${star <= Math.round(avgRating) ? 'text-accent-gold' : 'text-taupe/40'
+                      }`}
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -507,9 +549,8 @@ export default function WineDetailPage({ params }: { params: Promise<{ slug: str
                         {[1, 2, 3, 4, 5].map((star) => (
                           <svg
                             key={star}
-                            className={`w-4 h-4 ${
-                              star <= review.rating ? 'text-accent-gold' : 'text-taupe/30'
-                            }`}
+                            className={`w-4 h-4 ${star <= review.rating ? 'text-accent-gold' : 'text-taupe/30'
+                              }`}
                             fill="currentColor"
                             viewBox="0 0 20 20"
                           >

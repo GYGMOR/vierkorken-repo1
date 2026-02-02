@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { ImageUploader } from '@/components/admin/ImageUploader';
+import { RichTextEditor } from '@/components/admin/RichTextEditor';
 
 interface KlaraArticle {
   id: string;
@@ -26,6 +27,13 @@ interface Override {
   customDescription?: string;
   customPrice?: number;
   customImages: string[];
+  customData?: {
+    grapes?: string;
+    nose?: string;
+    food?: string;
+    temp?: string;
+    alcohol?: string;
+  };
 }
 
 export function KlaraProductEditModal({
@@ -38,6 +46,14 @@ export function KlaraProductEditModal({
   const [customDescription, setCustomDescription] = useState('');
   const [customPrice, setCustomPrice] = useState('');
   const [customImages, setCustomImages] = useState<string[]>([]);
+
+  // New Attributes
+  const [grapes, setGrapes] = useState('');
+  const [nose, setNose] = useState('');
+  const [food, setFood] = useState('');
+  const [temp, setTemp] = useState('');
+  const [alcohol, setAlcohol] = useState('');
+
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -62,12 +78,20 @@ export function KlaraProductEditModal({
         setCustomDescription(override.customDescription || article.description);
         setCustomPrice(override.customPrice?.toString() || article.price.toString());
         setCustomImages(override.customImages || []);
+
+        const cd = override.customData || {};
+        setGrapes(cd.grapes || '');
+        setNose(cd.nose || '');
+        setFood(cd.food || '');
+        setTemp(cd.temp || '');
+        setAlcohol(cd.alcohol || '');
       } else {
         // No override exists, use original values
         setCustomName(article.name);
         setCustomDescription(article.description);
         setCustomPrice(article.price.toString());
         setCustomImages([]);
+        setGrapes(''); setNose(''); setFood(''); setTemp(''); setAlcohol('');
       }
     } catch (error) {
       console.error('Error loading override:', error);
@@ -76,6 +100,7 @@ export function KlaraProductEditModal({
       setCustomDescription(article.description);
       setCustomPrice(article.price.toString());
       setCustomImages([]);
+      setGrapes(''); setNose(''); setFood(''); setTemp(''); setAlcohol('');
     } finally {
       setLoading(false);
     }
@@ -94,6 +119,13 @@ export function KlaraProductEditModal({
           customDescription: customDescription !== article.description ? customDescription : null,
           customPrice: parseFloat(customPrice) !== article.price ? parseFloat(customPrice) : null,
           customImages,
+          customData: {
+            grapes,
+            nose,
+            food,
+            temp,
+            alcohol
+          }
         }),
       });
 
@@ -206,18 +238,44 @@ export function KlaraProductEditModal({
                 />
               </div>
 
-              {/* Description */}
+              {/* Attributes Section */}
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-4">
+                <h3 className="font-medium text-graphite-dark">Eigenschaften (mit Icons)</h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-graphite mb-1">🍇 Traubensorten</label>
+                    <input type="text" value={grapes} onChange={e => setGrapes(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="z.B. Glera, Rondinella" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-graphite mb-1">👃 Aroma</label>
+                    <input type="text" value={nose} onChange={e => setNose(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="z.B. Himbeere, Erdbeere" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-graphite mb-1">🍴 Passend zu</label>
+                    <input type="text" value={food} onChange={e => setFood(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="z.B. Sushi, Pasta" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-graphite mb-1">🌡️ Temperatur</label>
+                    <input type="text" value={temp} onChange={e => setTemp(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="z.B. Kühlschranktemperatur" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-graphite mb-1">🍷 Volumen / Alkohol</label>
+                    <input type="text" value={alcohol} onChange={e => setAlcohol(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="z.B. 11 % Vol." />
+                  </div>
+                </div>
+              </div>
+
+              {/* Description with RTE */}
               <div>
                 <label className="block text-sm font-medium text-graphite mb-2">
                   Beschreibung
                 </label>
-                <textarea
-                  value={customDescription}
-                  onChange={(e) => setCustomDescription(e.target.value)}
-                  rows={4}
-                  className="w-full px-4 py-2 border border-taupe-light rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-burgundy"
-                  placeholder="Produktbeschreibung..."
+                <RichTextEditor
+                  content={customDescription}
+                  onChange={setCustomDescription}
                 />
+                <p className="text-xs text-gray-400 mt-1">Bilder können per Drag & Drop eingefügt werden.</p>
               </div>
 
               {/* Images */}

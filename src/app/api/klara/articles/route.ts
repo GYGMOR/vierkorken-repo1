@@ -100,6 +100,11 @@ export async function GET(request: NextRequest) {
           merged.images = override.customImages;
         }
 
+        // Pass customData (Grapes, Nose, etc.)
+        if (override.customData) {
+          merged.customData = override.customData;
+        }
+
         // IMPORTANT: isActive flag controls visibility (for admin portal checkbox)
         merged.isActive = override.isActive;
         merged.isFeatured = override.isFeatured || false;

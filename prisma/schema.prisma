@@ -118,6 +118,7 @@ model LoyaltyLevel {
   maxPoints       Int?
   // cashbackPercent removed in favor of gifts
 
+  description     String?  @db.Text
   benefits        Json     // Array of benefit descriptions
   
   gifts           LevelGift[]
@@ -126,6 +127,19 @@ model LoyaltyLevel {
   updatedAt       DateTime @updatedAt
 
   @@map("loyaltylevel")
+}
+
+model LoyaltyProgramRule {
+  id              String   @id @default(cuid())
+  identifier      String   @unique // 'purchase', 'review', 'event', 'referral'
+  name            String
+  points          String   // '1 CHF = 1 Punkt', '+40'
+  description     String?  @db.Text
+  icon            String   // 'cart', 'review', 'event', 'referral'
+  
+  updatedAt       DateTime @updatedAt
+
+  @@map("loyaltyprogramrule")
 }
 
 model LevelGift {

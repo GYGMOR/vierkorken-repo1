@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { updateGift, createGift } from '@/app/admin/actions/loyalty';
-import { Button } from '@/components/ui/Button'; // Assuming you have this
+import { Button } from '@/components/ui/Button';
+import { ImageUploader } from '@/components/admin/ImageUploader';
 import Image from 'next/image';
 
 interface GiftEditorProps {
@@ -69,10 +70,20 @@ export function GiftEditor({ gift, levelId, variants, onCancel }: GiftEditorProp
                 />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-6">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Bild (Optional)</label>
+                    <ImageUploader
+                        onUploadComplete={(url) => setImage(url)}
+                        allowMultiple={false}
+                        maxSizeMB={5}
+                    />
+                    <input type="hidden" name="image" value={image} />
+                </div>
+
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Verknüpftes Produkt (Wein)</label>
-                    <p className="text-xs text-gray-500 mb-1">Bild wird vom Produkt übernommen, wenn leer.</p>
+                    <p className="text-xs text-gray-500 mb-1">Bild wird vom Produkt übernommen, wenn oben leer.</p>
                     <select
                         value={variantId}
                         onChange={(e) => setVariantId(e.target.value)}
@@ -85,17 +96,6 @@ export function GiftEditor({ gift, levelId, variants, onCancel }: GiftEditorProp
                             </option>
                         ))}
                     </select>
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Eigenes Bild URL (Optional)</label>
-                    <input
-                        type="url"
-                        value={image}
-                        onChange={(e) => setImage(e.target.value)}
-                        placeholder="https://..."
-                        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-accent-burgundy focus:outline-none focus:ring-1 focus:ring-accent-burgundy"
-                    />
                 </div>
             </div>
 

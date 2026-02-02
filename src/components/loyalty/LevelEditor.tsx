@@ -7,11 +7,13 @@ interface LevelEditorProps {
     level: number;
     initialName: string;
     initialBenefits: string[];
+    initialDescription?: string;
 }
 
-export function LevelEditor({ level, initialName, initialBenefits }: LevelEditorProps) {
+export function LevelEditor({ level, initialName, initialBenefits, initialDescription = '' }: LevelEditorProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [name, setName] = useState(initialName);
+    const [description, setDescription] = useState(initialDescription);
     const [benefits, setBenefits] = useState<string[]>(initialBenefits);
     const [isSaving, setIsSaving] = useState(false);
 
@@ -37,6 +39,7 @@ export function LevelEditor({ level, initialName, initialBenefits }: LevelEditor
         const formData = new FormData();
         formData.append('level', level.toString());
         formData.append('name', name);
+        formData.append('description', description);
         // Send standard fields for simplicity, or JSON
         formData.append('benefitsJson', JSON.stringify(benefits.filter(b => b.trim() !== '')));
 
@@ -53,7 +56,10 @@ export function LevelEditor({ level, initialName, initialBenefits }: LevelEditor
     return (
         <>
             <button
-                onClick={() => setIsOpen(true)}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setIsOpen(true);
+                }}
                 className="absolute top-4 right-4 p-2 bg-white/80 rounded-full hover:bg-white text-graphite-dark shadow-sm transition-all z-10"
                 title="Level bearbeiten"
             >
@@ -63,7 +69,10 @@ export function LevelEditor({ level, initialName, initialBenefits }: LevelEditor
             </button>
 
             {isOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+                    onClick={(e) => e.stopPropagation()}
+                >
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
                         <div className="p-6 border-b border-gray-100 flex justify-between items-center">
                             <h3 className="text-xl font-serif font-medium text-graphite-dark">
@@ -85,6 +94,17 @@ export function LevelEditor({ level, initialName, initialBenefits }: LevelEditor
                                     onChange={(e) => setName(e.target.value)}
                                     className="w-full rounded-md border-gray-300 shadow-sm focus:border-accent-burgundy focus:ring-accent-burgundy sm:text-sm p-2 border"
                                     required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Beschreibung</label>
+                                <textarea
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-accent-burgundy focus:ring-accent-burgundy sm:text-sm p-2 border"
+                                    rows={3}
+                                    placeholder="Kurze Beschreibung des Levels..."
                                 />
                             </div>
 
