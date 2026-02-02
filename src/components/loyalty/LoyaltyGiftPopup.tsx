@@ -17,15 +17,15 @@ export function LoyaltyGiftPopup() {
     const [loading, setLoading] = useState(false);
     const [showConfetti, setShowConfetti] = useState(false);
 
-    // Demo Mode Support
-    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    const isDemo = searchParams?.get('demoLoyalty') === 'true';
+    // Demo Mode Support moved inside useEffect to handle client-side logic correctly and prioritize it
 
     useEffect(() => {
-        if (session?.user?.id) {
-            checkGifts(session.user.id);
-        } else if (isDemo) {
-            // Mock data for demo
+        // Check for demo param purely on client side
+        const searchParams = new URLSearchParams(window.location.search);
+        const isDemo = searchParams.get('demoLoyalty') === 'true';
+
+        if (isDemo) {
+            // Mock data for demo - SHOW THIS EVEN IF LOGGED IN
             setGiftGroups([{
                 level: 3,
                 gifts: [
@@ -36,8 +36,13 @@ export function LoyaltyGiftPopup() {
             }]);
             setIsOpen(true);
             setShowConfetti(true);
+            return;
         }
-    }, [session, isDemo]);
+
+        if (session?.user?.id) {
+            checkGifts(session.user.id);
+        }
+    }, [session]);
 
     const checkGifts = async (userId: string) => {
         const result = await getUnclaimedGifts(userId);
