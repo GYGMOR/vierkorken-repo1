@@ -39,6 +39,7 @@ export default function WineDetailPage({ params }: { params: Promise<{ slug: str
   const [reviewText, setReviewText] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
+  const [isExpanded, setIsExpanded] = useState(false);
   const [reviews, setReviews] = useState<Array<{
     id: string;
     userName: string;
