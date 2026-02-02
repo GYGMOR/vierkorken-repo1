@@ -5,6 +5,8 @@ import { createGift, deleteGift } from '../actions/loyalty';
 import { LOYALTY_LEVELS } from '@/lib/loyalty';
 import Image from 'next/image';
 
+export const dynamic = 'force-dynamic';
+
 export default async function LoyaltyAdminPage() {
     const dbLevels = await prisma.loyaltyLevel.findMany({
         include: {
