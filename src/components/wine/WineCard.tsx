@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { QuantityPicker } from '@/components/ui/QuantityPicker';
+import { NewBadge } from '@/components/ui/NewBadge';
 import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/contexts/CartContext';
 
@@ -23,6 +24,7 @@ export interface WineCardProps {
   imageUrl?: string;
   isFeatured?: boolean;
   isBio?: boolean;
+  isNew?: boolean;
 }
 
 export function WineCard({
@@ -38,6 +40,7 @@ export function WineCard({
   imageUrl,
   isFeatured,
   isBio,
+  isNew,
 }: WineCardProps) {
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
@@ -153,7 +156,12 @@ export function WineCard({
           )}
 
           {/* Badges */}
-          <div className="absolute top-4 left-4 flex flex-col gap-2">
+          <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
+            {isNew && (
+              <div className="absolute -top-6 -left-6 transform scale-125 z-20">
+                <NewBadge />
+              </div>
+            )}
             {isFeatured && (
               <Badge variant="gold" className="text-xs">
                 Featured
@@ -173,9 +181,8 @@ export function WineCard({
             aria-label="Zu Favoriten hinzufügen"
           >
             <svg
-              className={`w-5 h-5 transition-colors ${
-                isFavorite ? 'fill-wine stroke-wine' : 'fill-none stroke-graphite hover:stroke-wine'
-              }`}
+              className={`w-5 h-5 transition-colors ${isFavorite ? 'fill-wine stroke-wine' : 'fill-none stroke-graphite hover:stroke-wine'
+                }`}
               viewBox="0 0 24 24"
             >
               <path
@@ -217,11 +224,10 @@ export function WineCard({
               {[1, 2, 3, 4, 5].map((star) => (
                 <svg
                   key={star}
-                  className={`w-4 h-4 ${
-                    reviewCount > 0 && star <= Math.round(avgRating)
-                      ? 'text-accent-gold'
-                      : 'text-taupe/40'
-                  }`}
+                  className={`w-4 h-4 ${reviewCount > 0 && star <= Math.round(avgRating)
+                    ? 'text-accent-gold'
+                    : 'text-taupe/40'
+                    }`}
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >

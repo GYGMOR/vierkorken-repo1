@@ -59,6 +59,12 @@ export default function AdminEvents() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+
+  // Delete Modal State
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
+  const [deleteConfirmationInput, setDeleteConfirmationInput] = useState('');
+
   const [formData, setFormData] = useState({
     slug: '',
     title: '',
@@ -165,11 +171,33 @@ export default function AdminEvents() {
     setShowForm(true);
   };
 
-  const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Möchten Sie das Event "${title}" wirklich löschen?`)) {
-      return;
-    }
+  const initiateDelete = (event: Event) => {
+    const isExpired = new Date(event.endDateTime) < new Date();
 
+    if (isExpired) {
+      // Expired events can be deleted with a simple confirm
+      if (confirm(`Möchten Sie das abgelaufene Event "${event.title}" wirklich löschen?`)) {
+        performDelete(event.id);
+      }
+    } else {
+      // Active events require safe delete modal
+      setEventToDelete(event);
+      setDeleteConfirmationInput('');
+      setDeleteModalOpen(true);
+    }
+  };
+
+  const confirmDelete = () => {
+    if (!eventToDelete) return;
+
+    if (deleteConfirmationInput === 'DELETE') {
+      performDelete(eventToDelete.id);
+      setDeleteModalOpen(false);
+      setEventToDelete(null);
+    }
+  };
+
+  const performDelete = async (id: string) => {
     try {
       const response = await fetch(`/api/admin/events/${id}`, {
         method: 'DELETE',
@@ -177,7 +205,7 @@ export default function AdminEvents() {
 
       if (response.ok) {
         await fetchEvents();
-        alert('Event erfolgreich gelöscht!');
+        // alert('Event erfolgreich gelöscht!'); // Optional: less noise
       } else {
         const error = await response.json();
         alert(`Fehler: ${error.error || 'Unbekannter Fehler'}`);
@@ -642,7 +670,7 @@ export default function AdminEvents() {
                       </Button>
                       <Button
                         variant="secondary"
-                        onClick={() => handleDelete(event.id, event.title)}
+                        onClick={() => initiateDelete(event)}
                         size="sm"
                         className="flex-1 text-red-600 hover:bg-red-50"
                       >
@@ -723,7 +751,7 @@ export default function AdminEvents() {
                       </Button>
                       <Button
                         variant="secondary"
-                        onClick={() => handleDelete(event.id, event.title)}
+                        onClick={() => initiateDelete(event)}
                         size="sm"
                         className="text-red-600 hover:bg-red-50"
                       >

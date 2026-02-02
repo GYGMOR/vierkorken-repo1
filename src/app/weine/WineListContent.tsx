@@ -230,11 +230,10 @@ export default function WineListContent() {
                 <div className="space-y-2">
                   <button
                     onClick={() => handleCategoryChange('')}
-                    className={`w-full text-left px-3 py-2 rounded transition-colors ${
-                      selectedCategory === ''
+                    className={`w-full text-left px-3 py-2 rounded transition-colors ${selectedCategory === ''
                         ? 'bg-accent-burgundy text-warmwhite'
                         : 'hover:bg-taupe-light text-graphite'
-                    }`}
+                      }`}
                   >
                     Alle Weine ({wines.length})
                   </button>
@@ -244,11 +243,10 @@ export default function WineListContent() {
                       <button
                         key={category.id}
                         onClick={() => handleCategoryChange(category.id)}
-                        className={`w-full text-left px-3 py-2 rounded transition-colors ${
-                          selectedCategory === category.id
+                        className={`w-full text-left px-3 py-2 rounded transition-colors ${selectedCategory === category.id
                             ? 'bg-accent-burgundy text-warmwhite'
                             : 'hover:bg-taupe-light text-graphite'
-                        }`}
+                          }`}
                       >
                         {category.nameDE} ({count})
                       </button>
@@ -367,6 +365,7 @@ export default function WineListContent() {
                           imageUrl={wine.images && wine.images.length > 0 ? wine.images[0] : ""}
                           isFeatured={false}
                           isBio={false}
+                          isNew={(wine as any).customData?.newItemUntil && new Date((wine as any).customData.newItemUntil) > new Date()}
                         />
                       ))}
                     </div>

@@ -33,6 +33,12 @@ interface Override {
     food?: string;
     temp?: string;
     alcohol?: string;
+    sweetness?: number;
+    acidity?: number;
+    tannins?: number;
+    body?: number;
+    fruitiness?: number;
+    newItemUntil?: string;
   };
 }
 
@@ -53,6 +59,14 @@ export function KlaraProductEditModal({
   const [food, setFood] = useState('');
   const [temp, setTemp] = useState('');
   const [alcohol, setAlcohol] = useState('');
+
+  // Taste Profile
+  const [sweetness, setSweetness] = useState(3);
+  const [acidity, setAcidity] = useState(3);
+  const [tannins, setTannins] = useState(3);
+  const [body, setBody] = useState(3);
+  const [fruitiness, setFruitiness] = useState(3);
+  const [newItemUntil, setNewItemUntil] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -85,6 +99,13 @@ export function KlaraProductEditModal({
         setFood(cd.food || '');
         setTemp(cd.temp || '');
         setAlcohol(cd.alcohol || '');
+
+        setSweetness(cd.sweetness || 3);
+        setAcidity(cd.acidity || 3);
+        setTannins(cd.tannins || 3);
+        setBody(cd.body || 3);
+        setFruitiness(cd.fruitiness || 3);
+        setNewItemUntil(cd.newItemUntil || null);
       } else {
         // No override exists, use original values
         setCustomName(article.name);
@@ -92,6 +113,8 @@ export function KlaraProductEditModal({
         setCustomPrice(article.price.toString());
         setCustomImages([]);
         setGrapes(''); setNose(''); setFood(''); setTemp(''); setAlcohol('');
+        setSweetness(3); setAcidity(3); setTannins(3); setBody(3); setFruitiness(3);
+        setNewItemUntil(null);
       }
     } catch (error) {
       console.error('Error loading override:', error);
@@ -101,6 +124,8 @@ export function KlaraProductEditModal({
       setCustomPrice(article.price.toString());
       setCustomImages([]);
       setGrapes(''); setNose(''); setFood(''); setTemp(''); setAlcohol('');
+      setSweetness(3); setAcidity(3); setTannins(3); setBody(3); setFruitiness(3);
+      setNewItemUntil(null);
     } finally {
       setLoading(false);
     }
@@ -124,7 +149,13 @@ export function KlaraProductEditModal({
             nose,
             food,
             temp,
-            alcohol
+            alcohol,
+            sweetness,
+            acidity,
+            tannins,
+            body,
+            fruitiness,
+            newItemUntil
           }
         }),
       });
@@ -238,6 +269,29 @@ export function KlaraProductEditModal({
                 />
               </div>
 
+              {/* New Item Checkbox */}
+              <div className="flex items-center gap-2 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <input
+                  type="checkbox"
+                  id="newItem"
+                  checked={!!newItemUntil && new Date(newItemUntil) > new Date()}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      // Set to 7 days from now
+                      const date = new Date();
+                      date.setDate(date.getDate() + 7);
+                      setNewItemUntil(date.toISOString());
+                    } else {
+                      setNewItemUntil(null);
+                    }
+                  }}
+                  className="w-5 h-5 text-accent-burgundy rounded border-gray-300 focus:ring-accent-burgundy"
+                />
+                <label htmlFor="newItem" className="text-sm font-medium text-graphite cursor-pointer">
+                  Als "Neuheit" markieren (Bleibt für 7 Tage aktiv)
+                </label>
+              </div>
+
               {/* Attributes Section */}
               <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-4">
                 <h3 className="font-medium text-graphite-dark">Eigenschaften (mit Icons)</h3>
@@ -262,6 +316,118 @@ export function KlaraProductEditModal({
                   <div>
                     <label className="block text-sm font-medium text-graphite mb-1">🍷 Volumen / Alkohol</label>
                     <input type="text" value={alcohol} onChange={e => setAlcohol(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="z.B. 11 % Vol." />
+                  </div>
+                </div>
+              </div>
+
+              {/* Taste Profile Section */}
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-4">
+                <h3 className="font-medium text-graphite-dark">Geschmacksprofil (1-5)</h3>
+
+                <div className="space-y-4">
+                  {/* Sweetness */}
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <label className="text-sm font-medium text-graphite">Süße</label>
+                      <span className="text-sm text-graphite">{sweetness}/5</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1"
+                      max="5"
+                      step="1"
+                      value={sweetness}
+                      onChange={(e) => setSweetness(parseInt(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-accent-burgundy"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>Trocken</span>
+                      <span>Süß</span>
+                    </div>
+                  </div>
+
+                  {/* Acidity */}
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <label className="text-sm font-medium text-graphite">Säure</label>
+                      <span className="text-sm text-graphite">{acidity}/5</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1"
+                      max="5"
+                      step="1"
+                      value={acidity}
+                      onChange={(e) => setAcidity(parseInt(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-accent-burgundy"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>Reduziert</span>
+                      <span>Präsent</span>
+                    </div>
+                  </div>
+
+                  {/* Tannins */}
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <label className="text-sm font-medium text-graphite">Tannine</label>
+                      <span className="text-sm text-graphite">{tannins}/5</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1"
+                      max="5"
+                      step="1"
+                      value={tannins}
+                      onChange={(e) => setTannins(parseInt(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-accent-burgundy"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>Samtig</span>
+                      <span>Kräftig</span>
+                    </div>
+                  </div>
+
+                  {/* Body */}
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <label className="text-sm font-medium text-graphite">Körper</label>
+                      <span className="text-sm text-graphite">{body}/5</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1"
+                      max="5"
+                      step="1"
+                      value={body}
+                      onChange={(e) => setBody(parseInt(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-accent-burgundy"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>Leicht</span>
+                      <span>Vollmundig</span>
+                    </div>
+                  </div>
+
+                  {/* Fruitiness */}
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <label className="text-sm font-medium text-graphite">Fruchtigkeit</label>
+                      <span className="text-sm text-graphite">{fruitiness}/5</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1"
+                      max="5"
+                      step="1"
+                      value={fruitiness}
+                      onChange={(e) => setFruitiness(parseInt(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-accent-burgundy"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>Dezent</span>
+                      <span>Fruchtig</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -328,7 +494,6 @@ export function KlaraProductEditModal({
             </>
           )}
         </div>
-
         {/* Footer */}
         <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex items-center justify-end gap-3">
           <Button

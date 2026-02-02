@@ -69,13 +69,7 @@ const UPCOMING_EVENTS = [
   },
 ];
 
-const EVENT_TYPES = [
-  { value: 'all', label: 'Alle Events' },
-  { value: 'tasting', label: 'Verkostungen' },
-  { value: 'dinner', label: 'Wine Dinners' },
-  { value: 'masterclass', label: 'Masterclasses' },
-  { value: 'winery', label: 'Weingutsbesuche' },
-];
+
 
 export default function EventsPage() {
   const [events, setEvents] = useState<typeof UPCOMING_EVENTS>([]);
@@ -193,22 +187,6 @@ export default function EventsPage() {
       <EventImageCarousel />
 
       <div className="container-custom py-12 space-y-12">
-        {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3">
-          {EVENT_TYPES.map((type) => (
-            <button
-              key={type.value}
-              className={
-                type.value === 'all'
-                  ? 'px-4 py-2 rounded-lg bg-wine text-warmwhite font-medium text-sm shadow-md'
-                  : 'px-4 py-2 rounded-lg border border-wood-light bg-warmwhite text-graphite hover:border-wine hover:text-wine transition-colors font-medium text-sm'
-              }
-            >
-              {type.label}
-            </button>
-          ))}
-        </div>
-
         {/* Events Grid */}
         {loading ? (
           <div className="flex justify-center items-center py-20">
@@ -336,89 +314,87 @@ function EventCard({ event }: { event: typeof UPCOMING_EVENTS[0] }) {
             )}
           </div>
 
-        <CardHeader>
-          <div className="flex items-start justify-between mb-2">
-            <Badge variant="secondary" className="text-xs">
-              {event.type}
-            </Badge>
-            {event.minLoyaltyLevel && event.minLoyaltyLevel > 1 && (
-              <Badge variant="gold" className="text-xs">
-                Level {event.minLoyaltyLevel}+
+          <CardHeader>
+            <div className="flex items-start justify-between mb-2">
+              <Badge variant="secondary" className="text-xs">
+                {event.type}
               </Badge>
+              {event.minLoyaltyLevel && event.minLoyaltyLevel > 1 && (
+                <Badge variant="gold" className="text-xs">
+                  Level {event.minLoyaltyLevel}+
+                </Badge>
+              )}
+            </div>
+            <CardTitle>{event.title}</CardTitle>
+            {event.subtitle && (
+              <p className="text-body-sm text-graphite/60 mt-1">{event.subtitle}</p>
             )}
-          </div>
-          <CardTitle>{event.title}</CardTitle>
-          {event.subtitle && (
-            <p className="text-body-sm text-graphite/60 mt-1">{event.subtitle}</p>
-          )}
-        </CardHeader>
+          </CardHeader>
 
-      <CardContent className="space-y-4">
-        <p className="text-body-sm text-graphite">{event.description}</p>
+          <CardContent className="space-y-4">
+            <p className="text-body-sm text-graphite">{event.description}</p>
 
-        {/* Event Details */}
-        <div className="space-y-2 text-body-sm text-graphite/80">
-          <div className="flex items-center gap-2">
-            <CalendarIcon className="w-4 h-4 flex-shrink-0" />
-            <span>{formatDate(event.date)} um {event.time} Uhr</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <ClockIcon className="w-4 h-4 flex-shrink-0" />
-            <span>{event.duration} Minuten</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <LocationIcon className="w-4 h-4 flex-shrink-0" />
-            <span>{event.venue}</span>
-          </div>
-        </div>
-
-        {/* Availability */}
-        <div className="pt-4 border-t border-taupe-light">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-body-sm font-medium text-graphite/60">
-              Verfügbarkeit
-            </span>
-            <span className={`text-sm font-semibold ${
-              spotsLeft <= 5 ? 'text-red-600' :
-              spotsLeft <= 10 ? 'text-orange-600' :
-              'text-green-600'
-            }`}>
-              {spotsLeft} / {event.capacity} frei
-            </span>
-          </div>
-          <div className="h-2 bg-taupe-light rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-500 ${
-                spotsLeft <= 5 ? 'bg-red-600' :
-                spotsLeft <= 10 ? 'bg-orange-500' :
-                'bg-green-500'
-              }`}
-              style={{ width: `${(spotsLeft / event.capacity) * 100}%` }}
-            />
-          </div>
-          {spotsLeft <= 5 && (
-            <p className="text-xs text-red-600 font-medium mt-1">
-              ⚠️ Nur noch {spotsLeft} Plätze verfügbar!
-            </p>
-          )}
-        </div>
-
-        {/* Price & CTA */}
-        <div className="pt-4 flex items-center justify-between">
-          <div>
-            <div className="text-h4 font-serif text-graphite-dark">CHF {event.price}</div>
-            {event.memberPrice && (
-              <div className="text-body-sm text-accent-burgundy">
-                Mitglieder: CHF {event.memberPrice}
+            {/* Event Details */}
+            <div className="space-y-2 text-body-sm text-graphite/80">
+              <div className="flex items-center gap-2">
+                <CalendarIcon className="w-4 h-4 flex-shrink-0" />
+                <span>{formatDate(event.date)} um {event.time} Uhr</span>
               </div>
-            )}
-          </div>
-          <Button size="sm" onClick={handleBooking}>
-            Buchen
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+              <div className="flex items-center gap-2">
+                <ClockIcon className="w-4 h-4 flex-shrink-0" />
+                <span>{event.duration} Minuten</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <LocationIcon className="w-4 h-4 flex-shrink-0" />
+                <span>{event.venue}</span>
+              </div>
+            </div>
+
+            {/* Availability */}
+            <div className="pt-4 border-t border-taupe-light">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-body-sm font-medium text-graphite/60">
+                  Verfügbarkeit
+                </span>
+                <span className={`text-sm font-semibold ${spotsLeft <= 5 ? 'text-red-600' :
+                  spotsLeft <= 10 ? 'text-orange-600' :
+                    'text-green-600'
+                  }`}>
+                  {spotsLeft} / {event.capacity} frei
+                </span>
+              </div>
+              <div className="h-2 bg-taupe-light rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${spotsLeft <= 5 ? 'bg-red-600' :
+                    spotsLeft <= 10 ? 'bg-orange-500' :
+                      'bg-green-500'
+                    }`}
+                  style={{ width: `${(spotsLeft / event.capacity) * 100}%` }}
+                />
+              </div>
+              {spotsLeft <= 5 && (
+                <p className="text-xs text-red-600 font-medium mt-1">
+                  ⚠️ Nur noch {spotsLeft} Plätze verfügbar!
+                </p>
+              )}
+            </div>
+
+            {/* Price & CTA */}
+            <div className="pt-4 flex items-center justify-between">
+              <div>
+                <div className="text-h4 font-serif text-graphite-dark">CHF {event.price}</div>
+                {event.memberPrice && (
+                  <div className="text-body-sm text-accent-burgundy">
+                    Mitglieder: CHF {event.memberPrice}
+                  </div>
+                )}
+              </div>
+              <Button size="sm" onClick={handleBooking}>
+                Buchen
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </Link>
 
       {/* Booking Modal */}

@@ -23,6 +23,11 @@ interface Wine {
     food?: string;
     temp?: string;
     alcohol?: string;
+    sweetness?: number;
+    acidity?: number;
+    tannins?: number;
+    body?: number;
+    fruitiness?: number;
   };
 }
 
@@ -203,12 +208,13 @@ export default function WineDetailPage({ params }: { params: Promise<{ slug: str
   }
 
   // Mock taste profile data (can be extended with real data later)
+  // Real taste profile data from customData
   const tasteProfile = {
-    sweetness: 3, // 1-5
-    acidity: 4,
-    tannins: 2,
-    body: 4,
-    fruitiness: 5
+    sweetness: wine.customData?.sweetness ? Number(wine.customData.sweetness) : 3,
+    acidity: wine.customData?.acidity ? Number(wine.customData.acidity) : 3,
+    tannins: wine.customData?.tannins ? Number(wine.customData.tannins) : 3,
+    body: wine.customData?.body ? Number(wine.customData.body) : 3,
+    fruitiness: wine.customData?.fruitiness ? Number(wine.customData.fruitiness) : 3
   };
 
   return (
