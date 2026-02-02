@@ -16,6 +16,7 @@ export function LoyaltyGiftPopup() {
     const [currentGroupIndex, setCurrentGroupIndex] = useState(0);
     const [loading, setLoading] = useState(false);
     const [showConfetti, setShowConfetti] = useState(false);
+    const [isDemoMode, setIsDemoMode] = useState(false);
 
     // Demo Mode Support moved inside useEffect to handle client-side logic correctly and prioritize it
 
@@ -25,6 +26,7 @@ export function LoyaltyGiftPopup() {
         const isDemo = searchParams.get('demoLoyalty') === 'true';
 
         if (isDemo) {
+            setIsDemoMode(true);
             // Mock data for demo - SHOW THIS EVEN IF LOGGED IN
             setGiftGroups([{
                 level: 3,
@@ -56,7 +58,7 @@ export function LoyaltyGiftPopup() {
     const handleClaim = async (gift: any) => {
         setLoading(true);
 
-        if (isDemo) {
+        if (isDemoMode) {
             alert('Dies ist eine Demo. Das Geschenk wurde "eingelöst"!');
             setIsOpen(false);
             setLoading(false);
@@ -102,7 +104,7 @@ export function LoyaltyGiftPopup() {
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
                     {showConfetti && <Confetti />}
 
                     {/* Golden Glow Backdrop */}
