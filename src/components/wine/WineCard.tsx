@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { QuantityPicker } from '@/components/ui/QuantityPicker';
 import { NewBadge } from '@/components/ui/NewBadge';
+import { DiscountBadge } from '@/components/ui/DiscountBadge';
 import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/contexts/CartContext';
 
@@ -25,6 +26,7 @@ export interface WineCardProps {
   isFeatured?: boolean;
   isBio?: boolean;
   isNew?: boolean;
+  discountPercentage?: number;
 }
 
 export function WineCard({
@@ -41,6 +43,7 @@ export function WineCard({
   isFeatured,
   isBio,
   isNew,
+  discountPercentage,
 }: WineCardProps) {
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
@@ -83,6 +86,10 @@ export function WineCard({
     loadReviews();
   }, [id]);
 
+  const finalPrice = discountPercentage && discountPercentage > 0
+    ? price * (1 - discountPercentage / 100)
+    : price;
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
 
@@ -90,7 +97,7 @@ export function WineCard({
       addItem({
         id,
         name,
-        price,
+        price: finalPrice, // Use final discounted price
         imageUrl,
         type: 'wine',
         slug,
@@ -155,44 +162,61 @@ export function WineCard({
             </div>
           )}
 
-          {/* Badges */}
-          <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
-            {isNew && (
-              <div className="absolute -top-4 -left-4 transform scale-125 z-20">
-                <NewBadge />
-              </div>
-            )}
-            {isFeatured && (
-              <Badge variant="gold" className="text-xs">
-                Featured
-              </Badge>
-            )}
-            {isBio && (
-              <Badge variant="accent" className="text-xs">
-                Bio
-              </Badge>
-            )}
-          </div>
 
-          {/* Favorite Heart Icon */}
-          <button
-            onClick={handleToggleFavorite}
-            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-warmwhite/90 hover:bg-warmwhite flex items-center justify-center transition-all shadow-md hover:shadow-lg"
-            aria-label="Zu Favoriten hinzufügen"
+          {isFeatured && (
+            <Badge variant="gold" className="text-xs">
+              Featured
+            </Badge>
+          )}
+          {isBio && (
+            <Badge variant="accent" className="text-xs">
+              Bio
+            </Badge>
+          )}
+        </div>
+
+        {/* Discount Badge (Top Right) */}
+        {discountPercentage && discountPercentage > 0 && (
+          <div className="absolute top-4 right-4 z-20 transform scale-125">
+            <DiscountBadge percentage={discountPercentage} />
+          </div>
+        )}
+
+        {/* Favorite Heart Icon - Moved to Top Left based on user image */}
+        <button
+          onClick={handleToggleFavorite}
+          className="absolute top-4 left-4 w-10 h-10 rounded-full bg-warmwhite/90 hover:bg-warmwhite flex items-center justify-center transition-all shadow-md hover:shadow-lg z-20 border border-wood-light/20"
+          aria-label="Zu Favoriten hinzufügen"
+        >
+          <svg
+            className={`w-5 h-5 transition-colors ${isFavorite ? 'fill-wine stroke-wine' : 'fill-none stroke-graphite hover:stroke-wine'
+              }`}
+            viewBox="0 0 24 24"
           >
-            <svg
-              className={`w-5 h-5 transition-colors ${isFavorite ? 'fill-wine stroke-wine' : 'fill-none stroke-graphite hover:stroke-wine'
-                }`}
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-              />
-            </svg>
-          </button>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+            />
+          </svg>
+        </button>
+
+        {/* Badges - Moved down to accommodate Favorite Button */}
+        <div className="absolute top-16 left-4 flex flex-col gap-2 z-10">
+          {isNew && (
+            <div className="absolute -left-2 transform scale-125 z-20"> {/* Adjusted position */}
+              <NewBadge />
+            </div>
+          )}
+          {/* Spacer for New Badge if present */}
+          {isNew && <div className="h-6"></div>}
+
+          {isFeatured && (
+            <Badge variant="gold" className="text-xs">
+              Featured
+            </Badge>
+          )}
         </div>
 
         {/* Content */}
@@ -241,9 +265,20 @@ export function WineCard({
 
             {/* Price */}
             <div className="pt-2 border-t border-wood-light">
-              <p className="font-serif text-h4 text-wine-dark">
-                {formatPrice(price)}
-              </p>
+              {discountPercentage && discountPercentage > 0 ? (
+                <div className="flex flex-col">
+                  <span className="text-h4 text-red-700 font-bold font-serif">
+                    {formatPrice(finalPrice)}
+                  </span>
+                  <span className="text-sm text-graphite/60 line-through">
+                    {formatPrice(price)}
+                  </span>
+                </div>
+              ) : (
+                <p className="font-serif text-h4 text-wine-dark">
+                  {formatPrice(price)}
+                </p>
+              )}
             </div>
           </div>
         </Link>

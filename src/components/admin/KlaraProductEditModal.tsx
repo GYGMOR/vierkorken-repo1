@@ -39,6 +39,7 @@ interface Override {
     body?: number;
     fruitiness?: number;
     newItemUntil?: string;
+    discountPercentage?: number;
   };
 }
 
@@ -67,6 +68,7 @@ export function KlaraProductEditModal({
   const [body, setBody] = useState(3);
   const [fruitiness, setFruitiness] = useState(3);
   const [newItemUntil, setNewItemUntil] = useState<string | null>(null);
+  const [discountPercentage, setDiscountPercentage] = useState<number>(0);
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -106,6 +108,7 @@ export function KlaraProductEditModal({
         setBody(cd.body || 3);
         setFruitiness(cd.fruitiness || 3);
         setNewItemUntil(cd.newItemUntil || null);
+        setDiscountPercentage(cd.discountPercentage || 0);
       } else {
         // No override exists, use original values
         setCustomName(article.name);
@@ -115,6 +118,7 @@ export function KlaraProductEditModal({
         setGrapes(''); setNose(''); setFood(''); setTemp(''); setAlcohol('');
         setSweetness(3); setAcidity(3); setTannins(3); setBody(3); setFruitiness(3);
         setNewItemUntil(null);
+        setDiscountPercentage(0);
       }
     } catch (error) {
       console.error('Error loading override:', error);
@@ -126,6 +130,7 @@ export function KlaraProductEditModal({
       setGrapes(''); setNose(''); setFood(''); setTemp(''); setAlcohol('');
       setSweetness(3); setAcidity(3); setTannins(3); setBody(3); setFruitiness(3);
       setNewItemUntil(null);
+      setDiscountPercentage(0);
     } finally {
       setLoading(false);
     }
@@ -155,7 +160,8 @@ export function KlaraProductEditModal({
             tannins,
             body,
             fruitiness,
-            newItemUntil
+            newItemUntil,
+            discountPercentage
           }
         }),
       });
@@ -267,6 +273,32 @@ export function KlaraProductEditModal({
                   className="w-full px-4 py-2 border border-taupe-light rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-burgundy"
                   placeholder="0.00"
                 />
+              </div>
+
+              {/* Discount Dropdown */}
+              <div>
+                <label className="block text-sm font-medium text-graphite mb-2">
+                  Rabatt (%)
+                </label>
+                <div className="flex gap-4 items-center">
+                  <select
+                    value={discountPercentage}
+                    onChange={(e) => setDiscountPercentage(Number(e.target.value))}
+                    className="w-full px-4 py-2 border border-taupe-light rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-burgundy"
+                  >
+                    <option value={0}>Kein Rabatt</option>
+                    {[10, 20, 25, 30, 40, 50, 60, 75].map((percent) => (
+                      <option key={percent} value={percent}>
+                        {percent}%
+                      </option>
+                    ))}
+                  </select>
+                  {discountPercentage > 0 && customPrice && (
+                    <div className="text-sm text-graphite-dark whitespace-nowrap">
+                      Neu: <span className="font-bold text-red-600">CHF {((Number(customPrice) * (100 - discountPercentage)) / 100).toFixed(2)}</span>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* New Item Checkbox */}

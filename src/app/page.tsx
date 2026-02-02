@@ -7,6 +7,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { NewsletterSignup } from '@/components/newsletter/NewsletterSignup';
 import { AccountCreationModal } from '@/components/newsletter/AccountCreationModal';
 import { NewProductsCarousel } from '@/components/wine/NewProductsCarousel';
+import { DiscountProductsCarousel } from '@/components/wine/DiscountProductsCarousel';
 
 interface KlaraCategory {
   id: string;
@@ -104,8 +105,9 @@ export default function HomePage() {
     fetchNews();
   }, []);
 
-  // Fetch New Products
+  // Fetch New Products and Discounted Products
   const [newProducts, setNewProducts] = useState<any[]>([]);
+  const [discountedProducts, setDiscountedProducts] = useState<any[]>([]);
   useEffect(() => {
     async function fetchNewProducts() {
       try {
@@ -118,6 +120,11 @@ export default function HomePage() {
             item.customData?.newItemUntil && new Date(item.customData.newItemUntil) > now
           );
           setNewProducts(newItems);
+
+          const discountedItems = data.data.filter((item: any) =>
+            item.customData?.discountPercentage && item.customData.discountPercentage > 0
+          );
+          setDiscountedProducts(discountedItems);
         }
       } catch (error) {
         console.error('Error fetching new products:', error);
@@ -277,6 +284,21 @@ export default function HomePage() {
             <p className="text-body-lg text-graphite">Entdecken Sie unsere neuesten Weinschätze.</p>
           </div>
           <NewProductsCarousel products={newProducts} />
+        </section>
+      )}
+
+      {/* Discounted Products Carousel */}
+      {discountedProducts.length > 0 && (
+        <section className="section-padding overflow-hidden bg-white border-b border-taupe-light/30">
+          <div className="container-custom mb-8 text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-100 rounded-full border border-red-200 mb-4">
+              <svg className="w-5 h-5 text-red-700" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6-4.8-6 4.8 2.4-7.2-6-4.8h7.6z" /></svg>
+              <span className="text-red-800 font-medium text-sm">RABATT WEINE</span>
+            </div>
+            <h2 className="text-h2 font-serif font-light mb-2">Aktuelle Angebote</h2>
+            <p className="text-body-lg text-graphite">Sparen Sie bei unseren ausgewählten Aktionsweinen.</p>
+          </div>
+          <DiscountProductsCarousel products={discountedProducts} />
         </section>
       )}
 
