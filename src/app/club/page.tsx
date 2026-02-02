@@ -37,7 +37,6 @@ const LOYALTY_LEVELS = [
     level: 1,
     name: 'Novize',
     points: '0–499',
-    cashback: '0%',
     benefits: ['Einstieg in die Weinwelt'],
     color: 'from-taupe-light to-taupe',
   },
@@ -45,16 +44,14 @@ const LOYALTY_LEVELS = [
     level: 2,
     name: 'Kellerfreund',
     points: '500–1.499',
-    cashback: '1%',
-    benefits: ['1% Cashback', 'Persönliche Weinvorschläge'],
+    benefits: ['Willkommensgeschenk (Level 2)', 'Persönliche Weinvorschläge'],
     color: 'from-sand to-sand-medium',
   },
   {
     level: 3,
     name: 'Kenner',
     points: '1.500–4.999',
-    cashback: '2%',
-    benefits: ['2% Cashback', 'Vorverkaufszugang zu neuen Weinen'],
+    benefits: ['Willkommensgeschenk (Level 3)', 'Vorverkaufszugang zu neuen Weinen'],
     color: 'from-rose-medium to-rose-deep',
     current: true,
   },
@@ -62,32 +59,28 @@ const LOYALTY_LEVELS = [
     level: 4,
     name: 'Sommelier-Kreis',
     points: '5.000–11.999',
-    cashback: '3%',
-    benefits: ['3% Cashback', 'Exklusive Probierpakete'],
+    benefits: ['Willkommensgeschenk (Level 4)', 'Exklusive Probierpakete'],
     color: 'from-wine/50 to-wine/70',
   },
   {
     level: 5,
     name: 'Weinguts-Partner',
     points: '12.000–24.999',
-    cashback: '4%',
-    benefits: ['4% Cashback', 'Zugang zu Winzer-Events'],
+    benefits: ['Willkommensgeschenk (Level 5)', 'Zugang zu Winzer-Events'],
     color: 'from-wine/70 to-wine',
   },
   {
     level: 6,
     name: 'Connaisseur-Elite',
     points: '25.000–59.999',
-    cashback: '5%',
-    benefits: ['5% Cashback', 'Reservierungen & persönliche Beratung'],
+    benefits: ['Willkommensgeschenk (Level 6)', 'Reservierungen & persönliche Beratung'],
     color: 'from-accent-gold/60 to-accent-gold/80',
   },
   {
     level: 7,
     name: 'Grand-Cru Ehrenmitglied',
     points: '60.000+',
-    cashback: '7%',
-    benefits: ['7% Cashback', 'Private Tastings', 'Zugang zu Raritäten', 'VIP-Status'],
+    benefits: ['Willkommensgeschenk (Level 7)', 'Private Tastings', 'Zugang zu Raritäten', 'VIP-Status'],
     color: 'from-accent-gold to-wine',
   },
 ];
@@ -143,10 +136,10 @@ export default function LoyaltyClubPage() {
                   Punkte sammeln
                 </h3>
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <PointsCard iconType="cart" label="Einkauf" points="1 CHF = 1.2 Punkte" />
+                  <PointsCard iconType="cart" label="Einkauf" points="1 CHF = 1 Punkt" />
                   <PointsCard iconType="review" label="Bewertung" points="+40 Punkte" />
-                  <PointsCard iconType="event" label="Event-Teilnahme" points="+150 Punkte" />
-                  <PointsCard iconType="referral" label="Empfehlung" points="+250 Punkte" />
+                  <PointsCard iconType="event" label="Event-Teilnahme" points="+100 Punkte" />
+                  <PointsCard iconType="referral" label="Empfehlung" points="+25 Punkte" />
                 </div>
               </div>
             </Card>
@@ -190,9 +183,6 @@ export default function LoyaltyClubPage() {
                   <div className="space-y-1 mt-2">
                     <p className="text-body-sm text-graphite/60">
                       {level.points} Punkte
-                    </p>
-                    <p className="text-body font-semibold text-accent-burgundy">
-                      {level.cashback} Cashback
                     </p>
                   </div>
                 </CardHeader>

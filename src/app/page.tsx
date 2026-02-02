@@ -330,7 +330,7 @@ export default function HomePage() {
             </div>
             <h2 className="text-h2 font-serif font-light">Werden Sie Teil des Clubs</h2>
             <p className="text-body-lg text-graphite max-w-2xl mx-auto">
-              Mit jedem Einkauf sammeln Sie Punkte, steigen in exklusive Level auf und erhalten Cashback sowie Zugang zu besonderen Weinen und Events.
+              Mit jedem Einkauf sammeln Sie Punkte, steigen in exklusive Level auf und erhalten Willkommensgeschenke sowie Zugang zu besonderen Weinen und Events.
             </p>
             <Link href="/club" className="btn btn-accent">
               Mehr erfahren
@@ -566,11 +566,10 @@ function NewsCarousel({ news }: { news: NewsItem[] }) {
           <button
             key={index}
             onClick={() => goToSlide(index)}
-            className={`h-2 rounded-full transition-all duration-300 ${
-              index === currentIndex
+            className={`h-2 rounded-full transition-all duration-300 ${index === currentIndex
                 ? 'bg-wine w-8'
                 : 'bg-taupe-light w-2 hover:bg-taupe'
-            }`}
+              }`}
             aria-label={`Gehe zu News ${index + 1}`}
           />
         ))}

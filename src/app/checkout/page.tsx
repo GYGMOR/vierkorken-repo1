@@ -13,7 +13,7 @@ import { useCart } from '@/contexts/CartContext';
 const MOCK_USER = {
   loyaltyPoints: 3500,
   loyaltyLevel: 3,
-  cashbackPercent: 2,
+  // cashbackPercent: 2, // Removed for Gift System
 };
 
 type DeliveryMethod = 'shipping' | 'pickup';
@@ -78,7 +78,7 @@ function CheckoutPageContent() {
   const [saveAddressAsDefault, setSaveAddressAsDefault] = useState(false);
 
   const pointsToEarn = Math.floor(total * 1.2);
-  const cashbackAmount = (total * MOCK_USER.cashbackPercent) / 100;
+  // const cashbackAmount = (total * MOCK_USER.cashbackPercent) / 100;
 
   // Calculate shipping cost based on method and order amount (BEFORE coupon discount)
   const calculateShippingCost = () => {
@@ -311,7 +311,7 @@ function CheckoutPageContent() {
       if (useNewAddress || savedAddresses.length === 0) {
         // Validate new address fields
         if (!shippingData.firstName || !shippingData.lastName || !shippingData.street ||
-            !shippingData.streetNumber || !shippingData.city || !shippingData.postalCode) {
+          !shippingData.streetNumber || !shippingData.city || !shippingData.postalCode) {
           alert('Bitte füllen Sie alle Pflichtfelder aus');
           return;
         }
@@ -719,11 +719,10 @@ function CheckoutPageContent() {
                           {savedAddresses.map((addr) => (
                             <label
                               key={addr.id}
-                              className={`flex items-start gap-4 p-4 border rounded-lg cursor-pointer transition-colors ${
-                                selectedAddressId === addr.id
-                                  ? 'border-accent-burgundy bg-accent-burgundy/5'
-                                  : 'border-taupe hover:border-graphite'
-                              }`}
+                              className={`flex items-start gap-4 p-4 border rounded-lg cursor-pointer transition-colors ${selectedAddressId === addr.id
+                                ? 'border-accent-burgundy bg-accent-burgundy/5'
+                                : 'border-taupe hover:border-graphite'
+                                }`}
                             >
                               <input
                                 type="radio"
@@ -1206,8 +1205,8 @@ function CheckoutPageContent() {
                   {isProcessing
                     ? 'Wird verarbeitet...'
                     : paymentMethod === 'cash'
-                    ? `Bestellung abschließen - CHF ${finalTotal.toFixed(2)}`
-                    : `Jetzt bezahlen - CHF ${finalTotal.toFixed(2)}`}
+                      ? `Bestellung abschließen - CHF ${finalTotal.toFixed(2)}`
+                      : `Jetzt bezahlen - CHF ${finalTotal.toFixed(2)}`}
                 </Button>
               </div>
 
@@ -1266,14 +1265,7 @@ function CheckoutPageContent() {
                             +{pointsToEarn} Punkte
                           </span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-graphite/70">
-                            Cashback ({MOCK_USER.cashbackPercent}%):
-                          </span>
-                          <span className="font-semibold text-accent-burgundy">
-                            CHF {cashbackAmount.toFixed(2)}
-                          </span>
-                        </div>
+                        {/* Cashback removed */}
                       </div>
                     </div>
 
@@ -1396,11 +1388,10 @@ function DeliveryOption({
 }) {
   return (
     <label
-      className={`flex items-center gap-4 p-4 border rounded-lg cursor-pointer transition-colors ${
-        selected
-          ? 'border-accent-burgundy bg-accent-burgundy/5'
-          : 'border-taupe hover:border-graphite'
-      }`}
+      className={`flex items-center gap-4 p-4 border rounded-lg cursor-pointer transition-colors ${selected
+        ? 'border-accent-burgundy bg-accent-burgundy/5'
+        : 'border-taupe hover:border-graphite'
+        }`}
     >
       <input
         type="radio"
@@ -1436,11 +1427,10 @@ function PaymentOption({
 }) {
   return (
     <label
-      className={`flex items-center gap-4 p-4 border rounded-lg cursor-pointer transition-colors ${
-        selected
-          ? 'border-accent-burgundy bg-accent-burgundy/5'
-          : 'border-taupe hover:border-graphite'
-      }`}
+      className={`flex items-center gap-4 p-4 border rounded-lg cursor-pointer transition-colors ${selected
+        ? 'border-accent-burgundy bg-accent-burgundy/5'
+        : 'border-taupe hover:border-graphite'
+        }`}
     >
       <input
         type="radio"
@@ -1474,11 +1464,10 @@ function ShippingMethodOption({
 }) {
   return (
     <label
-      className={`flex items-center gap-4 p-3 border rounded-lg cursor-pointer transition-colors ${
-        selected
-          ? 'border-accent-burgundy bg-accent-burgundy/5'
-          : 'border-taupe hover:border-graphite'
-      }`}
+      className={`flex items-center gap-4 p-3 border rounded-lg cursor-pointer transition-colors ${selected
+        ? 'border-accent-burgundy bg-accent-burgundy/5'
+        : 'border-taupe hover:border-graphite'
+        }`}
     >
       <input
         type="radio"
