@@ -4,6 +4,7 @@ import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { NewBadge } from '@/components/ui/NewBadge';
 import { useCart } from '@/contexts/CartContext';
 import { formatPrice } from '@/lib/utils';
 
@@ -28,8 +29,9 @@ interface Wine {
     tannins?: number;
     body?: number;
     fruitiness?: number;
+    newItemUntil?: string;
   };
-}
+};
 
 export default function WineDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
@@ -262,7 +264,14 @@ export default function WineDetailPage({ params }: { params: Promise<{ slug: str
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12 mb-12">
           {/* Image */}
           <div className="flex justify-center">
-            <div className="w-full max-w-md aspect-[3/4] bg-gradient-to-br from-warmwhite to-sand-light rounded-lg flex items-center justify-center overflow-hidden">
+            <div className="relative w-full max-w-md aspect-[3/4] bg-gradient-to-br from-warmwhite to-sand-light rounded-lg flex items-center justify-center overflow-hidden">
+              {wine.customData?.newItemUntil && new Date(wine.customData.newItemUntil) > new Date() && (
+                <div className="absolute top-0 left-0 z-20 transform -translate-x-1/2 -translate-y-1/2 scale-125 ml-4 mt-4">
+                  <div className="relative">
+                    <NewBadge />
+                  </div>
+                </div>
+              )}
               {wine.images && wine.images.length > 0 ? (
                 <img
                   src={wine.images[0]}

@@ -158,7 +158,7 @@ export function WineCard({
           {/* Badges */}
           <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
             {isNew && (
-              <div className="absolute -top-6 -left-6 transform scale-125 z-20">
+              <div className="absolute -top-4 -left-4 transform scale-125 z-20">
                 <NewBadge />
               </div>
             )}
