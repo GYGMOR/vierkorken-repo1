@@ -53,10 +53,10 @@ export function slugify(text: string): string {
 
 /**
  * Calculate loyalty points from amount
- * 1 CHF = 1.2 points
+ * 1 CHF = 1 Point
  */
 export function calculateLoyaltyPoints(amount: number): number {
-  return Math.floor(amount * 1.2);
+  return Math.floor(amount);
 }
 
 /**
@@ -91,27 +91,18 @@ export function getLoyaltyLevelName(level: number): string {
 
 /**
  * Get cashback percentage for loyalty level
+ * @deprecated Cashback system replaced by Gift system
  */
 export function getCashbackPercentage(level: number): number {
-  const percentages: Record<number, number> = {
-    1: 0,
-    2: 1,
-    3: 2,
-    4: 3,
-    5: 4,
-    6: 5,
-    7: 7,
-  };
-
-  return percentages[level] || 0;
+  return 0;
 }
 
 /**
  * Calculate cashback amount
+ * @deprecated Cashback system replaced by Gift system
  */
 export function calculateCashback(amount: number, level: number): number {
-  const percentage = getCashbackPercentage(level);
-  return (amount * percentage) / 100;
+  return 0;
 }
 
 /**

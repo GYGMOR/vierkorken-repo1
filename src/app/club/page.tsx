@@ -1,99 +1,69 @@
+import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-options';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { LoyaltyProgress } from '@/components/loyalty/LoyaltyProgress';
 import { BadgeDisplay } from '@/components/loyalty/BadgeDisplay';
+import { LevelEditor } from '@/components/loyalty/LevelEditor';
 import { BackButton } from '@/components/ui/BackButton';
 import { MainLayout } from '@/components/layout/MainLayout';
 import Link from 'next/link';
 import Image from 'next/image';
 
-// Mock user data
-const MOCK_USER = {
-  loyaltyPoints: 3500,
-  loyaltyLevel: 3,
-  badges: [
-    {
-      id: '1',
-      name: 'Regionen-Entdecker',
-      description: '6 verschiedene Regionen gekauft',
-      iconType: 'compass-vine',
-      rarity: 'rare',
-      earnedAt: new Date('2024-09-15'),
-    },
-    {
-      id: '2',
-      name: 'Event-Gast',
-      description: 'Teilnahme an einem Event',
-      iconType: 'ticket-glass',
-      rarity: 'common',
-      earnedAt: new Date('2024-10-01'),
-    },
-  ],
-};
+// Color mapping helper (same as before)
+function getLevelColor(level: number): string {
+  switch (level) {
+    case 1: return 'from-taupe-light to-taupe';
+    case 2: return 'from-sand to-sand-medium';
+    case 3: return 'from-rose-medium to-rose-deep';
+    case 4: return 'from-wine/50 to-wine/70';
+    case 5: return 'from-wine/70 to-wine';
+    case 6: return 'from-accent-gold/60 to-accent-gold/80';
+    case 7: return 'from-accent-gold to-wine';
+    default: return 'from-taupe-light to-taupe';
+  }
+}
 
-const LOYALTY_LEVELS = [
-  {
-    level: 1,
-    name: 'Novize',
-    points: '0–499',
-    cashback: '0%',
-    benefits: ['Einstieg in die Weinwelt'],
-    color: 'from-taupe-light to-taupe',
-  },
-  {
-    level: 2,
-    name: 'Kellerfreund',
-    points: '500–1.499',
-    cashback: '1%',
-    benefits: ['1% Cashback', 'Persönliche Weinvorschläge'],
-    color: 'from-sand to-sand-medium',
-  },
-  {
-    level: 3,
-    name: 'Kenner',
-    points: '1.500–4.999',
-    cashback: '2%',
-    benefits: ['2% Cashback', 'Vorverkaufszugang zu neuen Weinen'],
-    color: 'from-rose-medium to-rose-deep',
-    current: true,
-  },
-  {
-    level: 4,
-    name: 'Sommelier-Kreis',
-    points: '5.000–11.999',
-    cashback: '3%',
-    benefits: ['3% Cashback', 'Exklusive Probierpakete'],
-    color: 'from-wine/50 to-wine/70',
-  },
-  {
-    level: 5,
-    name: 'Weinguts-Partner',
-    points: '12.000–24.999',
-    cashback: '4%',
-    benefits: ['4% Cashback', 'Zugang zu Winzer-Events'],
-    color: 'from-wine/70 to-wine',
-  },
-  {
-    level: 6,
-    name: 'Connaisseur-Elite',
-    points: '25.000–59.999',
-    cashback: '5%',
-    benefits: ['5% Cashback', 'Reservierungen & persönliche Beratung'],
-    color: 'from-accent-gold/60 to-accent-gold/80',
-  },
-  {
-    level: 7,
-    name: 'Grand-Cru Ehrenmitglied',
-    points: '60.000+',
-    cashback: '7%',
-    benefits: ['7% Cashback', 'Private Tastings', 'Zugang zu Raritäten', 'VIP-Status'],
-    color: 'from-accent-gold to-wine',
-  },
-];
+export const dynamic = 'force-dynamic';
 
-export default function LoyaltyClubPage() {
-  const user = MOCK_USER;
+export default async function LoyaltyClubPage() {
+  const session = await getServerSession(authOptions);
+  const user = session?.user;
+
+  // Use session user or fallback to mock if no session (but fetch real levels)
+  // Ideally, we fetch the REAL user data from DB if session exists to get latest points
+  let userData = {
+    loyaltyPoints: 0,
+    loyaltyLevel: 1,
+    badges: [],
+    isAdmin: false
+  };
+
+  if (user?.email) {
+    const dbUser = await prisma.user.findUnique({
+      where: { email: user.email },
+      include: { badges: { include: { badge: true } } }
+    });
+    if (dbUser) {
+      userData = {
+        loyaltyPoints: dbUser.loyaltyPoints,
+        loyaltyLevel: dbUser.loyaltyLevel,
+        badges: dbUser.badges.map(b => ({
+          ...b.badge,
+          earnedAt: b.earnedAt,
+          // map missing properties if needed or adjust BadgeDisplay type
+        })) as any,
+        isAdmin: dbUser.role === 'ADMIN'
+      };
+    }
+  }
+
+  // Fetch Levels from DB
+  const dbLevels = await prisma.loyaltyLevel.findMany({
+    orderBy: { level: 'asc' }
+  });
 
   return (
     <MainLayout>
@@ -134,8 +104,8 @@ export default function LoyaltyClubPage() {
           <div className="max-w-2xl mx-auto">
             <Card className="p-8 border-2 border-taupe-light shadow-lg">
               <LoyaltyProgress
-                currentPoints={user.loyaltyPoints}
-                currentLevel={user.loyaltyLevel}
+                currentPoints={userData.loyaltyPoints}
+                currentLevel={userData.loyaltyLevel}
               />
 
               <div className="mt-8 pt-6 border-t border-taupe-light">
@@ -143,10 +113,10 @@ export default function LoyaltyClubPage() {
                   Punkte sammeln
                 </h3>
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <PointsCard iconType="cart" label="Einkauf" points="1 CHF = 1.2 Punkte" />
+                  <PointsCard iconType="cart" label="Einkauf" points="1 CHF = 1 Punkt" />
                   <PointsCard iconType="review" label="Bewertung" points="+40 Punkte" />
-                  <PointsCard iconType="event" label="Event-Teilnahme" points="+150 Punkte" />
-                  <PointsCard iconType="referral" label="Empfehlung" points="+250 Punkte" />
+                  <PointsCard iconType="event" label="Event-Teilnahme" points="+100 Punkte" />
+                  <PointsCard iconType="referral" label="Empfehlung" points="+25 Punkte" />
                 </div>
               </div>
             </Card>
@@ -165,49 +135,64 @@ export default function LoyaltyClubPage() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {LOYALTY_LEVELS.map((level) => (
-              <Card
-                key={level.level}
-                hover
-                className={level.current ? 'ring-2 ring-accent-burgundy border-2 border-taupe-light shadow-lg' : 'border-2 border-taupe-light shadow-lg'}
-              >
-                <CardHeader>
-                  <div className="flex items-start justify-between mb-4">
-                    <div
-                      className={`flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br ${level.color} text-warmwhite`}
-                    >
-                      <span className="font-serif text-2xl font-bold">
-                        {level.level}
-                      </span>
+            {dbLevels.map((level) => {
+              const isCurrent = level.level === userData.loyaltyLevel;
+              // Cast benefits to string[] safely
+              const benefits = Array.isArray(level.benefits) ? level.benefits as string[] : [];
+              const pointsDisplay = level.maxPoints
+                ? `${level.minPoints.toLocaleString('de-CH')}–${level.maxPoints.toLocaleString('de-CH')}`
+                : `${level.minPoints.toLocaleString('de-CH')}+`;
+
+              return (
+                <Card
+                  key={level.level}
+                  hover
+                  className={`relative group ${isCurrent ? 'ring-2 ring-accent-burgundy border-2 border-taupe-light shadow-lg' : 'border-2 border-taupe-light shadow-lg'}`}
+                >
+                  {/* ADMIN EDITOR */}
+                  {userData.isAdmin && (
+                    <LevelEditor
+                      level={level.level}
+                      initialName={level.name}
+                      initialBenefits={benefits}
+                    />
+                  )}
+
+                  <CardHeader>
+                    <div className="flex items-start justify-between mb-4">
+                      <div
+                        className={`flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br ${getLevelColor(level.level)} text-warmwhite`}
+                      >
+                        <span className="font-serif text-2xl font-bold">
+                          {level.level}
+                        </span>
+                      </div>
+                      {isCurrent && (
+                        <Badge variant="accent" className="text-xs">
+                          Aktuell
+                        </Badge>
+                      )}
                     </div>
-                    {level.current && (
-                      <Badge variant="accent" className="text-xs">
-                        Aktuell
-                      </Badge>
-                    )}
-                  </div>
-                  <CardTitle>{level.name}</CardTitle>
-                  <div className="space-y-1 mt-2">
-                    <p className="text-body-sm text-graphite/60">
-                      {level.points} Punkte
-                    </p>
-                    <p className="text-body font-semibold text-accent-burgundy">
-                      {level.cashback} Cashback
-                    </p>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {level.benefits.map((benefit, i) => (
-                      <li key={i} className="flex items-start gap-2 text-body-sm text-graphite">
-                        <CheckIcon className="w-5 h-5 text-accent-burgundy flex-shrink-0 mt-0.5" />
-                        <span>{benefit}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            ))}
+                    <CardTitle>{level.name}</CardTitle>
+                    <div className="space-y-1 mt-2">
+                      <p className="text-body-sm text-graphite/60">
+                        {pointsDisplay} Punkte
+                      </p>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {benefits.map((benefit, i) => (
+                        <li key={i} className="flex items-start gap-2 text-body-sm text-graphite">
+                          <CheckIcon className="w-5 h-5 text-accent-burgundy flex-shrink-0 mt-0.5" />
+                          <span>{benefit}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         </section>
 
@@ -222,7 +207,7 @@ export default function LoyaltyClubPage() {
             </p>
           </div>
 
-          <BadgeDisplay badges={user.badges} />
+          <BadgeDisplay badges={userData.badges} />
         </section>
 
         {/* CTA */}

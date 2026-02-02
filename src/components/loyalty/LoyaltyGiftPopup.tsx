@@ -15,24 +15,50 @@ export function LoyaltyGiftPopup() {
     const [giftGroups, setGiftGroups] = useState<any[]>([]);
     const [currentGroupIndex, setCurrentGroupIndex] = useState(0);
     const [loading, setLoading] = useState(false);
+    const [showConfetti, setShowConfetti] = useState(false);
+
+    // Demo Mode Support
+    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const isDemo = searchParams?.get('demoLoyalty') === 'true';
 
     useEffect(() => {
         if (session?.user?.id) {
             checkGifts(session.user.id);
+        } else if (isDemo) {
+            // Mock data for demo
+            setGiftGroups([{
+                level: 3,
+                gifts: [
+                    { id: 'demo1', name: 'Château Margaux 2015', description: 'Ein exzellenter Jahrgang.', image: '/images/wines/demo1.jpg' },
+                    { id: 'demo2', name: 'Opus One 2018', description: 'Kalifornische Perfektion.', image: '/images/wines/demo2.jpg' },
+                    { id: 'demo3', name: 'Dom Pérignon 2012', description: 'Champagner der Extraklasse.', image: '/images/wines/demo3.jpg' }
+                ]
+            }]);
+            setIsOpen(true);
+            setShowConfetti(true);
         }
-    }, [session]);
+    }, [session, isDemo]);
 
     const checkGifts = async (userId: string) => {
         const result = await getUnclaimedGifts(userId);
         if (result.giftsByLevel && result.giftsByLevel.length > 0) {
             setGiftGroups(result.giftsByLevel);
             setIsOpen(true);
+            setShowConfetti(true);
         }
     };
 
     const handleClaim = async (gift: any) => {
-        if (!session?.user?.id) return;
         setLoading(true);
+
+        if (isDemo) {
+            alert('Dies ist eine Demo. Das Geschenk wurde "eingelöst"!');
+            setIsOpen(false);
+            setLoading(false);
+            return;
+        }
+
+        if (!session?.user?.id) return;
 
         const currentGroup = giftGroups[currentGroupIndex];
 
@@ -69,73 +95,127 @@ export function LoyaltyGiftPopup() {
     const currentGroup = giftGroups[currentGroupIndex];
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
-            {/* Golden animated border container */}
-            <div className="relative w-full max-w-4xl bg-white rounded-xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
-                {/* Animated Border */}
-                <div className="absolute inset-0 z-0 p-[2px] rounded-xl bg-gradient-to-r from-accent-gold via-yellow-200 to-accent-gold animate-shimmer bg-[length:200%_100%]">
-                    <div className="absolute inset-[2px] bg-white rounded-xl" />
-                </div>
+        <AnimatePresence>
+            {isOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+                    {showConfetti && <Confetti />}
 
-                <div className="relative z-10 flex flex-col items-center p-8 md:p-12 text-center">
-                    <div className="w-20 h-20 mb-6 rounded-full bg-gradient-to-br from-accent-gold to-accent-burgundy flex items-center justify-center text-white font-serif text-4xl shadow-lg">
-                        {currentGroup.level}
-                    </div>
+                    {/* Golden Glow Backdrop */}
+                    <div className="absolute inset-0 bg-gradient-radial from-accent-gold/20 via-transparent to-transparent opacity-50 pointer-events-none" />
 
-                    <h2 className="text-3xl md:text-4xl font-serif text-graphite-dark mb-2">
-                        Herzlichen Glückwunsch!
-                    </h2>
-                    <p className="text-xl text-accent-burgundy font-medium mb-8">
-                        Sie haben Level {currentGroup.level} erreicht
-                    </p>
-                    <p className="text-graphite/70 mb-8 max-w-2xl">
-                        Als Dankeschön für Ihre Treue dürfen Sie sich eines der folgenden Geschenke aussuchen.
-                        Es wird kostenlos Ihrem Warenkorb hinzugefügt.
-                    </p>
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.8, y: 50 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.8, y: 50 }}
+                        transition={{ type: "spring", duration: 0.8, bounce: 0.3 }}
+                        className="relative w-full max-w-5xl bg-white rounded-2xl overflow-hidden shadow-2xl border border-accent-gold/30"
+                    >
+                        {/* Shimmering Golden Border */}
+                        <div className="absolute inset-0 z-0 p-[3px] rounded-2xl bg-gradient-to-r from-accent-gold via-yellow-200 to-accent-gold animate-shimmer bg-[length:200%_100%]">
+                            <div className="absolute inset-[3px] bg-warmwhite rounded-xl" />
+                        </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
-                        {currentGroup.gifts.map((gift: any) => (
-                            <button
-                                key={gift.id}
-                                onClick={() => handleClaim(gift)}
-                                disabled={loading}
-                                className="group relative flex flex-col items-center p-4 rounded-lg border-2 border-transparent hover:border-accent-gold/50 hover:bg-warmwhite-light transition-all duration-300 transform hover:-translate-y-1"
+                        <div className="relative z-10 flex flex-col items-center p-8 md:p-14 text-center">
+
+                            {/* Level Badge */}
+                            <motion.div
+                                initial={{ scale: 0, rotate: -180 }}
+                                animate={{ scale: 1, rotate: 0 }}
+                                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                                className="w-24 h-24 mb-8 rounded-full bg-gradient-to-br from-accent-gold via-yellow-400 to-accent-burgundy flex items-center justify-center text-white font-serif text-5xl shadow-strong ring-4 ring-white/50"
                             >
-                                <div className="relative w-full aspect-square mb-4 rounded-md overflow-hidden bg-gray-100">
-                                    {gift.image ? (
-                                        <Image
-                                            src={gift.image}
-                                            alt={gift.name}
-                                            fill
-                                            className="object-cover group-hover:scale-105 transition-transform duration-500"
-                                        />
-                                    ) : (
-                                        <div className="flex items-center justify-center h-full text-gray-300">
-                                            <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 12H4" /></svg>
-                                        </div>
-                                    )}
-                                    <div className="absolute top-2 right-2 bg-accent-gold text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
-                                        GRATIS
-                                    </div>
-                                </div>
-                                <h3 className="font-serif text-lg text-graphite-dark group-hover:text-accent-burgundy transition-colors">
-                                    {gift.name}
-                                </h3>
-                                <p className="text-sm text-graphite/60 mt-1 line-clamp-2">
-                                    {gift.description}
-                                </p>
-                                <div className="mt-4 px-6 py-2 bg-graphite text-white rounded-full text-sm font-medium opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all">
-                                    Auswählen
-                                </div>
-                            </button>
-                        ))}
-                    </div>
+                                {currentGroup.level}
+                            </motion.div>
 
-                    <div className="mt-8 text-xs text-graphite/40">
-                        * Das Geschenk wird Ihrem Warenkorb hinzugefügt und ist beim Checkout kostenlos.
-                    </div>
+                            <motion.h2
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.4 }}
+                                className="text-4xl md:text-5xl font-serif text-transparent bg-clip-text bg-gradient-to-r from-accent-gold via-yellow-600 to-accent-gold font-bold mb-3 drop-shadow-sm"
+                            >
+                                Herzlichen Glückwunsch!
+                            </motion.h2>
+
+                            <motion.p
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.6 }}
+                                className="text-2xl text-graphite-dark font-medium mb-10"
+                            >
+                                Sie haben Level <span className="text-accent-burgundy font-bold">{currentGroup.level}</span> erreicht
+                            </motion.p>
+
+                            <motion.p
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.7 }}
+                                className="text-graphite/70 mb-12 max-w-2xl text-lg"
+                            >
+                                Wählen Sie <b>eines</b> der folgenden Exklusiv-Geschenke als Belohnung.
+                                <br />Es wird kostenlos Ihrem Warenkorb hinzugefügt.
+                            </motion.p>
+
+                            {/* Gift Selection Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
+                                {currentGroup.gifts.map((gift: any, index: number) => (
+                                    <motion.button
+                                        key={gift.id}
+                                        initial={{ opacity: 0, y: 50 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.8 + (index * 0.15) }}
+                                        onClick={() => handleClaim(gift)}
+                                        disabled={loading}
+                                        className="group relative flex flex-col items-center bg-white rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-300 border border-taupe-light/30 hover:border-accent-gold transform hover:-translate-y-2 hover:scale-105"
+                                    >
+                                        {/* Gift Image Container */}
+                                        <div className="relative w-full aspect-[3/4] mb-5 rounded-lg overflow-hidden bg-gray-50 shadow-inner group-hover:shadow-none transition-all">
+                                            {gift.image ? (
+                                                <Image
+                                                    src={gift.image}
+                                                    alt={gift.name}
+                                                    fill
+                                                    className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                                                />
+                                            ) : (
+                                                <div className="flex items-center justify-center h-full text-gray-200">
+                                                    <svg className="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 12H4" /></svg>
+                                                </div>
+                                            )}
+
+                                            {/* Flash Effect on Hover */}
+                                            <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
+                                            <div className="absolute top-3 right-3 bg-gradient-to-r from-accent-gold to-yellow-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
+                                                GESCHENK
+                                            </div>
+                                        </div>
+
+                                        <h3 className="font-serif text-xl text-graphite-dark group-hover:text-accent-burgundy transition-colors font-medium mb-2">
+                                            {gift.name}
+                                        </h3>
+                                        <p className="text-sm text-graphite/60 line-clamp-2 mb-6 px-2">
+                                            {gift.description}
+                                        </p>
+
+                                        <div className="mt-auto px-8 py-3 bg-graphite text-white rounded-full text-base font-medium group-hover:bg-accent-burgundy transition-colors shadow-md w-full">
+                                            Auswählen
+                                        </div>
+                                    </motion.button>
+                                ))}
+                            </div>
+
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 1.5 }}
+                                className="mt-10 text-sm italic text-graphite/40"
+                            >
+                                * Nur solange der Vorrat reicht. Änderungen vorbehalten.
+                            </motion.div>
+                        </div>
+                    </motion.div>
                 </div>
-            </div>
-        </div>
+            )}
+        </AnimatePresence>
     );
 }

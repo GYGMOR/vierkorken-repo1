@@ -625,7 +625,7 @@ export default function AccountPage() {
                     <PointsEarnCard
                       icon={<CartIcon />}
                       label="Einkauf"
-                      points="1 CHF = 1.2 Punkte"
+                      points="1 CHF = 1 Punkt"
                     />
                     <PointsEarnCard
                       icon={<ReviewIcon />}
@@ -777,8 +777,8 @@ function TabButton({
     <button
       onClick={onClick}
       className={`px-4 md:px-6 py-2 md:py-3 rounded-lg font-medium text-xs md:text-sm transition-colors whitespace-nowrap ${active
-        ? 'bg-accent-burgundy text-warmwhite'
-        : 'bg-warmwhite text-graphite border border-taupe hover:border-graphite'
+          ? 'bg-accent-burgundy text-warmwhite'
+          : 'bg-warmwhite text-graphite border border-taupe hover:border-graphite'
         }`}
     >
       {children}
@@ -1556,8 +1556,8 @@ function AddressesSection() {
                 <div
                   key={address.id}
                   className={`p-4 border rounded-lg transition-all ${address.isDefault
-                    ? 'border-accent-burgundy bg-accent-burgundy/5'
-                    : 'border-taupe-light hover:shadow-soft'
+                      ? 'border-accent-burgundy bg-accent-burgundy/5'
+                      : 'border-taupe-light hover:shadow-soft'
                     }`}
                 >
                   <div className="flex items-start justify-between mb-3">
