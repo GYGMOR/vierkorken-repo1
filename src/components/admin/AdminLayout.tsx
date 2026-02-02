@@ -78,6 +78,15 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       ),
     },
     {
+      name: 'Loyalty',
+      href: '/admin/loyalty',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+        </svg>
+      ),
+    },
+    {
       name: 'Reviews',
       href: '/admin/reviews',
       icon: (
@@ -121,9 +130,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-graphite-dark transform transition-transform duration-200 ease-in-out ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0`}
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-graphite-dark transform transition-transform duration-200 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          } lg:translate-x-0`}
       >
         {/* Logo */}
         <div className="flex items-center justify-between h-16 px-6 bg-accent-burgundy">
@@ -157,11 +165,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               <div key={item.name}>
                 <Link
                   href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                    isActive
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${isActive
                       ? 'bg-accent-burgundy text-warmwhite'
                       : 'text-taupe hover:bg-graphite hover:text-warmwhite'
-                  }`}
+                    }`}
                 >
                   {item.icon}
                   <span>{item.name}</span>
@@ -176,11 +183,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                         <Link
                           key={subitem.name}
                           href={subitem.href}
-                          className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                            isSubActive
+                          className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isSubActive
                               ? 'bg-accent-burgundy/80 text-warmwhite'
                               : 'text-taupe/80 hover:bg-graphite hover:text-warmwhite'
-                          }`}
+                            }`}
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
