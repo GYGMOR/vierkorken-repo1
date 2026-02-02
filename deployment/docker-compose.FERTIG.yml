@@ -1,0 +1,91 @@
+version: "3.8"
+
+networks:
+  web:
+    external: true
+
+services:
+  app:
+    image: ghcr.io/gygmor/vierkorken-repo1:latest
+    container_name: vierkorken-app
+    restart: unless-stopped
+    networks:
+      - web
+    environment:
+      # ============================================================
+      # APP CONFIGURATION
+      # ============================================================
+      NODE_ENV: "production"
+      PORT: "3000"
+      NEXT_PUBLIC_APP_URL: "http://192.168.20.10:8080"
+      NEXT_PUBLIC_SITE_NAME: "VIERKORKEN"
+      NEXT_PUBLIC_CURRENCY: "CHF"
+
+      # ============================================================
+      # DATABASE (MariaDB - VLAN 30)
+      # ============================================================
+      DATABASE_URL: "mysql://vierkorken_app:FGDN8YEH1IiRei8@192.168.30.10:3306/vierkorken"
+
+      # ============================================================
+      # AUTHENTICATION (NextAuth.js)
+      # ⚠️ TODO: GENERIERE EIN NEUES SECRET!
+      # Führe aus: openssl rand -hex 32
+      # Dann ersetze "GENERIERE_NEUES_SECRET_HIER"
+      # ============================================================
+      NEXTAUTH_URL: "http://192.168.20.10:8080"
+      NEXTAUTH_SECRET: "GENERIERE_NEUES_SECRET_HIER"  # ⚠️ openssl rand -hex 32
+      JWT_SECRET: "GENERIERE_NEUES_SECRET_HIER"       # ⚠️ Kann gleiches Secret sein
+
+      # ============================================================
+      # STRIPE PAYMENT (Zahlungen) - ✅ FERTIG!
+      # ============================================================
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "pk_test_YOUR_STRIPE_PUBLISHABLE_KEY"
+      STRIPE_SECRET_KEY: "sk_test_YOUR_STRIPE_SECRET_KEY"
+      STRIPE_WEBHOOK_SECRET: "whsec_YOUR_STRIPE_WEBHOOK_SECRET"
+
+      # ============================================================
+      # EMAIL via Microsoft Graph API (Modern & Secure) - ✅ FERTIG!
+      # Verwendet OAuth2 statt SMTP - funktioniert mit Security Defaults
+      # Siehe AZURE-APP-REGISTRATION.md für Setup-Anleitung
+      # ============================================================
+      MS_TENANT_ID: "YOUR_MS_TENANT_ID"
+      MS_CLIENT_ID: "YOUR_MS_CLIENT_ID"
+      MS_CLIENT_SECRET: "YOUR_MS_CLIENT_SECRET"
+      MAIL_FROM_INFO: "info@vierkorken.ch"
+      MAIL_FROM_NOREPLY: "no-reply@vierkorken.ch"
+      ADMIN_EMAIL: "admin@vierkorken.ch"
+
+      # ============================================================
+      # KLARA INTEGRATION (Externe Produktdatenbank) - ✅ FERTIG!
+      # ============================================================
+      KLARA_API_URL: "https://api.klara.ch"
+      KLARA_API_KEY: "YOUR_KLARA_API_KEY"
+      KLARA_API_SECRET: "YOUR_KLARA_API_SECRET"
+      USE_MOCK_KLARA: "false"
+
+      # ============================================================
+      # MAINTENANCE MODE
+      # ============================================================
+      MAINTENANCE_MODE: "false"
+
+      # ============================================================
+      # OPTIONAL - Nur wenn benötigt
+      # ============================================================
+      # Nexi Payment (nicht konfiguriert)
+      NEXI_API_KEY: ""
+      NEXI_MERCHANT_ID: ""
+
+    expose:
+      - "3000"
+
+    # Optional: Volumes für persistente Daten (Bild-Uploads)
+    volumes:
+      - ./uploads:/app/public/uploads
+
+    # Optional: Health Check
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

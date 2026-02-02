@@ -1,0 +1,20 @@
+{
+  "name": "VIER KORKEN",
+  "short_name": "VIER KORKEN",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/layout/Favicon/vierkorken-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "theme_color": "#D4AF37",
+  "background_color": "#ffffff",
+  "display": "standalone"
+}

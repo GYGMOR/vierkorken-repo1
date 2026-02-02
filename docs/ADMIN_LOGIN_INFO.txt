@@ -1,0 +1,37 @@
+========================================
+VIERKORKEN ADMIN LOGIN
+========================================
+
+📧 Email:    admin@vierkorken.ch
+🔐 Passwort: Admin2024!Vierkorken
+
+========================================
+SO LOGGST DU DICH EIN:
+========================================
+
+1. Gehe zu: http://localhost:3000/auth/signin
+
+2. Gib die obigen Credentials ein
+
+3. Nach dem Login gehst du zu: http://localhost:3000/admin
+
+4. Das System erkennt automatisch, dass du Admin bist!
+
+========================================
+WICHTIG:
+========================================
+
+- Nutze das GLEICHE Login-Fenster wie normale Benutzer
+- Das System prüft automatisch deine Rolle
+- Du wirst zum Admin-Panel weitergeleitet
+
+========================================
+FEHLERBEHEBUNG:
+========================================
+
+Falls du nicht aufs Admin-Panel kommst:
+1. Stelle sicher, dass du eingeloggt bist
+2. Gehe manuell zu /admin
+3. Das System prüft deine Rolle automatisch
+
+========================================

@@ -1,0 +1,1130 @@
+// VIER KORKEN Database Schema
+// Professional Wine E-Commerce Platform
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// USER & AUTHENTICATION
+// ============================================================
+
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  passwordHash      String?
+  firstName         String?
+  lastName          String?
+  phone             String?
+  profileImage      String?
+
+  // Loyalty System
+  loyaltyPoints     Int       @default(0)
+  loyaltyLevel      Int       @default(1) // 1-7
+  totalSpent        Decimal   @default(0) @db.Decimal(10, 2)
+
+  // Metadata
+  emailVerified     DateTime?
+  twoFactorEnabled  Boolean   @default(false)
+  twoFactorSecret   String?
+  role              UserRole  @default(CUSTOMER)
+
+  // Identity Verification (Stripe Identity)
+  identityVerified           Boolean   @default(false)
+  identityVerificationId     String?   // Stripe Verification Session ID
+  identityVerifiedAt         DateTime?
+
+  // Newsletter Subscription
+  newsletterSubscribed Boolean  @default(false)
+  newsletterSubscribedAt DateTime?
+
+  // Consent Tracking
+  termsAcceptedAt     DateTime?
+  privacyAcceptedAt   DateTime?
+
+  // Password Reset
+  passwordResetToken       String?
+  passwordResetTokenExpiry DateTime?
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  lastLoginAt       DateTime?
+
+  // Relations
+  addresses         Address[]
+  orders            Order[]
+  reviews           Review[]
+  wishlist          WishlistItem[]
+  badges            UserBadge[]
+  eventTickets      EventTicket[]
+  loyaltyHistory    LoyaltyTransaction[]
+  giftClaims        UserLevelGiftClaim[]
+
+  @@index([email])
+  @@index([loyaltyLevel])
+  @@map("user")
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+  SOMMELIER
+}
+
+model Address {
+  id              String   @id @default(cuid())
+  userId          String
+
+  firstName       String
+  lastName        String
+  company         String?
+  street          String
+  streetNumber    String
+  addressLine2    String?
+  postalCode      String
+  city            String
+  state           String?
+  country         String   @default("CH")
+  phone           String?
+
+  isDefault       Boolean  @default(false)
+  isBilling       Boolean  @default(false)
+  isShipping      Boolean  @default(true)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("address")
+}
+
+// ============================================================
+// LOYALTY & GAMIFICATION
+// ============================================================
+
+model LoyaltyLevel {
+  id              Int      @id @default(autoincrement())
+  level           Int      @unique
+  name            String   // "Novize", "Kellerfreund", etc.
+  minPoints       Int
+  maxPoints       Int?
+  // cashbackPercent removed in favor of gifts
+
+  benefits        Json     // Array of benefit descriptions
+  
+  gifts           LevelGift[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("loyaltylevel")
+}
+
+model LevelGift {
+  id              String   @id @default(cuid())
+  loyaltyLevelId  Int
+  name            String
+  description     String?
+  image           String?  // URL
+  variantId       String?  // Linked product variant
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  loyaltyLevel    LoyaltyLevel @relation(fields: [loyaltyLevelId], references: [id], onDelete: Cascade)
+  claims          UserLevelGiftClaim[]
+
+  @@index([loyaltyLevelId])
+  @@map("levelgift")
+}
+
+model UserLevelGiftClaim {
+  id              String   @id @default(cuid())
+  userId          String
+  level           Int      // The level this gift was for (1, 2, 3...)
+  giftId          String
+  
+  claimedAt       DateTime @default(now())
+
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gift            LevelGift @relation(fields: [giftId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, level])
+  @@index([userId])
+  @@index([giftId])
+  @@map("userlevelgiftclaim")
+}
+
+model LoyaltyTransaction {
+  id              String   @id @default(cuid())
+  userId          String
+
+  points          Int      // Positive or negative
+  reason          String   // "Purchase", "Event", "Review", "Referral"
+  referenceId     String?  // Order ID, Event ID, etc.
+
+  balanceBefore   Int
+  balanceAfter    Int
+
+  createdAt       DateTime @default(now())
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("loyaltytransaction")
+}
+
+model Badge {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  name            String
+  description     String
+  iconType        String   // "moon-glass", "cup-leaf", etc.
+
+  // Trigger conditions (JSON for flexibility)
+  triggerType     String   // "purchase_time", "regions", "vintages", "event", "tenure"
+  triggerConfig   Json     // Flexible condition data
+
+  rarity          String   @default("common") // common, rare, epic, legendary
+
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  userBadges      UserBadge[]
+
+  @@index([slug])
+  @@map("badge")
+}
+
+model UserBadge {
+  id              String   @id @default(cuid())
+  userId          String
+  badgeId         String
+
+  earnedAt        DateTime @default(now())
+  isVisible       Boolean  @default(true)
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge           Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@index([userId])
+  @@map("userbadge")
+}
+
+// ============================================================
+// PRODUCTS & WINE DATA
+// ============================================================
+
+model Wine {
+  id              String   @id @default(cuid())
+  klaraId         String?  @unique // External ID from Klara system
+
+  name            String
+  slug            String   @unique
+
+  // Core Wine Data
+  winery          String
+  winerySlug      String?
+  region          String
+  subRegion       String?
+  country         String
+
+  grapeVarieties  Json     // Array of grape names
+  vintage         Int?
+
+  // Classification
+  wineType        WineType
+  category        String?  // "Still", "Sparkling", "Fortified"
+  classification  String?  // AOC, DOC, etc.
+
+  // Technical Data
+  alcoholContent  Decimal? @db.Decimal(4, 2)
+  residualSugar   Decimal? @db.Decimal(6, 2)
+  acidity         Decimal? @db.Decimal(4, 2)
+
+  // Sensory Profile (1-10 scale)
+  dryness         Int?     // 1=sweet, 10=dry
+  body            Int?     // 1=light, 10=full
+  acidityLevel    Int?     // 1=soft, 10=vibrant
+  tanninLevel     Int?     // 1=soft, 10=firm
+
+  // Tasting & Pairing
+  tastingNotes    String?  @db.Text
+  aromaProfile    Json     // ["fruity", "spicy", "oaky"]
+  foodPairings    Json     // Suggested dishes
+
+  // Storage & Service
+  drinkingWindow  String?  // "2024-2030"
+  servingTemp     String?  // "16-18°C"
+  decanting       String?
+  storagePotential String?
+
+  // Content & Awards
+  description     String?  @db.Text
+  winemaker       String?
+  vinification    String?  @db.Text
+  terroir         String?  @db.Text
+  awards          Json?    // Array of award objects
+
+  // Certifications
+  isBio           Boolean  @default(false)
+  isDemeter       Boolean  @default(false)
+  isVegan         Boolean  @default(false)
+  certifications  Json
+
+  // Allergens
+  allergens       Json     // ["sulfites", etc.]
+
+  // Metadata
+  isActive        Boolean  @default(true)
+  isFeatured      Boolean  @default(false)
+  availableFrom   DateTime?
+  availableUntil  DateTime?
+
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  variants        WineVariant[]
+  images          WineImage[]
+  reviews         Review[]
+
+  @@index([slug])
+  @@index([wineType])
+  @@index([country, region])
+  @@index([isFeatured])
+  @@index([isActive])
+
+  @@map("wine")
+}
+
+enum WineType {
+  RED
+  WHITE
+  ROSE
+  SPARKLING
+  DESSERT
+  FORTIFIED
+}
+
+model WineVariant {
+  id              String   @id @default(cuid())
+  wineId          String
+  klaraVariantId  String?  @unique
+
+  // Variant specifics
+  sku             String   @unique
+  bottleSize      Decimal  @db.Decimal(6, 3) // in liters: 0.375, 0.75, 1.5, etc.
+  vintage         Int?     // Can override wine vintage
+
+  // Pricing
+  price           Decimal  @db.Decimal(10, 2)
+  compareAtPrice  Decimal? @db.Decimal(10, 2)
+  costPrice       Decimal? @db.Decimal(10, 2) // For admin
+
+  // Inventory
+  stockQuantity   Int      @default(0)
+  lowStockThreshold Int    @default(5)
+
+  // Availability
+  isAvailable     Boolean  @default(true)
+  preOrder        Boolean  @default(false)
+  estimatedRestock DateTime?
+
+  // Physical
+  weight          Decimal? @db.Decimal(8, 3) // in kg
+  barcode         String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  wine            Wine     @relation(fields: [wineId], references: [id], onDelete: Cascade)
+  orderItems      OrderItem[]
+  cartItems       CartItem[]
+  wishlistItems   WishlistItem[]
+
+  @@index([wineId])
+  @@index([sku])
+  @@index([isAvailable])
+
+  @@map("winevariant")
+}
+
+model WineImage {
+  id              String   @id @default(cuid())
+  wineId          String
+
+  url             String
+  altText         String?
+  title           String?
+
+  imageType       ImageType @default(PRODUCT)
+  sortOrder       Int      @default(0)
+
+  width           Int?
+  height          Int?
+  format          String?  // webp, avif, jpg
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  wine            Wine     @relation(fields: [wineId], references: [id], onDelete: Cascade)
+
+  @@index([wineId])
+
+  @@map("wineimage")
+}
+
+enum ImageType {
+  PRODUCT        // Bottle shot
+  LABEL          // Label closeup
+  WINERY         // Winery/vineyard photo
+  GALLERY        // Additional gallery images
+  LIFESTYLE      // Lifestyle/ambiance shots
+}
+
+// ============================================================
+// CART & WISHLIST
+// ============================================================
+
+model Cart {
+  id              String   @id @default(cuid())
+  sessionId       String?  @unique
+  userId          String?
+
+  items           CartItem[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  expiresAt       DateTime?
+
+  @@index([userId])
+  @@index([sessionId])
+
+  @@map("cart")
+}
+
+model CartItem {
+  id              String   @id @default(cuid())
+  cartId          String
+  variantId       String
+
+  quantity        Int      @default(1)
+
+  // Gift options
+  isGift          Boolean  @default(false)
+  giftMessage     String?
+  giftWrap        Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  cart            Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  variant         WineVariant @relation(fields: [variantId], references: [id])
+
+  @@unique([cartId, variantId])
+  @@index([cartId])
+
+  @@map("cartitem")
+}
+
+model WishlistItem {
+  id              String   @id @default(cuid())
+  userId          String
+  variantId       String
+
+  note            String?
+
+  createdAt       DateTime @default(now())
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  variant         WineVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, variantId])
+  @@index([userId])
+
+  @@map("wishlistitem")
+}
+
+// ============================================================
+// ORDERS & CHECKOUT
+// ============================================================
+
+model Order {
+  id              String   @id @default(cuid())
+  orderNumber     String   @unique
+
+  userId          String?
+
+  // Customer Info (snapshot)
+  customerEmail   String
+  customerFirstName String
+  customerLastName String
+  customerPhone   String?
+
+  // Addresses (snapshot)
+  shippingAddress Json
+  billingAddress  Json
+
+  // Items
+  items           OrderItem[]
+  tickets         EventTicket[]
+
+  // Pricing
+  subtotal        Decimal  @db.Decimal(10, 2)
+  shippingCost    Decimal  @db.Decimal(10, 2) @default(0)
+  taxAmount       Decimal  @db.Decimal(10, 2) @default(0)
+  discountAmount  Decimal  @db.Decimal(10, 2) @default(0)
+  total           Decimal  @db.Decimal(10, 2)
+
+  // Coupon
+  couponId        String?
+  couponCode      String?  // Snapshot of code used
+
+  // Loyalty
+  pointsEarned    Int      @default(0)
+  pointsUsed      Int      @default(0)
+  cashbackAmount  Decimal  @db.Decimal(10, 2) @default(0)
+
+  // Payment
+  paymentMethod   String   // "stripe", "nexi", etc.
+  paymentStatus   PaymentStatus @default(PENDING)
+  paidAt          DateTime?
+
+  paymentIntentId String?  @unique
+
+  // Fulfillment
+  status          OrderStatus @default(PENDING)
+  deliveryMethod  DeliveryMethod @default(SHIPPING)
+  shippingMethod  String?
+  trackingNumber  String?
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
+
+  // Notes
+  customerNote    String?  @db.Text
+  internalNote    String?  @db.Text
+
+  // Metadata
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  cancelledAt     DateTime?
+  cancellationReason String?
+
+  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  coupon          Coupon?  @relation(fields: [couponId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([couponId])
+  @@index([orderNumber])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([createdAt])
+
+  @@map("order")
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum DeliveryMethod {
+  SHIPPING       // Lieferung nach Hause
+  PICKUP         // Abholung im Geschäft
+}
+
+model OrderItem {
+  id              String   @id @default(cuid())
+  orderId         String
+  variantId       String?  // Made optional for KLARA products
+
+  // Snapshot of product data at time of purchase
+  wineName        String
+  winery          String
+  vintage         Int?
+  bottleSize      Decimal  @db.Decimal(6, 3)
+
+  quantity        Int
+  unitPrice       Decimal  @db.Decimal(10, 2)
+  totalPrice      Decimal  @db.Decimal(10, 2)
+
+  // Gift options
+  isGift          Boolean  @default(false)
+  giftMessage     String?
+  giftWrap        Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variant         WineVariant? @relation(fields: [variantId], references: [id])
+
+  @@index([orderId])
+
+  @@map("orderitem")
+}
+
+// ============================================================
+// REVIEWS & RATINGS
+// ============================================================
+
+model Review {
+  id              String   @id @default(cuid())
+  wineId          String
+  userId          String
+  orderId         String?  // Optional: verify purchase
+
+  rating          Int      // 1-5 stars
+  title           String?
+  comment         String?  @db.Text
+
+  // Moderation
+  isApproved      Boolean  @default(false)
+  isVerifiedPurchase Boolean @default(false)
+
+  // Engagement
+  helpfulCount    Int      @default(0)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  wine            Wine     @relation(fields: [wineId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([wineId, userId])
+  @@index([wineId])
+  @@index([userId])
+  @@index([isApproved])
+
+  @@map("review")
+}
+
+// ============================================================
+// EVENTS & TICKETING
+// ============================================================
+
+model Event {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+
+  title           String
+  subtitle        String?
+  description     String   @db.Text
+
+  // Event Details
+  eventType       EventType
+  venue           String
+  venueAddress    Json     // Structured address
+
+  startDateTime   DateTime
+  endDateTime     DateTime
+  duration        Int?     // in minutes
+
+  // Capacity
+  maxCapacity     Int
+  currentCapacity Int      @default(0)
+
+  // Pricing
+  price           Decimal  @db.Decimal(10, 2)
+  memberPrice     Decimal? @db.Decimal(10, 2) // Special price for loyalty members
+
+  // Content
+  featuredImage   String?
+  galleryImages   Json
+
+  // Wines featured (optional array of IDs)
+  featuredWines   Json?
+
+  // Restrictions
+  minLoyaltyLevel Int?     // Require certain loyalty level
+  isPrivate       Boolean  @default(false)
+  requiresApproval Boolean @default(false)
+
+  // Follow-up
+  followUpOffer   Json?    // Special wines available after event
+  followUpDuration Int?    // Hours the offer is valid
+
+  // Status
+  status          EventStatus @default(DRAFT)
+  publishedAt     DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tickets         EventTicket[]
+
+  @@index([slug])
+  @@index([status])
+  @@index([startDateTime])
+
+  @@map("event")
+}
+
+enum EventType {
+  TASTING
+  WINE_DINNER
+  MASTERCLASS
+  WINERY_VISIT
+  FESTIVAL
+  PRIVATE
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  SOLD_OUT
+  CANCELLED
+  COMPLETED
+}
+
+model EventTicket {
+  id              String   @id @default(cuid())
+  eventId         String
+  userId          String?  // Optional - guests can buy tickets without account
+
+  ticketNumber    String   @unique
+  qrCode          String   @unique
+
+  // Ticket holder (can differ from buyer)
+  holderFirstName String?
+  holderLastName  String?
+  holderEmail     String?
+
+  price           Decimal  @db.Decimal(10, 2)
+
+  // Status
+  status          TicketStatus @default(ACTIVE)
+  checkedInAt     DateTime?
+  checkedInBy     String?  // Admin/staff ID
+
+  // Payment
+  orderId         String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  event           Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order           Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([eventId])
+  @@index([userId])
+  @@index([orderId])
+  @@index([ticketNumber])
+  @@index([qrCode])
+
+  @@map("eventticket")
+}
+
+enum TicketStatus {
+  ACTIVE
+  CANCELLED
+  CHECKED_IN
+  REFUNDED
+}
+
+// ============================================================
+// CONTENT & SEO
+// ============================================================
+
+model BlogPost {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+
+  title           String
+  excerpt         String?  @db.Text
+  content         String   @db.Text
+
+  featuredImage   String?
+
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+
+  // Organization
+  category        String?
+  tags            Json
+
+  // Publishing
+  status          PostStatus @default(DRAFT)
+  publishedAt     DateTime?
+
+  // Author
+  authorId        String?
+  authorName      String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([slug])
+  @@index([status])
+  @@index([publishedAt])
+
+  @@map("blogpost")
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+// ============================================================
+// NEWS & ANNOUNCEMENTS
+// ============================================================
+
+model News {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+
+  title           String
+  excerpt         String?  @db.Text
+  content         String   @db.Text
+
+  featuredImage   String?
+
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+
+  // Publishing
+  status          PostStatus @default(DRAFT)
+  publishedAt     DateTime?
+
+  // Priority for homepage display
+  isPinned        Boolean  @default(false)
+  sortOrder       Int      @default(0)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([slug])
+  @@index([status])
+  @@index([publishedAt])
+  @@index([isPinned])
+
+  @@map("news")
+}
+
+// ============================================================
+// KLARA INTEGRATION
+// ============================================================
+
+model KlaraSync {
+  id              String   @id @default(cuid())
+
+  syncType        String   // "products", "inventory", "prices"
+  status          SyncStatus
+
+  recordsProcessed Int     @default(0)
+  recordsCreated  Int      @default(0)
+  recordsUpdated  Int      @default(0)
+  recordsFailed   Int      @default(0)
+
+  errorLog        Json?
+
+  startedAt       DateTime @default(now())
+  completedAt     DateTime?
+
+  @@index([syncType])
+  @@index([status])
+  @@index([startedAt])
+
+  @@map("klarasync")
+}
+
+enum SyncStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+// Store custom edits for KLARA products without syncing to main catalog
+model KlaraProductOverride {
+  id              String   @id @default(cuid())
+  klaraArticleId  String   @unique // External KLARA article ID
+
+  // Custom product data (overrides KLARA data)
+  customName      String?
+  customDescription String? @db.Text
+  customPrice     Decimal? @db.Decimal(10, 2)
+  customImages    Json     // Array of image URLs
+
+  // Additional custom fields
+  customData      Json?    // Flexible field for any additional customizations
+
+  isActive        Boolean  @default(true)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([klaraArticleId])
+
+  @@map("klaraproductoverride")
+}
+
+// ============================================================
+// COUPONS & GIFT CODES
+// ============================================================
+
+model Coupon {
+  id              String   @id @default(cuid())
+  code            String   @unique
+
+  // Discount Type & Value
+  type            CouponType
+  value           Decimal  @db.Decimal(10, 2) // Percentage (e.g., 15.00 for 15%) or Fixed Amount (e.g., 50.00 for CHF 50)
+
+  // Conditions
+  minOrderAmount  Decimal? @db.Decimal(10, 2) // Minimum order amount to apply coupon
+  maxDiscount     Decimal? @db.Decimal(10, 2) // Maximum discount amount (for percentage coupons)
+
+  // Validity
+  validFrom       DateTime
+  validUntil      DateTime?
+
+  // Usage Limits
+  maxUses         Int?     // Total number of times this coupon can be used (null = unlimited)
+  maxUsesPerUser  Int?     @default(1) // Max uses per user
+  currentUses     Int      @default(0)
+
+  // Status
+  isActive        Boolean  @default(true)
+
+  // Description
+  description     String?
+  internalNote    String?  @db.Text
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  orders          Order[]
+
+  @@index([code])
+  @@index([isActive])
+  @@index([validFrom, validUntil])
+
+  @@map("coupon")
+}
+
+enum CouponType {
+  PERCENTAGE     // Percentage discount (e.g., 10% off)
+  FIXED_AMOUNT   // Fixed amount discount (e.g., CHF 20 off)
+  GIFT_CARD      // Gift card with balance
+}
+
+// ============================================================
+// MEDIA ASSET MANAGEMENT (DAM)
+// ============================================================
+
+model MediaAsset {
+  id              String   @id @default(cuid())
+
+  filename        String
+  originalName    String
+  mimeType        String
+  size            Int      // bytes
+
+  url             String   @unique
+  thumbnailUrl    String?
+
+  width           Int?
+  height          Int?
+
+  // Organization
+  category        String?  // "wine", "winery", "event", "blog"
+  tags            Json
+
+  // Metadata
+  alt             String?
+  title           String?
+  description     String?  @db.Text
+
+  uploadedBy      String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([category])
+  @@index([mimeType])
+
+  @@map("mediaasset")
+}
+
+// ============================================================
+// WEB ANALYTICS
+// ============================================================
+
+model PageView {
+  id              String   @id @default(cuid())
+
+  // Page Info
+  path            String   // e.g., "/weine/chateau-margaux"
+  pageTitle       String?
+  referrer        String?  // Where user came from
+
+  // User Info
+  userId          String?  // If logged in
+  sessionId       String   // Unique session identifier
+  ipAddress       String?  // For location tracking
+  userAgent       String?  // Browser/device info
+
+  // Location Data
+  country         String?
+  region          String?
+  city            String?
+
+  // Device Info
+  deviceType      String?  // "mobile", "desktop", "tablet"
+  browser         String?
+  os              String?
+
+  // Timing
+  timeOnPage      Int?     // seconds
+
+  createdAt       DateTime @default(now())
+
+  @@index([path])
+  @@index([userId])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@index([country])
+
+  @@map("pageview")
+}
+
+// ============================================================
+// MAINTENANCE MODE SUBSCRIPTIONS
+// ============================================================
+
+model MaintenanceModeSubscriber {
+  id              String   @id @default(cuid())
+  email           String   @unique
+
+  // Metadata
+  subscribedAt    DateTime @default(now())
+  notifiedAt      DateTime? // When launch notification was sent
+  ipAddress       String?  // For tracking/analytics
+  userAgent       String?  // Browser info
+
+  // Status
+  isActive        Boolean  @default(true)
+  unsubscribedAt  DateTime?
+
+  @@index([email])
+  @@index([subscribedAt])
+  @@index([isActive])
+
+  @@map("maintenancemodesubscriber")
+}
+
+// ============================================================
+// NEWSLETTER SUBSCRIPTIONS
+// ============================================================
+
+model NewsletterSubscriber {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  firstName       String?
+  lastName        String?
+
+  // Source tracking
+  source          String   @default("homepage") // "homepage", "registration", "checkout"
+
+  // Status
+  isActive        Boolean  @default(true)
+  confirmedAt     DateTime? // For double opt-in (optional)
+  unsubscribedAt  DateTime?
+
+  // Metadata
+  subscribedAt    DateTime @default(now())
+  ipAddress       String?
+  userAgent       String?
+
+  // Relations (optional)
+  userId          String?  // Link to User if they later register
+
+  @@index([email])
+  @@index([isActive])
+  @@index([userId])
+
+  @@map("newslettersubscriber")
+}
+
+// ============================================================
+// SYSTEM SETTINGS
+// ============================================================
+
+model Settings {
+  id              String   @id @default(cuid())
+  key             String   @unique
+  value           String   @db.Text
+  description     String?
+
+  updatedAt       DateTime @updatedAt
+  updatedBy       String?  // Admin user ID
+
+  @@index([key])
+
+  @@map("settings")
+}
+
+// ============================================================
+// IDENTITY VERIFICATION (Stripe Identity)
+// ============================================================
+
+model VerificationSession {
+  id                      String    @id @default(cuid())
+  stateToken              String    @unique
+  verificationSessionId   String
+  userId                  String?
+  customerEmail           String?
+  customerName            String?
+  status                  VerificationStatus @default(PENDING)
+  createdAt               DateTime  @default(now())
+  expiresAt               DateTime
+  completedAt             DateTime?
+
+  @@index([stateToken])
+  @@index([verificationSessionId])
+  @@index([userId])
+  @@map("verification_session")
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  FAILED
+  EXPIRED
+}

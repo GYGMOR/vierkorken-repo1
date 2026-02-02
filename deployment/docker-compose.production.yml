@@ -1,0 +1,118 @@
+version: "3.8"
+
+networks:
+  web:
+    external: true
+
+services:
+  app:
+    image: ghcr.io/gygmor/vierkorken-repo1:latest
+    container_name: vierkorken-app
+    restart: unless-stopped
+    networks:
+      - web
+    environment:
+      # ============================================================
+      # APP CONFIGURATION
+      # ============================================================
+      NODE_ENV: "production"
+      PORT: "3000"
+
+      # Public App URL (wird im Frontend verwendet)
+      NEXT_PUBLIC_APP_URL: "http://192.168.20.10:8080"  # SPÄTER: "https://vierkorken.ch"
+      NEXT_PUBLIC_SITE_NAME: "VIERKORKEN"
+      NEXT_PUBLIC_CURRENCY: "CHF"
+
+      # ============================================================
+      # DATABASE (MariaDB - VLAN 30)
+      # ============================================================
+      DATABASE_URL: "mysql://vierkorken_app:FGDN8YEH1IiRei8@192.168.30.10:3306/vierkorken"
+      DB_HOST: "192.168.30.10"
+      DB_PORT: "3306"
+      DB_NAME: "vierkorken"
+      DB_USER: "vierkorken_app"
+      DB_PASSWORD: "FGDN8YEH1IiRei8"
+
+      # ============================================================
+      # AUTHENTICATION (NextAuth.js)
+      # ⚠️ WICHTIG: NEXTAUTH_SECRET muss generiert werden!
+      # Generiere mit: openssl rand -hex 32
+      # ============================================================
+      NEXTAUTH_URL: "http://192.168.20.10:8080"  # SPÄTER: "https://vierkorken.ch"
+      NEXTAUTH_SECRET: "GENERIERE_MIT_openssl_rand_-hex_32"  # ⚠️ MUSS GESETZT WERDEN!
+      JWT_SECRET: "GENERIERE_MIT_openssl_rand_-hex_32"       # ⚠️ KANN GLEICHES SECRET SEIN
+
+      # ============================================================
+      # STRIPE PAYMENT (Zahlungen)
+      # ⚠️ WICHTIG für Online-Zahlungen!
+      # ============================================================
+      # Publishable Key (öffentlich, im Frontend sichtbar)
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "pk_live_DEIN_PUBLISHABLE_KEY"  # Live: pk_live_... | Test: pk_test_...
+
+      # Secret Key (geheim, nur Backend)
+      STRIPE_SECRET_KEY: "sk_live_DEIN_SECRET_KEY"  # Live: sk_live_... | Test: sk_test_...
+
+      # Webhook Secret (für Stripe Webhooks - Bestellbestätigungen)
+      STRIPE_WEBHOOK_SECRET: "whsec_DEIN_WEBHOOK_SECRET"
+
+      # ============================================================
+      # EMAIL via Microsoft Graph API (Modern & Secure)
+      # ⚠️ WICHTIG für E-Mail Benachrichtigungen!
+      # ============================================================
+      # Azure App Registration Credentials
+      # ⚠️ Trage hier deine echten Credentials ein (siehe AZURE-APP-REGISTRATION.md)
+      MS_TENANT_ID: "YOUR_MS_TENANT_ID"
+      MS_CLIENT_ID: "YOUR_MS_CLIENT_ID"
+      MS_CLIENT_SECRET: "YOUR_MS_CLIENT_SECRET"
+
+      # E-Mail Absender (Shared Mailboxes)
+      MAIL_FROM_INFO: "info@vierkorken.ch"
+      MAIL_FROM_NOREPLY: "no-reply@vierkorken.ch"
+      ADMIN_EMAIL: "admin@vierkorken.ch"
+
+      # ============================================================
+      # KLARA INTEGRATION (Externe Produktdatenbank)
+      # ⚠️ Nur wenn du Klara verwendest!
+      # ============================================================
+      KLARA_API_URL: "https://api.klara.ch"     # Klara API Endpoint
+      KLARA_API_KEY: "DEIN_KLARA_API_KEY"       # Dein Klara API Key
+
+      # ============================================================
+      # NEXI PAYMENT (Alternative Zahlungsmethode - Optional)
+      # ⚠️ Nur für Schweizer Kreditkarten-Zahlungen
+      # ============================================================
+      NEXI_API_KEY: ""           # Leer lassen wenn nicht verwendet
+      NEXI_MERCHANT_ID: ""       # Leer lassen wenn nicht verwendet
+
+      # ============================================================
+      # GOOGLE SERVICES (Optional - für Maps, Analytics, etc.)
+      # ============================================================
+      # NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: "DEIN_GOOGLE_MAPS_KEY"  # Optional
+      # NEXT_PUBLIC_GOOGLE_ANALYTICS_ID: "G-XXXXXXXXXX"           # Optional
+
+      # ============================================================
+      # MAINTENANCE MODE
+      # ============================================================
+      MAINTENANCE_MODE: "false"  # "true" = Wartungsmodus aktiv, "false" = Normal
+
+      # ============================================================
+      # SENTRY ERROR TRACKING (Optional - für Fehler-Monitoring)
+      # ============================================================
+      # NEXT_PUBLIC_SENTRY_DSN: "https://xxx@xxx.ingest.sentry.io/xxx"  # Optional
+      # SENTRY_AUTH_TOKEN: "DEIN_SENTRY_TOKEN"                          # Optional
+
+    expose:
+      - "3000"
+
+    # Optional: Volumes für persistente Daten
+    # volumes:
+    #   - ./uploads:/app/public/uploads  # Für hochgeladene Bilder
+    #   - ./logs:/app/logs               # Für Log-Dateien
+
+    # Optional: Health Check
+    # healthcheck:
+    #   test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health')"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 40s
