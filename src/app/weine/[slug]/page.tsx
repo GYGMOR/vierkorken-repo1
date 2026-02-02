@@ -17,6 +17,13 @@ interface Wine {
   stock: number;
   images?: string[];
   hasOverride?: boolean;
+  customData?: {
+    grapes?: string;
+    nose?: string;
+    food?: string;
+    temp?: string;
+    alcohol?: string;
+  };
 }
 
 export default function WineDetailPage({ params }: { params: Promise<{ slug: string }> }) {
