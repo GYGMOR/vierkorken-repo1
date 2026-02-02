@@ -7,22 +7,42 @@ import { GiftManagementSection } from '@/components/admin/loyalty/GiftManagement
 export const dynamic = 'force-dynamic';
 
 export default async function LoyaltyAdminPage() {
-    const dbLevels = await prisma.loyaltyLevel.findMany({
-        include: {
-            gifts: {
-                include: {
-                    loyaltyLevel: true
-                }
-            }
-        },
-        orderBy: { level: 'asc' },
-    });
+    let dbLevels: any[] = [];
+    let variants: any[] = [];
+    let error = null;
 
-    const variants = await prisma.wineVariant.findMany({
-        where: { isAvailable: true },
-        include: { wine: true },
-        take: 100, // Limit for performance, consider search for production
-    });
+    try {
+        dbLevels = await prisma.loyaltyLevel.findMany({
+            include: {
+                gifts: {
+                    include: {
+                        loyaltyLevel: true
+                    }
+                }
+            },
+            orderBy: { level: 'asc' },
+        });
+
+        variants = await prisma.wineVariant.findMany({
+            where: { isAvailable: true },
+            include: { wine: true },
+            take: 100,
+        });
+    } catch (e) {
+        console.error('Error fetching admin loyalty data:', e);
+        error = 'Fehler beim Laden der Daten. Bitte versuchen Sie es später erneut.';
+    }
+
+    if (error) {
+        return (
+            <AdminLayout>
+                <div className="p-8 text-center text-red-600">
+                    <h2 className="text-xl font-bold mb-2">Ein Fehler ist aufgetreten</h2>
+                    <p>{error}</p>
+                </div>
+            </AdminLayout>
+        );
+    }
 
     return (
         <AdminLayout>
