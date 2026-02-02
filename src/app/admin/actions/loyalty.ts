@@ -70,6 +70,39 @@ export async function deleteGift(giftId: string) {
     }
 }
 
+export async function updateGift(giftId: string, formData: FormData) {
+    const data = Object.fromEntries(formData.entries());
+
+    const validatedFields = GiftSchema.partial().safeParse({
+        name: data.name,
+        description: data.description,
+        image: data.image,
+        variantId: data.variantId === 'none' ? undefined : data.variantId,
+    });
+
+    if (!validatedFields.success) {
+        return { error: validatedFields.error.flatten().fieldErrors };
+    }
+
+    try {
+        await prisma.levelGift.update({
+            where: { id: giftId },
+            data: {
+                name: validatedFields.data.name,
+                description: validatedFields.data.description,
+                image: validatedFields.data.image || null,
+                variantId: validatedFields.data.variantId,
+            },
+        });
+
+        revalidatePath('/admin/loyalty');
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to update gift:', error);
+        return { error: 'Failed to update gift' };
+    }
+}
+
 // User-facing actions
 
 export async function getUnclaimedGifts(userId: string) {
@@ -106,10 +139,16 @@ export async function getUnclaimedGifts(userId: string) {
         // Enhance gifts with variant data if available
         const enhancedGifts = await Promise.all(gifts.map(async (gift) => {
             let productDetails = null;
+            let displayImage = gift.image;
+
             if (gift.variantId) {
                 const variant = await prisma.wineVariant.findUnique({
                     where: { id: gift.variantId },
-                    include: { wine: true }
+                    include: {
+                        wine: {
+                            include: { images: true }
+                        }
+                    }
                 });
                 if (variant) {
                     productDetails = {
@@ -119,9 +158,16 @@ export async function getUnclaimedGifts(userId: string) {
                         bottleSize: variant.bottleSize,
                         cartName: `${variant.wine.name} (${variant.wine.vintage || 'NV'})`,
                     };
+
+                    // Fallback to wine image if gift image is missing
+                    if (!displayImage && variant.wine.images.length > 0) {
+                        // Find primary PRODUCT image or just take the first one
+                        const primaryImage = variant.wine.images.find(img => img.imageType === 'PRODUCT') || variant.wine.images[0];
+                        displayImage = primaryImage.url;
+                    }
                 }
             }
-            return { ...gift, productDetails };
+            return { ...gift, image: displayImage, productDetails };
         }));
 
         // Group by level
