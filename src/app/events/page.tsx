@@ -12,6 +12,8 @@ import { useCart } from '@/contexts/CartContext';
 import { EventImageCarousel } from '@/components/events/EventImageCarousel';
 
 // Mock data for events
+import { useSession } from 'next-auth/react';
+import { EventEditModal } from '@/components/events/EventEditModal';
 const UPCOMING_EVENTS = [
   {
     id: '1',
@@ -148,6 +150,42 @@ export default function EventsPage() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
+  // Check for admin status
+  const { data: session } = useSession();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<any | null>(null);
+
+  useEffect(() => {
+    if (session?.user?.email) {
+      fetch('/api/user/profile')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.user.role === 'ADMIN') {
+            setIsAdmin(true);
+          }
+        })
+        .catch(() => setIsAdmin(false));
+    }
+  }, [session]);
+
+  const handleEdit = (event: any, e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent link navigation
+    e.stopPropagation();
+    setEditingEvent(event);
+    setShowEditModal(true);
+  };
+
+  const handleCreate = () => {
+    setEditingEvent(null);
+    setShowEditModal(true);
+  };
+
+  const handleSave = () => {
+    fetchEvents(); // Reload events
+    setShowEditModal(false);
+    setEditingEvent(null);
+  };
 
   return (
     <MainLayout>
@@ -199,7 +237,12 @@ export default function EventsPage() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {events.map((event) => (
-              <EventCard key={event.id} event={event} />
+              <EventCard
+                key={event.id}
+                event={event}
+                isAdmin={isAdmin}
+                onEdit={(e) => handleEdit(event, e)}
+              />
             ))}
           </div>
         )}
@@ -240,11 +283,31 @@ export default function EventsPage() {
           </Card>
         </section>
       </div>
+
+      {/* Admin Floating Action Button */}
+      {isAdmin && (
+        <button
+          onClick={handleCreate}
+          className="fixed bottom-8 right-8 z-40 w-14 h-14 bg-accent-burgundy text-white rounded-full shadow-strong flex items-center justify-center hover:scale-110 transition-transform"
+          title="Neues Event erstellen"
+        >
+          <PlusIcon className="w-8 h-8" />
+        </button>
+      )}
+
+      {/* Admin Edit Modal */}
+      {showEditModal && (
+        <EventEditModal
+          event={editingEvent}
+          onClose={() => setShowEditModal(false)}
+          onSave={handleSave}
+        />
+      )}
     </MainLayout>
   );
 }
 
-function EventCard({ event }: { event: typeof UPCOMING_EVENTS[0] }) {
+function EventCard({ event, isAdmin, onEdit }: { event: typeof UPCOMING_EVENTS[0]; isAdmin?: boolean; onEdit?: (e: React.MouseEvent) => void }) {
   const { addItem } = useCart();
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [ticketQuantity, setTicketQuantity] = useState(1);
@@ -292,7 +355,20 @@ function EventCard({ event }: { event: typeof UPCOMING_EVENTS[0] }) {
 
   return (
     <>
-      <Link href={`/events/${event.slug}`} className="block h-full">
+      <Link href={`/events/${event.slug}`} className="block h-full group relative">
+        {/* Admin Edit Button */}
+        {isAdmin && onEdit && (
+          <button
+            onClick={onEdit}
+            className="absolute top-4 right-4 z-30 p-2 bg-white/90 backdrop-blur text-graphite hover:text-accent-burgundy rounded-full shadow-md border border-taupe-light transition-colors"
+            title="Event bearbeiten"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            </svg>
+          </button>
+        )}
+
         <Card hover className="overflow-hidden h-full">
           {/* Event Image */}
           <div className="relative h-48 bg-gradient-to-br from-wood-light/40 to-wine/10 overflow-hidden">

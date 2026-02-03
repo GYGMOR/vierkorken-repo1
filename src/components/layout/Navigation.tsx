@@ -85,12 +85,34 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
             <Link href="/events" className="text-graphite hover:text-graphite-dark transition-colors">
               Events
             </Link>
-            <Link href="/club" className="text-graphite hover:text-graphite-dark transition-colors">
-              Loyalty Club
-            </Link>
-            <Link href="/uber-uns" className="text-graphite hover:text-graphite-dark transition-colors">
-              Über uns
-            </Link>
+
+            {/* Dropdown "Mehr" */}
+            <div className="relative group">
+              <button className="flex items-center gap-1 text-graphite hover:text-graphite-dark transition-colors py-2">
+                <span>Mehr</span>
+                <svg className="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              <div className="absolute right-0 top-full pt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                <div className="bg-warmwhite rounded-lg shadow-strong border border-taupe-light overflow-hidden">
+                  <Link href="/club" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
+                    Loyalty Club
+                  </Link>
+                  <Link href="/weinwissen" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
+                    Weinwissen
+                  </Link>
+                  <div className="border-t border-taupe-light/50"></div>
+                  <Link href="/uber-uns" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
+                    Über uns
+                  </Link>
+                  <Link href="/kontakt" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
+                    Kontakt
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Actions */}
@@ -252,6 +274,7 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
               >
                 Events
               </Link>
+              <div className="border-t border-taupe-light/30 my-1"></div>
               <Link
                 href="/club"
                 className="text-graphite hover:text-graphite-dark transition-colors py-2"
@@ -260,11 +283,25 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
                 Loyalty Club
               </Link>
               <Link
+                href="/weinwissen"
+                className="text-graphite hover:text-graphite-dark transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Weinwissen
+              </Link>
+              <Link
                 href="/uber-uns"
                 className="text-graphite hover:text-graphite-dark transition-colors py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Über uns
+              </Link>
+              <Link
+                href="/kontakt"
+                className="text-graphite hover:text-graphite-dark transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Kontakt
               </Link>
             </div>
           </div>
@@ -391,8 +428,8 @@ function SearchModal({ onClose }: { onClose: () => void }) {
           ) : (
             <div className="p-4">
               {searchResults.wines.length === 0 &&
-               searchResults.events.length === 0 &&
-               searchResults.pages.length === 0 ? (
+                searchResults.events.length === 0 &&
+                searchResults.pages.length === 0 ? (
                 <div className="p-8 text-center text-graphite/60">
                   <p>Keine Ergebnisse gefunden für "{searchQuery}"</p>
                 </div>
