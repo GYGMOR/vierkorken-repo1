@@ -174,7 +174,40 @@ export default function EventsPage() {
   const handleEdit = (event: any, e: React.MouseEvent) => {
     e.preventDefault(); // Prevent link navigation
     e.stopPropagation();
-    setEditingEvent(event);
+
+    // Transform the event data to match EventEditModal's expected format
+    const transformedEvent = {
+      id: event.id,
+      slug: event.slug,
+      title: event.title,
+      subtitle: event.subtitle || null,
+      description: event.description,
+      eventType: event.type,
+      venue: event.venue,
+      venueAddress: {},
+      startDateTime: `${event.date}T${event.time}`,
+      endDateTime: `${event.date}T${event.time}`, // Will need to calculate based on duration
+      duration: event.duration,
+      maxCapacity: event.capacity,
+      currentCapacity: event.booked,
+      availableTickets: event.capacity - event.booked,
+      price: event.price,
+      memberPrice: event.memberPrice,
+      featuredImage: event.image,
+      galleryImages: [],
+      featuredWines: [],
+      minLoyaltyLevel: event.minLoyaltyLevel,
+      isPrivate: false,
+      requiresApproval: false,
+      followUpOffer: null,
+      followUpDuration: null,
+      status: 'PUBLISHED',
+      publishedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    setEditingEvent(transformedEvent);
     setShowEditModal(true);
   };
 
@@ -286,14 +319,14 @@ export default function EventsPage() {
         </section>
       </div>
 
-      {/* Admin Floating Action Button */}
+      {/* Admin Floating Action Button - Top Right */}
       {isAdmin && (
         <button
           onClick={handleCreate}
-          className="fixed bottom-8 right-8 z-40 w-14 h-14 bg-accent-burgundy text-white rounded-full shadow-strong flex items-center justify-center hover:scale-110 transition-transform"
+          className="fixed top-24 right-8 z-40 w-12 h-12 bg-white/80 backdrop-blur-sm text-graphite hover:text-accent-burgundy rounded-full shadow-md border border-taupe-light/50 flex items-center justify-center hover:scale-105 transition-all"
           title="Neues Event erstellen"
         >
-          <PlusIcon className="w-8 h-8" />
+          <PlusIcon className="w-6 h-6" />
         </button>
       )}
 
