@@ -77,6 +77,12 @@ export default function EventsPage() {
   const [events, setEvents] = useState<typeof UPCOMING_EVENTS>([]);
   const [loading, setLoading] = useState(true);
 
+  // Admin state
+  const { data: session } = useSession();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<any | null>(null);
+
   const fetchEvents = async () => {
     try {
       setLoading(true);
@@ -150,12 +156,8 @@ export default function EventsPage() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
-  // Check for admin status
-  const { data: session } = useSession();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<any | null>(null);
 
+  // Check for admin status
   useEffect(() => {
     if (session?.user?.email) {
       fetch('/api/user/profile')
@@ -312,15 +314,29 @@ function EventCard({ event, isAdmin, onEdit }: { event: typeof UPCOMING_EVENTS[0
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [ticketQuantity, setTicketQuantity] = useState(1);
   const [error, setError] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const spotsLeft = event.capacity - event.booked;
   const isAlmostFull = spotsLeft <= 5;
+
+  // Description truncation logic
+  const maxLength = 150;
+  const shouldTruncate = event.description && event.description.length > maxLength;
+  const displayText = isExpanded || !shouldTruncate
+    ? event.description
+    : event.description?.slice(0, maxLength) + '...';
 
   const handleBooking = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setShowBookingModal(true);
     setError(null);
+  };
+
+  const toggleDescription = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsExpanded(!isExpanded);
   };
 
   const handleAddToCart = () => {
@@ -408,7 +424,17 @@ function EventCard({ event, isAdmin, onEdit }: { event: typeof UPCOMING_EVENTS[0
           </CardHeader>
 
           <CardContent className="space-y-4">
-            <p className="text-body-sm text-graphite">{event.description}</p>
+            <div>
+              <p className="text-body-sm text-graphite">{displayText}</p>
+              {shouldTruncate && (
+                <button
+                  onClick={toggleDescription}
+                  className="text-accent-burgundy text-sm font-medium hover:underline mt-2"
+                >
+                  {isExpanded ? 'Weniger anzeigen' : 'Weiterlesen'}
+                </button>
+              )}
+            </div>
 
             {/* Event Details */}
             <div className="space-y-2 text-body-sm text-graphite/80">
