@@ -34,6 +34,7 @@ interface Override {
     food?: string;
     temp?: string;
     alcohol?: string;
+    barrel?: string;
     sweetness?: number;
     acidity?: number;
     tannins?: number;
@@ -62,6 +63,7 @@ export function KlaraProductEditModal({
   const [food, setFood] = useState('');
   const [temp, setTemp] = useState('');
   const [alcohol, setAlcohol] = useState('');
+  const [barrel, setBarrel] = useState('');
 
   // Taste Profile
   const [sweetness, setSweetness] = useState(3);
@@ -104,6 +106,7 @@ export function KlaraProductEditModal({
         setFood(cd.food || '');
         setTemp(cd.temp || '');
         setAlcohol(cd.alcohol || '');
+        setBarrel(cd.barrel || '');
 
         setSweetness(cd.sweetness || 3);
         setAcidity(cd.acidity || 3);
@@ -118,7 +121,7 @@ export function KlaraProductEditModal({
         setCustomDescription(article.description);
         setCustomPrice(article.price.toString());
         setCustomImages([]);
-        setGrapes(''); setBarrel(''); setNose(''); setFood(''); setTemp(''); setAlcohol('');
+        setGrapes(''); setNose(''); setFood(''); setTemp(''); setAlcohol(''); setBarrel('');
         setSweetness(3); setAcidity(3); setTannins(3); setBody(3); setFruitiness(3);
         setNewItemUntil(null);
         setDiscountPercentage(0);
@@ -130,7 +133,7 @@ export function KlaraProductEditModal({
       setCustomDescription(article.description);
       setCustomPrice(article.price.toString());
       setCustomImages([]);
-      setGrapes(''); setBarrel(''); setNose(''); setFood(''); setTemp(''); setAlcohol('');
+      setGrapes(''); setNose(''); setFood(''); setTemp(''); setAlcohol(''); setBarrel('');
       setSweetness(3); setAcidity(3); setTannins(3); setBody(3); setFruitiness(3);
       setNewItemUntil(null);
       setDiscountPercentage(0);
@@ -159,6 +162,7 @@ export function KlaraProductEditModal({
             food,
             temp,
             alcohol,
+            barrel,
             sweetness,
             acidity,
             tannins,
@@ -356,6 +360,10 @@ export function KlaraProductEditModal({
                   <div>
                     <label className="block text-sm font-medium text-graphite mb-1">🍷 Volumen / Alkohol</label>
                     <input type="text" value={alcohol} onChange={e => setAlcohol(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="z.B. 11 % Vol." />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-graphite mb-1">🪵 Fass / Ausbau</label>
+                    <input type="text" value={barrel} onChange={e => setBarrel(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="z.B. Barrique, Stahltank" />
                   </div>
                 </div>
               </div>

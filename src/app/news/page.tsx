@@ -14,6 +14,7 @@ interface NewsItem {
   content: string;
   featuredImage?: string;
   publishedAt?: string;
+  status?: 'DRAFT' | 'PUBLISHED';
   isPinned: boolean;
   createdAt: string;
   updatedAt: string;
@@ -27,6 +28,7 @@ export default function NewsPage() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
+  const [filterStatus, setFilterStatus] = useState<'ALL' | 'PUBLISHED' | 'DRAFT'>('ALL');
 
   // Check if user is admin
   useEffect(() => {
@@ -44,11 +46,12 @@ export default function NewsPage() {
 
   useEffect(() => {
     fetchNews();
-  }, []);
+  }, [isAdmin]);
 
   async function fetchNews() {
     try {
-      const res = await fetch('/api/news');
+      const url = isAdmin ? '/api/news?includeUnpublished=true' : '/api/news';
+      const res = await fetch(url);
       const data = await res.json();
 
       if (data.success) {
@@ -72,22 +75,43 @@ export default function NewsPage() {
               <span className="text-wine font-medium text-sm">NEWS & AKTUELLES</span>
             </div>
 
-            {/* Title with Admin Button */}
-            <div className="flex items-center justify-center gap-4">
+            {/* Title with Admin Controls */}
+            <div className="flex flex-col items-center gap-4">
               <h1 className="text-display font-serif font-light text-graphite-dark">
                 Neuigkeiten aus der Weinwelt
               </h1>
 
-              {/* Admin Button */}
+              {/* Admin Controls */}
               {isAdmin && (
-                <button
-                  onClick={() => setCreateModalOpen(true)}
-                  className="w-12 h-12 bg-wine/10 hover:bg-wine/20 border-2 border-wine/30 rounded-lg transition-all duration-300 flex items-center justify-center group hover:scale-105"
-                  aria-label="News erstellen"
-                  title="News erstellen"
-                >
-                  <PlusIcon className="w-6 h-6 text-graphite-dark group-hover:rotate-90 transition-transform duration-300" />
-                </button>
+                <div className="flex items-center gap-4 animate-fadeIn">
+                  {/* Filter Dropdown */}
+                  <div className="relative">
+                    <select
+                      value={filterStatus}
+                      onChange={(e) => setFilterStatus(e.target.value as any)}
+                      className="appearance-none bg-white pl-4 pr-10 py-2 rounded-full border border-wine/30 text-wine font-medium text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 cursor-pointer hover:bg-wine/5 transition-colors"
+                    >
+                      <option value="ALL">Alle anzeigen</option>
+                      <option value="PUBLISHED">Veröffentlicht</option>
+                      <option value="DRAFT">Entwürfe</option>
+                    </select>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-wine">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* Create Button */}
+                  <button
+                    onClick={() => setCreateModalOpen(true)}
+                    className="w-10 h-10 bg-wine text-warmwhite rounded-full shadow-md hover:bg-wine-dark hover:scale-105 transition-all duration-300 flex items-center justify-center"
+                    aria-label="News erstellen"
+                    title="News erstellen"
+                  >
+                    <PlusIcon className="w-5 h-5" />
+                  </button>
+                </div>
               )}
             </div>
 
@@ -111,17 +135,22 @@ export default function NewsPage() {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {news.map((item) => (
-                <NewsCard
-                  key={item.id}
-                  news={item}
-                  isAdmin={isAdmin}
-                  onEdit={(newsItem) => {
-                    setSelectedNews(newsItem);
-                    setEditModalOpen(true);
-                  }}
-                />
-              ))}
+              {news
+                .filter(item => {
+                  if (filterStatus === 'ALL') return true;
+                  return item.status === filterStatus;
+                })
+                .map((item) => (
+                  <NewsCard
+                    key={item.id}
+                    news={item}
+                    isAdmin={isAdmin}
+                    onEdit={(newsItem) => {
+                      setSelectedNews(newsItem);
+                      setEditModalOpen(true);
+                    }}
+                  />
+                ))}
             </div>
           )}
         </div>
@@ -196,20 +225,37 @@ function NewsCard({ news, isAdmin, onEdit }: { news: NewsItem; isAdmin: boolean;
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
-            {news.isPinned && (
-              <div className="absolute top-4 right-4 bg-accent-gold text-warmwhite px-3 py-1 rounded-full text-xs font-semibold">
-                WICHTIG
-              </div>
-            )}
+            {/* Badges */}
+            <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
+              {news.isPinned && (
+                <div className="bg-accent-gold text-warmwhite px-3 py-1 rounded-full text-xs font-semibold shadow-sm">
+                  WICHTIG
+                </div>
+              )}
+              {news.status === 'DRAFT' && (
+                <div className="bg-gray-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-sm">
+                  ENTWURF
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           <div className="relative h-64 w-full bg-gradient-to-br from-wine/10 to-wood-light/20 flex items-center justify-center">
             <NewsIcon className="w-16 h-16 text-wine/30" />
-            {news.isPinned && (
-              <div className="absolute top-4 right-4 bg-accent-gold text-warmwhite px-3 py-1 rounded-full text-xs font-semibold">
-                WICHTIG
-              </div>
-            )}
+
+            {/* Badges */}
+            <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
+              {news.isPinned && (
+                <div className="bg-accent-gold text-warmwhite px-3 py-1 rounded-full text-xs font-semibold shadow-sm">
+                  WICHTIG
+                </div>
+              )}
+              {news.status === 'DRAFT' && (
+                <div className="bg-gray-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-sm">
+                  ENTWURF
+                </div>
+              )}
+            </div>
           </div>
         )}
       </Link>
@@ -508,22 +554,20 @@ function CreateNewsModal({ onClose, onSuccess }: { onClose: () => void; onSucces
                 <button
                   type="button"
                   onClick={() => setImageMode('upload')}
-                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                    imageMode === 'upload'
-                      ? 'bg-wine text-warmwhite shadow-sm'
-                      : 'text-graphite hover:text-wine'
-                  }`}
+                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${imageMode === 'upload'
+                    ? 'bg-wine text-warmwhite shadow-sm'
+                    : 'text-graphite hover:text-wine'
+                    }`}
                 >
                   Von Gerät hochladen
                 </button>
                 <button
                   type="button"
                   onClick={() => setImageMode('url')}
-                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                    imageMode === 'url'
-                      ? 'bg-wine text-warmwhite shadow-sm'
-                      : 'text-graphite hover:text-wine'
-                  }`}
+                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${imageMode === 'url'
+                    ? 'bg-wine text-warmwhite shadow-sm'
+                    : 'text-graphite hover:text-wine'
+                    }`}
                 >
                   URL eingeben
                 </button>
@@ -876,22 +920,20 @@ function EditNewsModal({ news, onClose, onSuccess }: { news: NewsItem; onClose: 
                 <button
                   type="button"
                   onClick={() => setImageMode('upload')}
-                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                    imageMode === 'upload'
-                      ? 'bg-wine text-warmwhite shadow-sm'
-                      : 'text-graphite hover:text-wine'
-                  }`}
+                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${imageMode === 'upload'
+                    ? 'bg-wine text-warmwhite shadow-sm'
+                    : 'text-graphite hover:text-wine'
+                    }`}
                 >
                   Von Gerät hochladen
                 </button>
                 <button
                   type="button"
                   onClick={() => setImageMode('url')}
-                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                    imageMode === 'url'
-                      ? 'bg-wine text-warmwhite shadow-sm'
-                      : 'text-graphite hover:text-wine'
-                  }`}
+                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${imageMode === 'url'
+                    ? 'bg-wine text-warmwhite shadow-sm'
+                    : 'text-graphite hover:text-wine'
+                    }`}
                 >
                   URL eingeben
                 </button>
