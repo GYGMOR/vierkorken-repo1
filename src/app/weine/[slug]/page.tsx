@@ -20,6 +20,7 @@ interface Wine {
   hasOverride?: boolean;
   customData?: {
     grapes?: string;
+    barrel?: string;
     nose?: string;
     food?: string;
     temp?: string;
@@ -310,6 +311,12 @@ export default function WineDetailPage({ params }: { params: Promise<{ slug: str
                     <AttributeRow
                       icon={<img src="/images/layout/Bild-Icons/traube.svg" alt="Traube" className="w-full h-full object-contain" />}
                       text={wine.customData.grapes}
+                    />
+                  )}
+                  {wine.customData.barrel && (
+                    <AttributeRow
+                      icon={<img src="/images/layout/Bild-Icons/barrels.svg" alt="Fass" className="w-full h-full object-contain" />}
+                      text={wine.customData.barrel}
                     />
                   )}
                   {wine.customData.nose && (

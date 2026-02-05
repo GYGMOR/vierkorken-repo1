@@ -29,6 +29,7 @@ interface Override {
   customImages: string[];
   customData?: {
     grapes?: string;
+    barrel?: string;
     nose?: string;
     food?: string;
     temp?: string;
@@ -56,6 +57,7 @@ export function KlaraProductEditModal({
 
   // New Attributes
   const [grapes, setGrapes] = useState('');
+  const [barrel, setBarrel] = useState('');
   const [nose, setNose] = useState('');
   const [food, setFood] = useState('');
   const [temp, setTemp] = useState('');
@@ -97,6 +99,7 @@ export function KlaraProductEditModal({
 
         const cd = override.customData || {};
         setGrapes(cd.grapes || '');
+        setBarrel(cd.barrel || '');
         setNose(cd.nose || '');
         setFood(cd.food || '');
         setTemp(cd.temp || '');
@@ -115,7 +118,7 @@ export function KlaraProductEditModal({
         setCustomDescription(article.description);
         setCustomPrice(article.price.toString());
         setCustomImages([]);
-        setGrapes(''); setNose(''); setFood(''); setTemp(''); setAlcohol('');
+        setGrapes(''); setBarrel(''); setNose(''); setFood(''); setTemp(''); setAlcohol('');
         setSweetness(3); setAcidity(3); setTannins(3); setBody(3); setFruitiness(3);
         setNewItemUntil(null);
         setDiscountPercentage(0);
@@ -127,7 +130,7 @@ export function KlaraProductEditModal({
       setCustomDescription(article.description);
       setCustomPrice(article.price.toString());
       setCustomImages([]);
-      setGrapes(''); setNose(''); setFood(''); setTemp(''); setAlcohol('');
+      setGrapes(''); setBarrel(''); setNose(''); setFood(''); setTemp(''); setAlcohol('');
       setSweetness(3); setAcidity(3); setTannins(3); setBody(3); setFruitiness(3);
       setNewItemUntil(null);
       setDiscountPercentage(0);
@@ -151,6 +154,7 @@ export function KlaraProductEditModal({
           customImages,
           customData: {
             grapes,
+            barrel,
             nose,
             food,
             temp,
@@ -332,6 +336,10 @@ export function KlaraProductEditModal({
                   <div>
                     <label className="block text-sm font-medium text-graphite mb-1">🍇 Traubensorten</label>
                     <input type="text" value={grapes} onChange={e => setGrapes(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="z.B. Glera, Rondinella" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-graphite mb-1">🛢️ Fass / Ausbau</label>
+                    <input type="text" value={barrel} onChange={e => setBarrel(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="z.B. Eichenfass" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-graphite mb-1">👃 Aroma</label>
