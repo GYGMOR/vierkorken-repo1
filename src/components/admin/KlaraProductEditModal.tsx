@@ -157,7 +157,6 @@ export function KlaraProductEditModal({
           customImages,
           customData: {
             grapes,
-            barrel,
             nose,
             food,
             temp,
