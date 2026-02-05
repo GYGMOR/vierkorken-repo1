@@ -307,19 +307,34 @@ export default function WineDetailPage({ params }: { params: Promise<{ slug: str
               {wine.customData && (
                 <div className="space-y-3">
                   {wine.customData.grapes && (
-                    <AttributeRow icon={<GrapeIcon />} text={wine.customData.grapes} />
+                    <AttributeRow
+                      icon={<img src="/images/layout/Bild-Icons/traube.svg" alt="Traube" className="w-full h-full object-contain" />}
+                      text={wine.customData.grapes}
+                    />
                   )}
                   {wine.customData.nose && (
-                    <AttributeRow icon={<NoseIcon />} text={wine.customData.nose} />
+                    <AttributeRow
+                      icon={<img src="/images/layout/Bild-Icons/taste.svg" alt="Nase" className="w-full h-full object-contain" />}
+                      text={wine.customData.nose}
+                    />
                   )}
                   {wine.customData.food && (
-                    <AttributeRow icon={<FoodIcon />} text={wine.customData.food} />
+                    <AttributeRow
+                      icon={<img src="/images/layout/Bild-Icons/meal.svg" alt="Essen" className="w-full h-full object-contain" />}
+                      text={wine.customData.food}
+                    />
                   )}
                   {wine.customData.temp && (
-                    <AttributeRow icon={<TempIcon />} text={wine.customData.temp} />
+                    <AttributeRow
+                      icon={<img src="/images/layout/Bild-Icons/temperature.svg" alt="Temperatur" className="w-full h-full object-contain" />}
+                      text={wine.customData.temp}
+                    />
                   )}
                   {wine.customData.alcohol && (
-                    <AttributeRow icon={<AlcoholIcon />} text={wine.customData.alcohol} />
+                    <AttributeRow
+                      icon={<img src="/images/layout/Bild-Icons/glas.svg" alt="Alkohol" className="w-full h-full object-contain" />}
+                      text={wine.customData.alcohol}
+                    />
                   )}
                 </div>
               )}
@@ -628,52 +643,4 @@ function AttributeRow({ icon, text }: { icon: React.ReactNode, text: string }) {
   );
 }
 
-function GrapeIcon() {
-  return (
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.5 5.5c-1.5-2-4-2-5.5 0M10 5.5C8 3.5 5 3.5 4 5.5c-.8 1.6.5 4 2.5 5M15.5 5.5c2 2 4.5 2 5.5 3.5-1 2.5-3.5 1-4.5.5M6.5 10.5c-2 2-2 4 0 5.5 2 1.5 4 .5 5-1.5M16.5 9.5c1 2 2.5 3.5 1.5 5.5-1.5 3-5 .5-4.5-1.5M11.5 14.5c-2 2-2 4.5-1 5.5 1.5 1.5 4 0 4.5-2" />
-      <circle cx="12" cy="5" r="1.5" stroke="currentColor" strokeWidth={1.5} />
-      <circle cx="8" cy="9" r="1.5" stroke="currentColor" strokeWidth={1.5} />
-      <circle cx="16" cy="9" r="1.5" stroke="currentColor" strokeWidth={1.5} />
-      <circle cx="12" cy="13" r="1.5" stroke="currentColor" strokeWidth={1.5} />
-      <circle cx="12" cy="17" r="1.5" stroke="currentColor" strokeWidth={1.5} />
-    </svg>
-  );
-}
 
-function NoseIcon() {
-  return (
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 11c0-3.5-3-5.5-5-5.5S2 8 2 12s4.5 4 7 4 3-1.5 3-5z" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14 8c2-2 5-2 7 0" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13c1.5-1.5 4-1.5 5.5 0" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 18c1.5-1.5 4-1.5 5.5 0" />
-    </svg>
-  );
-}
-
-function FoodIcon() {
-  return (
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" opacity="0" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.122-9.25L7.5 7.5m-.707 9.9l-2.829 2.829" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5.3a2.9 2.9 0 00-2.12 3.8M8 4a4 4 0 00-4 4v10a2 2 0 002 2h0a2 2 0 002-2V8a4 4 0 00-4-4z" />
-    </svg>
-  );
-}
-
-function TempIcon() {
-  return (
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v5m0 0v5m0-5h2m-2 0h-2M9 21h6a2 2 0 002-2V5a2 2 0 00-2-2H9a2 2 0 00-2 2v14a2 2 0 002 2z" />
-    </svg>
-  );
-}
-
-function AlcoholIcon() {
-  return (
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-    </svg>
-  );
-}
