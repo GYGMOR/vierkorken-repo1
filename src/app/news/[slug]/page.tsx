@@ -128,12 +128,11 @@ export default function NewsDetailPage() {
 
           {/* Featured Image */}
           {news.featuredImage && (
-            <div className="relative h-96 w-full rounded-lg overflow-hidden mb-8 shadow-strong">
-              <Image
+            <div className="flex justify-center mb-8">
+              <img
                 src={news.featuredImage}
                 alt={news.title}
-                fill
-                className="object-cover"
+                className="w-full h-auto max-h-[600px] object-contain rounded-lg shadow-strong"
               />
             </div>
           )}

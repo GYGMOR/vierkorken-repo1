@@ -315,12 +315,12 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12 mb-12">
           {/* Image */}
           <div className="flex justify-center">
-            <div className="relative w-full max-w-md aspect-[4/3] bg-gradient-to-br from-warmwhite to-sand-light rounded-lg overflow-hidden">
+            <div className="relative w-full rounded-lg overflow-hidden flex justify-center bg-transparent">
               {event.image && event.image !== '/events/default.jpg' ? (
                 <img
                   src={event.image}
                   alt={event.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-auto max-h-[600px] object-contain rounded-lg"
                   onError={(e) => {
                     console.error('❌ Image failed to load:', event.image);
                     e.currentTarget.style.display = 'none';
@@ -328,8 +328,8 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
                   onLoad={() => console.log('✅ Image loaded:', event.image)}
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <svg className="w-32 h-32 text-taupe" fill="currentColor" viewBox="0 0 24 24">
+                <div className="w-full h-64 flex items-center justify-center bg-gray-100 rounded-lg">
+                  <svg className="w-24 h-24 text-taupe" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z" />
                   </svg>
                 </div>
@@ -411,11 +411,10 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
                   </div>
                   <div className="w-full bg-taupe-light rounded-full h-2.5 overflow-hidden">
                     <div
-                      className={`h-full rounded-full transition-all duration-500 ${
-                        availableTickets <= 5 ? 'bg-red-600' :
-                        availableTickets <= 10 ? 'bg-orange-500' :
-                        'bg-green-500'
-                      }`}
+                      className={`h-full rounded-full transition-all duration-500 ${availableTickets <= 5 ? 'bg-red-600' :
+                          availableTickets <= 10 ? 'bg-orange-500' :
+                            'bg-green-500'
+                        }`}
                       style={{ width: `${(availableTickets / event.capacity) * 100}%` }}
                     />
                   </div>
