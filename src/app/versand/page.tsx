@@ -139,8 +139,13 @@ export default function VersandPage() {
                 <p className="text-sm text-graphite mt-2">
                   <strong>Öffnungszeiten:</strong>
                 </p>
-                <p className="text-sm text-graphite">Mo-Fr: 09:00 - 18:00 Uhr</p>
-                <p className="text-sm text-graphite">Sa: 10:00 - 16:00 Uhr</p>
+                <div className="text-sm text-graphite space-y-1">
+                  <p>Mo & Di: Geschlossen</p>
+                  <p>Mi & Do: 13:30 – 18:30 Uhr</p>
+                  <p>Fr: 09:00 – 12:00, 13:30 – 18:30 Uhr</p>
+                  <p>Sa: 09:00 – 14:00 Uhr</p>
+                  <p>So: Geschlossen</p>
+                </div>
               </div>
               <p className="text-sm text-graphite mt-4">
                 Bitte warten Sie auf unsere Bestätigung, bevor Sie Ihre Bestellung abholen.

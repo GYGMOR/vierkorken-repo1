@@ -187,7 +187,7 @@ export default function WiderrufsrechtPage() {
               </p>
               <ul className="list-disc pl-4 md:pl-6 space-y-2 mt-3">
                 <li>E-Mail: info@vierkorken.ch</li>
-                <li>Telefon: +41 XX XXX XX XX</li>
+                <li>Telefon: 062 390 04 04</li>
                 <li>Persönlich: Steinbrunnengasse 3A, 5707 Seengen</li>
               </ul>
             </section>
