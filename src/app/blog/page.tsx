@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { DailyTipManager } from '@/components/blog/DailyTipManager';
 import { BlogPostManager } from '@/components/blog/BlogPostManager';
+import { KnowledgeCategoryManager } from '@/components/blog/KnowledgeCategoryManager';
+import { CategoryIcons } from '@/components/blog/CategoryIcons';
 
 // Start Types
 interface DailyTip {
@@ -27,6 +29,13 @@ interface BlogPost {
   publishedAt: string;
   slug: string;
 }
+
+interface KnowledgeCategory {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+}
 // End Types
 
 export default function WeinwissenPage() {
@@ -36,9 +45,11 @@ export default function WeinwissenPage() {
   const [tips, setTips] = useState<DailyTip[]>([]);
   const [currentTip, setCurrentTip] = useState<DailyTip | null>(null);
   const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [categories, setCategories] = useState<KnowledgeCategory[]>([]);
 
   const [showTipManager, setShowTipManager] = useState(false);
   const [showPostManager, setShowPostManager] = useState(false);
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
@@ -61,6 +72,13 @@ export default function WeinwissenPage() {
       if (postsRes.ok) {
         const data = await postsRes.json();
         setPosts(data.posts);
+      }
+
+      // Fetch Categories
+      const categoriesRes = await fetch('/api/admin/knowledge-categories');
+      if (categoriesRes.ok) {
+        const data = await categoriesRes.json();
+        setCategories(data.categories || []);
       }
     } catch (error) {
       console.error('Error fetching blog data:', error);
@@ -158,52 +176,86 @@ export default function WeinwissenPage() {
             </div>
           </div>
 
-          {/* Weinwissen Kategorien (Static but kept as requested structure) */}
-          <div className="grid md:grid-cols-2 gap-6 mb-12">
-            <Card className="hover:shadow-strong transition-shadow cursor-pointer border-none shadow-md bg-white">
-              <CardHeader>
-                <div className="w-12 h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center mb-4">
-                  <GrapeIcon className="w-6 h-6 text-accent-burgundy" />
-                </div>
-                <CardTitle>Rebsorten</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-graphite">Lernen Sie die Unterschiede zwischen Rotwein, Weisswein, Rosé und Schaumwein kennen.</p>
-              </CardContent>
-            </Card>
-            <Card className="hover:shadow-strong transition-shadow cursor-pointer border-none shadow-md bg-white">
-              <CardHeader>
-                <div className="w-12 h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center mb-4">
-                  <StorageIcon className="w-6 h-6 text-accent-burgundy" />
-                </div>
-                <CardTitle>Weinregionen</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-graphite">Entdecken Sie die bedeutendsten Weinregionen der Welt und ihre Besonderheiten.</p>
-              </CardContent>
-            </Card>
-            <Card className="hover:shadow-strong transition-shadow cursor-pointer border-none shadow-md bg-white">
-              <CardHeader>
-                <div className="w-12 h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center mb-4">
-                  <NoseIcon className="w-6 h-6 text-accent-burgundy" />
-                </div>
-                <CardTitle>Verkostung</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-graphite">Die Kunst der Weinverkostung: Sehen, Riechen, Schmecken.</p>
-              </CardContent>
-            </Card>
-            <Card className="hover:shadow-strong transition-shadow cursor-pointer border-none shadow-md bg-white">
-              <CardHeader>
-                <div className="w-12 h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center mb-4">
-                  <FoodIcon className="w-6 h-6 text-accent-burgundy" />
-                </div>
-                <CardTitle>Food Pairing</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-graphite">Welcher Wein passt zu welchem Essen? Wir verraten es Ihnen.</p>
-              </CardContent>
-            </Card>
+          {/* Weinwissen Kategorien (Dynamic) */}
+          <div className="relative group mb-12">
+            {isAdmin && (
+              <button
+                onClick={() => setShowCategoryManager(true)}
+                className="absolute top-0 right-0 bg-white p-2 rounded-full shadow-md z-20 text-graphite hover:text-accent-burgundy opacity-0 group-hover:opacity-100 transition-opacity translate-x-1/2 -translate-y-1/2"
+                title="Kategorien verwalten"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+              </button>
+            )}
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {categories.length > 0 ? (
+                categories.map((cat) => {
+                  const IconComponent = CategoryIcons[cat.icon] || CategoryIcons.grape;
+                  return (
+                    <Card key={cat.id} className="hover:shadow-strong transition-shadow cursor-pointer border-none shadow-md bg-white">
+                      <CardHeader>
+                        <div className="w-12 h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center mb-4">
+                          <IconComponent className="w-6 h-6 text-accent-burgundy" />
+                        </div>
+                        <CardTitle>{cat.title}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-graphite">{cat.description}</p>
+                      </CardContent>
+                    </Card>
+                  );
+                })
+              ) : (
+                <>
+                  {/* Fallback Static Content if DB is empty */}
+                  <Card className="hover:shadow-strong transition-shadow cursor-pointer border-none shadow-md bg-white">
+                    <CardHeader>
+                      <div className="w-12 h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center mb-4">
+                        <CategoryIcons.grape className="w-6 h-6 text-accent-burgundy" />
+                      </div>
+                      <CardTitle>Rebsorten</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-graphite">Lernen Sie die Unterschiede zwischen Rotwein, Weisswein, Rosé und Schaumwein kennen.</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="hover:shadow-strong transition-shadow cursor-pointer border-none shadow-md bg-white">
+                    <CardHeader>
+                      <div className="w-12 h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center mb-4">
+                        <CategoryIcons.storage className="w-6 h-6 text-accent-burgundy" />
+                      </div>
+                      <CardTitle>Weinregionen</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-graphite">Entdecken Sie die bedeutendsten Weinregionen der Welt und ihre Besonderheiten.</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="hover:shadow-strong transition-shadow cursor-pointer border-none shadow-md bg-white">
+                    <CardHeader>
+                      <div className="w-12 h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center mb-4">
+                        <CategoryIcons.nose className="w-6 h-6 text-accent-burgundy" />
+                      </div>
+                      <CardTitle>Verkostung</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-graphite">Die Kunst der Weinverkostung: Sehen, Riechen, Schmecken.</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="hover:shadow-strong transition-shadow cursor-pointer border-none shadow-md bg-white">
+                    <CardHeader>
+                      <div className="w-12 h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center mb-4">
+                        <CategoryIcons.food className="w-6 h-6 text-accent-burgundy" />
+                      </div>
+                      <CardTitle>Food Pairing</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-graphite">Welcher Wein passt zu welchem Essen? Wir verraten es Ihnen.</p>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Artikel */}
@@ -274,6 +326,9 @@ export default function WeinwissenPage() {
       )}
       {showPostManager && (
         <BlogPostManager onClose={() => setShowPostManager(false)} onUpdate={fetchData} />
+      )}
+      {showCategoryManager && (
+        <KnowledgeCategoryManager onClose={() => setShowCategoryManager(false)} onUpdate={fetchData} />
       )}
     </MainLayout>
   );

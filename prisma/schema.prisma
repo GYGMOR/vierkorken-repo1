@@ -1182,3 +1182,17 @@ model DailyTip {
   
   @@map("dailytip")
 }
+
+model KnowledgeCategory {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @db.Text
+  icon        String   // "grape", "nose", "storage", "food"
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("knowledgecategory")
+}
