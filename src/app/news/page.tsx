@@ -18,6 +18,8 @@ interface NewsItem {
   isPinned: boolean;
   createdAt: string;
   updatedAt: string;
+  type?: string;
+  eventId?: string;
 }
 
 export default function NewsPage() {
@@ -227,6 +229,12 @@ function NewsCard({ news, isAdmin, onEdit }: { news: NewsItem; isAdmin: boolean;
             />
             {/* Badges */}
             <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
+              {/* Event Badge */}
+              {news.type === 'EVENT' && (
+                <div className="bg-gradient-to-r from-accent-gold to-yellow-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md tracking-wider">
+                  EVENT
+                </div>
+              )}
               {news.isPinned && (
                 <div className="bg-accent-gold text-warmwhite px-3 py-1 rounded-full text-xs font-semibold shadow-sm">
                   WICHTIG
@@ -245,6 +253,12 @@ function NewsCard({ news, isAdmin, onEdit }: { news: NewsItem; isAdmin: boolean;
 
             {/* Badges */}
             <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
+              {/* Event Badge */}
+              {news.type === 'EVENT' && (
+                <div className="bg-gradient-to-r from-accent-gold to-yellow-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md tracking-wider">
+                  EVENT
+                </div>
+              )}
               {news.isPinned && (
                 <div className="bg-accent-gold text-warmwhite px-3 py-1 rounded-full text-xs font-semibold shadow-sm">
                   WICHTIG

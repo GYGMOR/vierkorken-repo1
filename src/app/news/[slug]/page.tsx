@@ -18,6 +18,14 @@ interface NewsItem {
   isPinned: boolean;
   createdAt: string;
   updatedAt: string;
+  type?: string;
+  eventId?: string;
+  event?: {
+    slug: string;
+    startDateTime: string;
+    venue: string;
+    price: number;
+  };
 }
 
 export default function NewsDetailPage() {
@@ -124,6 +132,20 @@ export default function NewsDetailPage() {
                 {news.excerpt}
               </p>
             )}
+
+            {/* Start: Event Booking Button */}
+            {news.type === 'EVENT' && news.event && (
+              <div className="flex justify-center md:justify-start pt-2">
+                <Link
+                  href={`/events/${news.event.slug}`}
+                  className="bg-accent-gold hover:bg-yellow-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center gap-2"
+                >
+                  <span className="text-lg">🎟️</span>
+                  <span>JETZT TICKET BUCHEN</span>
+                </Link>
+              </div>
+            )}
+            {/* End: Event Booking Button */}
           </div>
 
           {/* Featured Image */}

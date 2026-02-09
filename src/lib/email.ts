@@ -231,31 +231,6 @@ export async function sendContactEmail(
   const adminEmail = process.env.ADMIN_EMAIL || 'info@vierkorken.ch';
 
   const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Kontaktanfrage</title>
-        </head>
-        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background-color: #8B4513; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">VIER KORKEN</h1>
-          </div>
-
-          <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
-            <h2 style="color: #333; margin-top: 0;">Neue Kontaktanfrage</h2>
-
-            <div style="background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <h3 style="color: #8B4513; margin-top: 0;">Kontaktdaten</h3>
-              <p style="margin: 5px 0;"><strong>Name:</strong> ${name}</p>
-              <p style="margin: 5px 0;"><strong>E-Mail:</strong> ${email}</p>
-              <p style="margin: 5px 0;"><strong>Betreff:</strong> ${subject}</p>
-            </div>
-
-            <div style="background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <h3 style="color: #333; margin-top: 0;">Nachricht</h3>
-              <p style="white-space: pre-wrap; margin: 0;">${message}</p>
             </div>
 
             <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107; margin: 20px 0;">
@@ -384,11 +359,11 @@ export async function sendOrderConfirmationEmail(to: string, orderId: string, or
   // Format tickets list for email
   const ticketItemsList = ticketsForPDF.length > 0
     ? ticketsForPDF
-        .map(
-          (ticket: any) =>
-            `• Event-Ticket: ${ticket.eventTitle} (${ticket.eventDate}) - CHF ${Number(ticket.price).toFixed(2)}`
-        )
-        .join('\n')
+      .map(
+        (ticket: any) =>
+          `• Event-Ticket: ${ticket.eventTitle} (${ticket.eventDate}) - CHF ${Number(ticket.price).toFixed(2)}`
+      )
+      .join('\n')
     : '';
 
   // Combine all items
@@ -559,11 +534,11 @@ Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
   // Prepare attachments
   const attachments = pdfBuffer
     ? [
-        {
-          filename: `Rechnung_${orderDetails.orderNumber}.pdf`,
-          content: pdfBuffer,
-        },
-      ]
+      {
+        filename: `Rechnung_${orderDetails.orderNumber}.pdf`,
+        content: pdfBuffer,
+      },
+    ]
     : undefined;
 
   console.log('📧 About to send order confirmation email...');
@@ -766,8 +741,8 @@ Telefon: ${orderDetails.customerPhone || '-'}
 
 Bestellte Artikel:
 ${orderDetails.items.map((item: any) =>
-  `${item.quantity}x ${item.wineName} - CHF ${Number(item.totalPrice).toFixed(2)}`
-).join('\n')}
+    `${item.quantity}x ${item.wineName} - CHF ${Number(item.totalPrice).toFixed(2)}`
+  ).join('\n')}
 
 Gesamtbetrag: ${formatPrice(orderDetails.total)}
 
@@ -1781,9 +1756,8 @@ export async function sendGiftCardEmail(
             </div>
           </div>
 
-          ${
-            giftCard.message
-              ? `
+          ${giftCard.message
+      ? `
           <div style="background-color: #fff; padding: 20px; border-radius: 8px; border-left: 4px solid #C9A961; margin: 20px 0;">
             <p style="margin: 0; color: #6D2932; font-style: italic;">
               "${giftCard.message}"
@@ -1793,8 +1767,8 @@ export async function sendGiftCardEmail(
             </p>
           </div>
           `
-              : ''
-          }
+      : ''
+    }
 
           <div style="background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h3 style="color: #6D2932; margin-top: 0; font-size: 16px;">So lösen Sie Ihren Gutschein ein:</h3>
@@ -1858,6 +1832,124 @@ Tel: 062 390 04 04 | info@vierkorken.ch
   await sendInfoMail({
     to: recipientEmail,
     subject: `Ein Geschenk von ${giftCard.senderName} - VIER KORKEN Gutschein`,
+    html,
+    text,
+  });
+}
+
+/**
+ * Send event notification email to subscribers
+ */
+export async function sendEventNotificationEmail(to: string, event: any) {
+  // Safe Mode: In Development, only send to developers
+  if (process.env.NODE_ENV === 'development' && !to.includes('vierkorken.ch') && !to.includes('test') && !to.includes('joel') && !to.includes('admin')) {
+    console.log(`🔒 [SafeMode] Skipping email to ${to} in development`);
+    return;
+  }
+
+  const eventDate = new Date(event.startDateTime).toLocaleDateString('de-CH', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  const eventTime = new Date(event.startDateTime).toLocaleTimeString('de-CH', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>${event.title}</title>
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 0;">
+          <!-- Header Image -->
+          ${event.featuredImage ? `
+          <div style="width: 100%; height: 250px; background-image: url('${event.featuredImage}'); background-size: cover; background-position: center; border-radius: 8px 8px 0 0;">
+             <div style="width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7)); display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; box-sizing: border-box;">
+                <span style="background-color: #D4AF37; color: #fff; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; align-self: flex-start; margin-bottom: 10px; text-transform: uppercase;">Neues Event</span>
+                <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">${event.title}</h1>
+             </div>
+          </div>
+          ` : `
+          <div style="background-color: #8B4513; padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
+            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">VIER KORKEN</h1>
+            <p style="color: #e0e0e0; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 1px; font-size: 14px;">Events & Tastings</p>
+          </div>
+          `}
+
+          <div style="background-color: #fff; padding: 30px; border-radius: 0 0 8px 8px; border: 1px solid #eee; border-top: none;">
+            <!-- Event Info Box -->
+            <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid #8B4513;">
+               <table style="width: 100%; border-collapse: collapse;">
+                 <tr>
+                   <td style="padding: 5px 0; color: #666; width: 30px;">📅</td>
+                   <td style="padding: 5px 0; font-weight: 600; color: #333;">${eventDate}</td>
+                 </tr>
+                 <tr>
+                   <td style="padding: 5px 0; color: #666;">⏰</td>
+                   <td style="padding: 5px 0; font-weight: 600; color: #333;">${eventTime} Uhr</td>
+                 </tr>
+                 <tr>
+                   <td style="padding: 5px 0; color: #666;">📍</td>
+                   <td style="padding: 5px 0; font-weight: 600; color: #333;">${event.venue}</td>
+                 </tr>
+                 <tr>
+                   <td style="padding: 5px 0; color: #666;">🎟️</td>
+                   <td style="padding: 5px 0; font-weight: 600; color: #8B4513;">CHF ${Number(event.price).toFixed(2)}</td>
+                 </tr>
+               </table>
+            </div>
+
+            <h2 style="color: #333; margin-top: 0; font-size: 20px;">${event.subtitle || 'Erleben Sie Wein neu'}</h2>
+            
+            <div style="color: #555; margin-bottom: 30px; line-height: 1.8;">
+              ${event.description ? event.description.substring(0, 300) + '...' : ''}
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/events/${event.slug}" 
+                 style="background-color: #8B4513; color: #ffffff; padding: 16px 32px; text-decoration: none; border-radius: 50px; display: inline-block; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 6px rgba(139, 69, 19, 0.2);">
+                Jetzt anmelden
+              </a>
+            </div>
+
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              © ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop<br>
+              Sie erhalten diese E-Mail, weil Sie sich für unseren Newsletter angemeldet haben.<br>
+              <a href="${process.env.NEXT_PUBLIC_APP_URL}/newsletter/unsubscribe" style="color: #8B4513; text-decoration: underline;">Abmelden</a>
+            </p>
+          </div>
+        </body>
+      </html>
+    `;
+
+  const text = `
+VIER KORKEN - Neues Event: ${event.title}
+
+${event.subtitle || ''}
+
+Wann: ${eventDate} um ${eventTime} Uhr
+Wo: ${event.venue}
+Preis: CHF ${Number(event.price).toFixed(2)}
+
+${event.description ? event.description.substring(0, 150) + '...' : ''}
+
+Jetzt anmelden: ${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/events/${event.slug}
+
+© ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop
+  `.trim();
+
+  await sendInfoMail({
+    to,
+    subject: `🥂 Neues Event: ${event.title}`,
     html,
     text,
   });

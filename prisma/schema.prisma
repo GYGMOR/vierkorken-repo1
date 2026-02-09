@@ -695,6 +695,7 @@ model Event {
   updatedAt       DateTime @updatedAt
 
   tickets         EventTicket[]
+  newsItem        News?
 
   @@index([slug])
   @@index([status])
@@ -838,6 +839,11 @@ model News {
   isPinned        Boolean  @default(false)
   sortOrder       Int      @default(0)
 
+  // Integration with Events
+  type            String   @default("NEWS") // "NEWS" or "EVENT"
+  eventId         String?  @unique
+  event           Event?   @relation(fields: [eventId], references: [id])
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -845,6 +851,8 @@ model News {
   @@index([status])
   @@index([publishedAt])
   @@index([isPinned])
+  @@index([type])
+  @@index([eventId])
 
   @@map("news")
 }

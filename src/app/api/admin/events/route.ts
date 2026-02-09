@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
+import { sendEventNotificationEmail } from '@/lib/email';
 
 // Force Node.js runtime (required for Prisma)
 export const runtime = 'nodejs';
@@ -151,6 +152,88 @@ export async function POST(req: NextRequest) {
         publishedAt: status === 'PUBLISHED' ? new Date() : null,
       },
     });
+
+    // -------------------------------------------------------------
+    // AUTOMATIC NEWS GENERATION & NOTIFICATION
+    // -------------------------------------------------------------
+    try {
+      // 1. Create linked News Item
+      console.log('📰 Creating automatic news item for event:', event.id);
+
+      const newsSlug = `event-${slug}`;
+      const newsTitle = title; // Same title
+      // Create a short excerpt from description (first 150 chars)
+      const newsExcerpt = description.length > 150
+        ? description.substring(0, 150) + '...'
+        : description;
+
+      await prisma.news.create({
+        data: {
+          slug: newsSlug,
+          title: newsTitle,
+          excerpt: newsExcerpt,
+          content: description, // Full description
+          featuredImage: featuredImage,
+          status: status as any, // Sync status with event
+          publishedAt: status === 'PUBLISHED' ? new Date() : null,
+          type: 'EVENT', // New field
+          eventId: event.id,
+          isPinned: true, // Pin events by default? Or maybe not. Let's say yes for visibility.
+        }
+      });
+      console.log('✅ News item created successfully');
+
+      // 2. Send Email Notification (if PUBLISHED)
+      if (status === 'PUBLISHED') {
+        console.log('📧 Starting event notification distribution...');
+
+        // Fetch recipients
+        // A. Users with newsletter subscription
+        const subscribedUsers = await prisma.user.findMany({
+          where: { newsletterSubscribed: true, email: { not: undefined } },
+          select: { email: true }
+        });
+
+        // B. Newsletter Subscribers (guests)
+        const newsletterSubscribers = await prisma.newsletterSubscriber.findMany({
+          where: { isActive: true },
+          select: { email: true }
+        });
+
+        // Combine and dedup
+        const allEmails = new Set([
+          ...subscribedUsers.map(u => u.email),
+          ...newsletterSubscribers.map(s => s.email)
+        ].filter(Boolean));
+
+        console.log(`📧 Found ${allEmails.size} unique recipients`);
+
+        // Send emails (chunks of 10 to avoid overwhelming)
+        const emailList = Array.from(allEmails);
+        const chunkSize = 10;
+
+        // We don't await the entire batching to return response faster? 
+        // No, Vercel might kill it. We must await.
+        // We'll process in background if possible, but here we just loop.
+
+        // Optimize: Send to dev only if dev mode is handled in email.ts? 
+        // Yes, email.ts has the safe guard. We just pass all emails.
+
+        let sentCount = 0;
+        for (let i = 0; i < emailList.length; i += chunkSize) {
+          const chunk = emailList.slice(i, i + chunkSize);
+          await Promise.all(chunk.map(email => sendEventNotificationEmail(email, event)));
+          sentCount += chunk.length;
+          console.log(`📧 Sent chunk ${i / chunkSize + 1} (${sentCount}/${emailList.length})`);
+        }
+
+        console.log('✅ All event notifications sent');
+      }
+
+    } catch (newsError) {
+      console.error('⚠️ Error in automatic news/email generation:', newsError);
+      // We don't fail the request because the event itself was created successfully
+    }
 
     return NextResponse.json({
       success: true,
