@@ -34,7 +34,7 @@ interface Override {
     food?: string;
     temp?: string;
     alcohol?: string;
-    barrel?: string;
+
     sweetness?: number;
     acidity?: number;
     tannins?: number;
@@ -63,7 +63,7 @@ export function KlaraProductEditModal({
   const [food, setFood] = useState('');
   const [temp, setTemp] = useState('');
   const [alcohol, setAlcohol] = useState('');
-  const [barrel, setBarrel] = useState('');
+
 
   // Taste Profile
   const [sweetness, setSweetness] = useState(3);
@@ -106,7 +106,7 @@ export function KlaraProductEditModal({
         setFood(cd.food || '');
         setTemp(cd.temp || '');
         setAlcohol(cd.alcohol || '');
-        setBarrel(cd.barrel || '');
+
 
         setSweetness(cd.sweetness || 3);
         setAcidity(cd.acidity || 3);
@@ -360,10 +360,7 @@ export function KlaraProductEditModal({
                     <label className="block text-sm font-medium text-graphite mb-1">🍷 Volumen / Alkohol</label>
                     <input type="text" value={alcohol} onChange={e => setAlcohol(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="z.B. 11 % Vol." />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-graphite mb-1">🪵 Fass / Ausbau</label>
-                    <input type="text" value={barrel} onChange={e => setBarrel(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="z.B. Barrique, Stahltank" />
-                  </div>
+
                 </div>
               </div>
 
