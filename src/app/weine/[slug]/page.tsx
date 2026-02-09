@@ -25,7 +25,7 @@ interface Wine {
     food?: string;
     temp?: string;
     alcohol?: string;
-    barrel?: string;
+
     sweetness?: number;
     acidity?: number;
     tannins?: number;
@@ -344,12 +344,7 @@ export default function WineDetailPage({ params }: { params: Promise<{ slug: str
                       text={wine.customData.alcohol}
                     />
                   )}
-                  {wine.customData.barrel && (
-                    <AttributeRow
-                      icon={<img src="/images/layout/Bild-Icons/barrels.svg" alt="Fass/Ausbau" className="w-full h-full object-contain" />}
-                      text={wine.customData.barrel}
-                    />
-                  )}
+
                 </div>
               )}
             </div>
