@@ -1841,9 +1841,20 @@ Tel: 062 390 04 04 | info@vierkorken.ch
  * Send event notification email to subscribers
  */
 export async function sendEventNotificationEmail(to: string, event: any) {
-  // Safe Mode: In Development, only send to developers
-  if (process.env.NODE_ENV === 'development' && !to.includes('vierkorken.ch') && !to.includes('test') && !to.includes('joel') && !to.includes('admin')) {
-    console.log(`🔒 [SafeMode] Skipping email to ${to} in development`);
+  // Safe Mode logic:
+  // 1. Always active in Development
+  // 2. Active in Production if EMAIL_SAFE_MODE env var is set to "true"
+  const isSafeMode = process.env.NODE_ENV === 'development' || process.env.EMAIL_SAFE_MODE === 'true';
+
+  // Allowed recipients in Safe Mode
+  const isAllowedRecipient =
+    to.includes('vierkorken.ch') ||
+    to.includes('test') ||
+    to.includes('joel') ||
+    to.includes('admin');
+
+  if (isSafeMode && !isAllowedRecipient) {
+    console.log(`🔒 [SafeMode] Skipping email to ${to} (Safe Mode Active)`);
     return;
   }
 
