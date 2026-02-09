@@ -100,7 +100,7 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
                   <Link href="/club" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
                     Loyalty Club
                   </Link>
-                  <Link href="/weinwissen" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
+                  <Link href="/blog" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
                     Weinwissen
                   </Link>
                   <div className="border-t border-taupe-light/50"></div>
@@ -283,7 +283,7 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
                 Loyalty Club
               </Link>
               <Link
-                href="/weinwissen"
+                href="/blog"
                 className="text-graphite hover:text-graphite-dark transition-colors py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >

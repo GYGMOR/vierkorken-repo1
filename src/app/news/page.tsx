@@ -18,6 +18,8 @@ interface NewsItem {
   isPinned: boolean;
   createdAt: string;
   updatedAt: string;
+  type?: string;
+  eventId?: string;
 }
 
 export default function NewsPage() {
@@ -70,9 +72,9 @@ export default function NewsPage() {
       <section className="section-padding bg-gradient-to-br from-warmwhite via-rose-light/10 to-warmwhite">
         <div className="container-custom text-center">
           <div className="max-w-3xl mx-auto space-y-4">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-wine/10 rounded-full border border-wine/20">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent-burgundy/10 rounded-full border border-accent-burgundy/20">
               <NewsIcon />
-              <span className="text-wine font-medium text-sm">NEWS & AKTUELLES</span>
+              <span className="text-accent-burgundy font-medium text-sm">NEWS & AKTUELLES</span>
             </div>
 
             {/* Title with Admin Controls */}
@@ -89,13 +91,13 @@ export default function NewsPage() {
                     <select
                       value={filterStatus}
                       onChange={(e) => setFilterStatus(e.target.value as any)}
-                      className="appearance-none bg-white pl-4 pr-10 py-2 rounded-full border border-wine/30 text-wine font-medium text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 cursor-pointer hover:bg-wine/5 transition-colors"
+                      className="appearance-none bg-white pl-4 pr-10 py-2 rounded-full border border-accent-burgundy/30 text-accent-burgundy font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-burgundy/20 cursor-pointer hover:bg-accent-burgundy/5 transition-colors"
                     >
                       <option value="ALL">Alle anzeigen</option>
                       <option value="PUBLISHED">Veröffentlicht</option>
                       <option value="DRAFT">Entwürfe</option>
                     </select>
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-wine">
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-accent-burgundy">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
@@ -105,7 +107,7 @@ export default function NewsPage() {
                   {/* Create Button */}
                   <button
                     onClick={() => setCreateModalOpen(true)}
-                    className="w-10 h-10 bg-wine text-warmwhite rounded-full shadow-md hover:bg-wine-dark hover:scale-105 transition-all duration-300 flex items-center justify-center"
+                    className="w-10 h-10 bg-white text-accent-burgundy rounded-full shadow-md border border-accent-burgundy/30 hover:bg-accent-burgundy/5 hover:scale-105 transition-all duration-300 flex items-center justify-center"
                     aria-label="News erstellen"
                     title="News erstellen"
                   >
@@ -127,7 +129,7 @@ export default function NewsPage() {
         <div className="container-custom">
           {loading ? (
             <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-wine"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-burgundy"></div>
             </div>
           ) : news.length === 0 ? (
             <div className="text-center py-12">
@@ -207,7 +209,7 @@ function NewsCard({ news, isAdmin, onEdit }: { news: NewsItem; isAdmin: boolean;
             e.preventDefault();
             onEdit(news);
           }}
-          className="absolute top-4 left-4 z-10 w-10 h-10 bg-warmwhite/95 hover:bg-wine text-graphite-dark hover:text-warmwhite rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center group/edit"
+          className="absolute top-4 left-4 z-10 w-10 h-10 bg-warmwhite/95 hover:bg-accent-burgundy text-graphite-dark hover:text-warmwhite rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center group/edit"
           aria-label="News bearbeiten"
           title="News bearbeiten"
         >
@@ -227,6 +229,12 @@ function NewsCard({ news, isAdmin, onEdit }: { news: NewsItem; isAdmin: boolean;
             />
             {/* Badges */}
             <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
+              {/* Event Badge */}
+              {news.type === 'EVENT' && (
+                <div className="bg-gradient-to-r from-accent-gold to-yellow-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md tracking-wider">
+                  EVENT
+                </div>
+              )}
               {news.isPinned && (
                 <div className="bg-accent-gold text-warmwhite px-3 py-1 rounded-full text-xs font-semibold shadow-sm">
                   WICHTIG
@@ -240,11 +248,17 @@ function NewsCard({ news, isAdmin, onEdit }: { news: NewsItem; isAdmin: boolean;
             </div>
           </div>
         ) : (
-          <div className="relative h-64 w-full bg-gradient-to-br from-wine/10 to-wood-light/20 flex items-center justify-center">
-            <NewsIcon className="w-16 h-16 text-wine/30" />
+          <div className="relative h-64 w-full bg-gradient-to-br from-accent-burgundy/10 to-wood-light/20 flex items-center justify-center">
+            <NewsIcon className="w-16 h-16 text-accent-burgundy/30" />
 
             {/* Badges */}
             <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
+              {/* Event Badge */}
+              {news.type === 'EVENT' && (
+                <div className="bg-gradient-to-r from-accent-gold to-yellow-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md tracking-wider">
+                  EVENT
+                </div>
+              )}
               {news.isPinned && (
                 <div className="bg-accent-gold text-warmwhite px-3 py-1 rounded-full text-xs font-semibold shadow-sm">
                   WICHTIG
@@ -283,7 +297,7 @@ function NewsCard({ news, isAdmin, onEdit }: { news: NewsItem; isAdmin: boolean;
         {/* Read More Link */}
         <Link
           href={`/news/${news.slug}`}
-          className="inline-flex items-center gap-2 text-wine font-medium hover:gap-3 transition-all"
+          className="inline-flex items-center gap-2 text-accent-burgundy font-medium hover:gap-3 transition-all"
         >
           Weiterlesen
           <ArrowRightIcon className="w-4 h-4" />

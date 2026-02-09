@@ -2,31 +2,71 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { useSession } from 'next-auth/react';
+import { CarouselEditModal } from './CarouselEditModal';
+
+const DEFAULT_IMAGES = [
+  '/images/event-thumbnails/asiafood.png',
+  '/images/event-thumbnails/getränke.png',
+  '/images/event-thumbnails/weinabend.png',
+  '/images/event-thumbnails/weinglaeser.png',
+  '/images/event-thumbnails/weintisch.png',
+];
 
 export function EventImageCarousel() {
-  const [images, setImages] = useState<string[]>([]);
+  const { data: session } = useSession();
+  const [images, setImages] = useState<string[]>(DEFAULT_IMAGES);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const isAdmin = session?.user?.role === 'ADMIN';
+
+  const fetchImages = async () => {
+    try {
+      const response = await fetch(`/api/admin/event-carousel?t=${Date.now()}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.images && data.images.length > 0) {
+          setImages(data.images.map((img: any) => img.url));
+        } else {
+          // If no images in DB, stick to defaults or allow empty?
+          // Let's stick to defaults if DB is empty to avoid broken UI on first load
+          setImages(DEFAULT_IMAGES);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching carousel images:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Event-Bilder aus dem Ordner
-    const imageNames = [
-      'asiafood.png',
-      'getränke.png',
-      'weinabend.png',
-      'weinglaeser.png',
-      'weintisch.png',
-    ];
-
-    const imagePaths = imageNames.map(
-      (name) => `/images/event-thumbnails/${name}`
-    );
-    setImages(imagePaths);
+    fetchImages();
   }, []);
 
-  // Bilder doppelt für nahtlosen Loop
-  const duplicatedImages = [...images, ...images];
+  // Bilder doppelt für nahtlosen Loop (mindestens genug Bilder für den Screen)
+  // If we have very few images, we might need to duplicate them more times
+  const displayImages = images.length > 0 ? images : DEFAULT_IMAGES;
+  // Ensure we have enough items for smoother scrolling even with few images
+  const duplicatedImages = [...displayImages, ...displayImages, ...displayImages, ...displayImages].slice(0, 20); // Cap at 20 to be safe
 
   return (
-    <div className="w-full overflow-hidden bg-gradient-to-r from-warmwhite via-taupe-light/30 to-warmwhite border-y border-taupe-light">
+    <div className="relative w-full overflow-hidden bg-gradient-to-r from-warmwhite via-taupe-light/30 to-warmwhite border-y border-taupe-light group/carousel">
+
+      {/* Admin Edit Button */}
+      {isAdmin && (
+        <button
+          onClick={() => setShowEditModal(true)}
+          className="absolute top-4 right-4 z-20 p-2 bg-white/90 backdrop-blur text-graphite hover:text-accent-burgundy rounded-full shadow-md border border-taupe-light transition-all opacity-0 group-hover/carousel:opacity-100 focus:opacity-100"
+          title="Carousel bearbeiten"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+          </svg>
+        </button>
+      )}
+
       <div className="carousel-container">
         <div className="carousel-track">
           {duplicatedImages.map((img, index) => (
@@ -55,6 +95,13 @@ export function EventImageCarousel() {
         </div>
       </div>
 
+      {showEditModal && (
+        <CarouselEditModal
+          onClose={() => setShowEditModal(false)}
+          onUpdate={fetchImages}
+        />
+      )}
+
       <style jsx>{`
         .carousel-container {
           width: 100%;
@@ -64,7 +111,7 @@ export function EventImageCarousel() {
         .carousel-track {
           display: flex;
           gap: 1.5rem;
-          animation: scroll 30s linear infinite;
+          animation: scroll 40s linear infinite;
           will-change: transform;
         }
 
@@ -88,7 +135,7 @@ export function EventImageCarousel() {
 
           .carousel-track {
             gap: 1.25rem;
-            animation: scroll 25s linear infinite;
+            animation: scroll 35s linear infinite;
           }
         }
 
@@ -105,7 +152,7 @@ export function EventImageCarousel() {
 
           .carousel-track {
             gap: 1rem;
-            animation: scroll 23s linear infinite;
+            animation: scroll 30s linear infinite;
           }
         }
 
@@ -122,7 +169,7 @@ export function EventImageCarousel() {
 
           .carousel-track {
             gap: 0.875rem;
-            animation: scroll 20s linear infinite;
+            animation: scroll 25s linear infinite;
           }
         }
 

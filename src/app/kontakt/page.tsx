@@ -39,7 +39,7 @@ export default function KontaktPage() {
                 <div className="space-y-2 text-graphite-dark">
                   <p><strong>Name:</strong> Christina Hediger</p>
                   <p><strong>E-Mail:</strong> info@vierkorken.ch</p>
-                  <p><strong>Telefon:</strong> +41 XX XXX XX XX</p>
+                  <p><strong>Telefon:</strong> 062 390 04 04</p>
                 </div>
               </div>
             </div>
@@ -75,14 +75,26 @@ export default function KontaktPage() {
             {/* Öffnungszeiten */}
             <div className="card p-6">
               <h3 className="text-h4 font-serif mb-4">Öffnungszeiten</h3>
-              <div className="space-y-3">
+              <div className="space-y-3 text-sm">
                 <div className="flex justify-between py-2 border-b border-taupe-light">
-                  <span className="text-graphite">Montag - Freitag</span>
-                  <span className="font-semibold text-graphite-dark">09:00 - 18:00</span>
+                  <span className="text-graphite">Montag & Dienstag</span>
+                  <span className="font-semibold text-graphite-dark">Geschlossen</span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-taupe-light">
+                  <span className="text-graphite">Mittwoch</span>
+                  <span className="font-semibold text-graphite-dark">13:30 – 18:30</span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-taupe-light">
+                  <span className="text-graphite">Donnerstag</span>
+                  <span className="font-semibold text-graphite-dark">13:30 – 18:30</span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-taupe-light">
+                  <span className="text-graphite">Freitag</span>
+                  <span className="font-semibold text-graphite-dark">09:00 – 12:00, 13:30 – 18:30</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-taupe-light">
                   <span className="text-graphite">Samstag</span>
-                  <span className="font-semibold text-graphite-dark">10:00 - 16:00</span>
+                  <span className="font-semibold text-graphite-dark">09:00 – 14:00</span>
                 </div>
                 <div className="flex justify-between py-2">
                   <span className="text-graphite">Sonntag</span>

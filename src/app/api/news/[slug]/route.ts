@@ -18,6 +18,16 @@ export async function GET(
     const { slug } = await params;
     const news = await prisma.news.findUnique({
       where: { slug },
+      include: {
+        event: {
+          select: {
+            slug: true,
+            startDateTime: true,
+            venue: true,
+            price: true,
+          }
+        }
+      }
     });
 
     if (!news) {

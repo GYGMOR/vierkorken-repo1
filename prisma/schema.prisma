@@ -695,6 +695,7 @@ model Event {
   updatedAt       DateTime @updatedAt
 
   tickets         EventTicket[]
+  newsItem        News?
 
   @@index([slug])
   @@index([status])
@@ -838,6 +839,11 @@ model News {
   isPinned        Boolean  @default(false)
   sortOrder       Int      @default(0)
 
+  // Integration with Events
+  type            String   @default("NEWS") // "NEWS" or "EVENT"
+  eventId         String?  @unique
+  event           Event?   @relation(fields: [eventId], references: [id])
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -845,6 +851,8 @@ model News {
   @@index([status])
   @@index([publishedAt])
   @@index([isPinned])
+  @@index([type])
+  @@index([eventId])
 
   @@map("news")
 }
@@ -1141,4 +1149,50 @@ enum VerificationStatus {
   VERIFIED
   FAILED
   EXPIRED
+}
+
+// ============================================================
+// EVENT PAGE CAROUSEL
+// ============================================================
+
+model EventPageCarouselImage {
+  id              String   @id @default(cuid())
+  url             String   @db.Text
+  altText         String?
+  order           Int      @default(0)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt // Added for good measure
+
+  @@map("eventpagecarouselimage")
+}
+
+// ============================================================
+// DAILY TIPS (Weinwissen)
+// ============================================================
+
+model DailyTip {
+  id          String   @id @default(cuid())
+  title       String
+  content     String   @db.Text
+  isActive    Boolean  @default(true)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("dailytip")
+}
+
+model KnowledgeCategory {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @db.Text
+  icon        String   // "grape", "nose", "storage", "food"
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("knowledgecategory")
 }
