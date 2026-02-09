@@ -60,8 +60,11 @@ export const CategoryIcons: Record<string, React.FC<React.SVGProps<SVGSVGElement
     corkscrew: (props) => (
         <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
+<<<<<<< HEAD
             {/* Placeholder for complex corkscrew, using simple cross or similar for now if I don't have exact path, but let's use a "plus" for "Add" or similar concept if not purely illustrative. 
                Actually, let's use a generic 'sliders/settings' icon for technical details if corkscrew is too hard to draw manually. */}
+=======
+>>>>>>> main
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
         </svg>
     ),

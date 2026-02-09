@@ -121,8 +121,8 @@ export function KnowledgeCategoryManager({ onClose, onUpdate }: KnowledgeCategor
                                                     key={iconKey}
                                                     onClick={() => setNewIcon(iconKey)}
                                                     className={`flex flex-col items-center justify-center p-2 rounded border transition-colors ${newIcon === iconKey
-                                                            ? 'bg-accent-burgundy text-white border-accent-burgundy'
-                                                            : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                                                        ? 'bg-accent-burgundy text-white border-accent-burgundy'
+                                                        : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900'
                                                         }`}
                                                     title={iconKey}
                                                 >
@@ -164,7 +164,7 @@ export function KnowledgeCategoryManager({ onClose, onUpdate }: KnowledgeCategor
                                                 </div>
                                             </div>
                                             <div>
-                                                <Button variant="destructive" size="sm" onClick={() => handleDelete(cat.id)}>
+                                                <Button variant="ghost" size="sm" onClick={() => handleDelete(cat.id)} className="text-red-600 hover:text-red-700 hover:bg-red-50">
                                                     Löschen
                                                 </Button>
                                             </div>

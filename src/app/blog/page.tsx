@@ -174,7 +174,10 @@ export default function WeinwissenPage() {
             </div>
           </div>
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
           {/* Weinwissen Kategorien (Dynamic) */}
           <div className="relative group mb-12">
             {isAdmin && (
