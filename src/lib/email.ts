@@ -1088,22 +1088,27 @@ export async function sendNewsNotificationEmail(
           <title>${news.title}</title>
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #FAF8F5;">
-          <!-- Header with VIER KORKEN branding -->
-          <div style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); padding: 30px 20px; text-align: center; border-radius: 12px 12px 0 0;">
-            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">VIER KORKEN</h1>
-            <div style="margin-top: 12px; height: 1px; width: 80px; background: linear-gradient(to right, transparent, #C9A961, transparent); margin-left: auto; margin-right: auto;"></div>
-            <p style="color: #FAF8F5; margin-top: 15px; margin-bottom: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 2px;">Neue Neuigkeiten</p>
+          <!-- Hero Image or Standard Header -->
+          ${news.featuredImage ? `
+          <div style="width: 100%; height: 250px; background-image: url('${news.featuredImage}'); background-size: cover; background-position: center; border-radius: 12px 12px 0 0; position: relative;">
+             <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.7)); border-radius: 12px 12px 0 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 30px; box-sizing: border-box;">
+                <span style="background-color: #C9A961; color: #fff; padding: 6px 14px; border-radius: 4px; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; display: inline-block; margin-bottom: 15px; align-self: flex-start;">Neuigkeiten</span>
+                <h1 style="color: #fff; margin: 0; font-size: 32px; font-weight: 300; letter-spacing: 1px; font-family: Georgia, serif; text-shadow: 0 2px 10px rgba(0,0,0,0.3); line-height: 1.2;">${news.title}</h1>
+             </div>
           </div>
+          ` : `
+          <div style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); padding: 40px 20px; text-align: center; border-radius: 12px 12px 0 0;">
+            <h1 style="color: #fff; margin: 0; font-size: 32px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">VIER KORKEN</h1>
+            <div style="margin-top: 15px; height: 1px; width: 80px; background: linear-gradient(to right, transparent, #C9A961, transparent); margin-left: auto; margin-right: auto;"></div>
+            <p style="color: #FAF8F5; margin-top: 15px; margin-bottom: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 2px;">Neuigkeiten</p>
+          </div>
+          <h2 style="color: #6D2932; font-size: 28px; margin: 30px 30px 0; font-family: Georgia, serif; font-weight: 400; line-height: 1.3; text-align: center;">
+            ${news.title}
+          </h2>
+          `}
 
           <!-- News Content -->
-          <div style="background-color: #fff; padding: 40px 30px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-            ${news.featuredImage ? `
-              <img src="${news.featuredImage}" alt="${news.title}" style="width: 100%; height: auto; border-radius: 8px; margin-bottom: 25px; display: block;">
-            ` : ''}
-
-            <h2 style="color: #6D2932; font-size: 24px; margin-top: 0; font-family: Georgia, serif; font-weight: 400; line-height: 1.3;">
-              ${news.title}
-            </h2>
+          <div style="background-color: #fff; padding: ${news.featuredImage ? '30px' : '10px 30px 30px'}; border-radius: 0 0 12px 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
 
             ${news.excerpt ? `
               <p style="color: #8B4155; font-size: 16px; font-style: italic; margin: 15px 0; padding-left: 20px; border-left: 3px solid #C9A961;">
