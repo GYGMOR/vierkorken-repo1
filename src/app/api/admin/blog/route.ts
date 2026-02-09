@@ -43,6 +43,7 @@ export async function POST(request: Request) {
                 featuredImage,
                 status: status || 'PUBLISHED',
                 publishedAt: new Date(),
+                tags: [],
             },
         });
 
