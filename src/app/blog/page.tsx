@@ -4,6 +4,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { BackButton } from '@/components/ui/BackButton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -23,11 +24,12 @@ interface DailyTip {
 interface BlogPost {
   id: string;
   title: string;
-  excerpt: string;
+  excerpt: string | null;
   content: string;
   featuredImage: string | null;
   publishedAt: string;
   slug: string;
+  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 }
 
 interface KnowledgeCategory {
@@ -48,9 +50,45 @@ export default function WeinwissenPage() {
   const [categories, setCategories] = useState<KnowledgeCategory[]>([]);
 
   const [showTipManager, setShowTipManager] = useState(false);
+
+  // Blog Post Manager State
   const [showPostManager, setShowPostManager] = useState(false);
+  const [currentPostToEdit, setCurrentPostToEdit] = useState<BlogPost | null>(null);
+
+  // Category Manager State
   const [showCategoryManager, setShowCategoryManager] = useState(false);
+  const [currentCategoryToEdit, setCurrentCategoryToEdit] = useState<KnowledgeCategory | null>(null);
+
   const [loading, setLoading] = useState(true);
+
+  // Delete Handlers
+  const handleDeletePost = async (id: string) => {
+    if (!confirm('Möchten Sie diesen Artikel wirklich löschen?')) return;
+    try {
+      const res = await fetch(`/api/admin/blog?id=${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchData();
+      } else {
+        alert('Fehler beim Löschen des Artikels');
+      }
+    } catch (error) {
+      console.error('Error deleting post:', error);
+    }
+  };
+
+  const handleDeleteCategory = async (id: string) => {
+    if (!confirm('Möchten Sie diese Kategorie wirklich löschen?')) return;
+    try {
+      const res = await fetch(`/api/admin/knowledge-categories?id=${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchData();
+      } else {
+        alert('Fehler beim Löschen der Kategorie');
+      }
+    } catch (error) {
+      console.error('Error deleting category:', error);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -192,17 +230,44 @@ export default function WeinwissenPage() {
                 categories.map((cat) => {
                   const IconComponent = CategoryIcons[cat.icon] || CategoryIcons.grape;
                   return (
-                    <Card key={cat.id} className="hover:shadow-strong transition-shadow cursor-pointer border-none shadow-md bg-white">
-                      <CardHeader>
-                        <div className="w-12 h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center mb-4">
-                          <IconComponent className="w-6 h-6 text-accent-burgundy" />
+                    <div key={cat.id} className="relative group/cat">
+                      <Card className="hover:shadow-strong transition-shadow cursor-pointer border-none shadow-md bg-white h-full">
+                        <CardHeader>
+                          <div className="w-12 h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center mb-4">
+                            <IconComponent className="w-6 h-6 text-accent-burgundy" />
+                          </div>
+                          <CardTitle>{cat.title}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-graphite">{cat.description}</p>
+                        </CardContent>
+                      </Card>
+                      {isAdmin && (
+                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover/cat:opacity-100 transition-opacity bg-white/80 rounded-lg p-1 shadow-sm">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCurrentCategoryToEdit(cat);
+                              setShowCategoryManager(true);
+                            }}
+                            className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded"
+                            title="Bearbeiten"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteCategory(cat.id);
+                            }}
+                            className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded"
+                            title="Löschen"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                          </button>
                         </div>
-                        <CardTitle>{cat.title}</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-graphite">{cat.description}</p>
-                      </CardContent>
-                    </Card>
+                      )}
+                    </div>
                   );
                 })
               ) : (
@@ -270,7 +335,7 @@ export default function WeinwissenPage() {
           <div className="space-y-8">
             {posts.length > 0 ? (
               posts.map((post) => (
-                <div key={post.id} className="card p-0 overflow-hidden bg-white shadow-md rounded-lg flex flex-col md:flex-row">
+                <div key={post.id} className="card p-0 overflow-hidden bg-white shadow-md rounded-lg flex flex-col md:flex-row relative group">
                   {post.featuredImage && (
                     <div className="md:w-1/3 relative h-48 md:h-auto">
                       <Image
@@ -295,14 +360,28 @@ export default function WeinwissenPage() {
                     </div>
 
                     <div className="flex justify-between items-center mt-auto">
-                      <button className="text-accent-burgundy hover:underline text-sm font-semibold flex items-center gap-1">
+                      <Link href={`/blog/${post.slug}`} className="text-accent-burgundy hover:underline text-sm font-semibold flex items-center gap-1">
                         Weiterlesen <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                      </button>
+                      </Link>
 
                       {isAdmin && (
                         <div className="flex gap-2">
-                          <button className="p-2 text-gray-400 hover:text-blue-600">
+                          <button
+                            onClick={() => {
+                              setCurrentPostToEdit(post);
+                              setShowPostManager(true);
+                            }}
+                            className="p-2 text-gray-400 hover:text-blue-600 pointer-events-auto"
+                            title="Bearbeiten"
+                          >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                          </button>
+                          <button
+                            onClick={() => handleDeletePost(post.id)}
+                            className="p-2 text-gray-400 hover:text-red-600 pointer-events-auto"
+                            title="Löschen"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                           </button>
                         </div>
                       )}
@@ -324,10 +403,24 @@ export default function WeinwissenPage() {
         <DailyTipManager onClose={() => setShowTipManager(false)} onUpdate={fetchData} />
       )}
       {showPostManager && (
-        <BlogPostManager onClose={() => setShowPostManager(false)} onUpdate={fetchData} />
+        <BlogPostManager
+          onClose={() => {
+            setShowPostManager(false);
+            setCurrentPostToEdit(null);
+          }}
+          onUpdate={fetchData}
+          initialPost={currentPostToEdit}
+        />
       )}
       {showCategoryManager && (
-        <KnowledgeCategoryManager onClose={() => setShowCategoryManager(false)} onUpdate={fetchData} />
+        <KnowledgeCategoryManager
+          onClose={() => {
+            setShowCategoryManager(false);
+            setCurrentCategoryToEdit(null);
+          }}
+          onUpdate={fetchData}
+          initialCategory={currentCategoryToEdit}
+        />
       )}
     </MainLayout>
   );

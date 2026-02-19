@@ -38,6 +38,37 @@ export async function POST(request: Request) {
     }
 }
 
+export async function PUT(request: Request) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session || session.user?.role !== 'ADMIN') {
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+
+        if (!id) {
+            return NextResponse.json({ success: false, error: 'ID is required' }, { status: 400 });
+        }
+
+        const { title, description, icon } = await request.json();
+
+        const category = await prisma.knowledgeCategory.update({
+            where: { id },
+            data: {
+                title,
+                description,
+                icon,
+            },
+        });
+
+        return NextResponse.json({ success: true, category });
+    } catch (error) {
+        return NextResponse.json({ success: false, error: 'Failed to update category' }, { status: 500 });
+    }
+}
+
 export async function DELETE(request: Request) {
     try {
         const session = await getServerSession(authOptions);

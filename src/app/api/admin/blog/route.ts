@@ -53,3 +53,65 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: 'Failed to create post' }, { status: 500 });
     }
 }
+// PUT: Update an existing post
+export async function PUT(request: Request) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session || session.user?.role !== 'ADMIN') {
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+
+        if (!id) {
+            return NextResponse.json({ success: false, error: 'ID is required' }, { status: 400 });
+        }
+
+        const body = await request.json();
+        const { title, content, excerpt, featuredImage, status } = body;
+
+        const post = await prisma.blogPost.update({
+            where: { id },
+            data: {
+                title,
+                content,
+                excerpt,
+                featuredImage,
+                status: status || 'PUBLISHED',
+                // Don't update slug to preserve links, or handle redirect if needed. 
+                // For now, let's keep slug stable.
+            },
+        });
+
+        return NextResponse.json({ success: true, post });
+    } catch (error) {
+        console.error(error);
+        return NextResponse.json({ success: false, error: 'Failed to update post' }, { status: 500 });
+    }
+}
+
+// DELETE: Delete a post
+export async function DELETE(request: Request) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session || session.user?.role !== 'ADMIN') {
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+
+        if (!id) {
+            return NextResponse.json({ success: false, error: 'ID is required' }, { status: 400 });
+        }
+
+        await prisma.blogPost.delete({
+            where: { id },
+        });
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        return NextResponse.json({ success: false, error: 'Failed to delete post' }, { status: 500 });
+    }
+}

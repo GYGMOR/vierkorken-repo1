@@ -13,18 +13,38 @@ interface KnowledgeCategory {
 interface KnowledgeCategoryManagerProps {
     onClose: () => void;
     onUpdate: () => void;
+    initialCategory?: KnowledgeCategory | null;
 }
 
-export function KnowledgeCategoryManager({ onClose, onUpdate }: KnowledgeCategoryManagerProps) {
+export function KnowledgeCategoryManager({ onClose, onUpdate, initialCategory }: KnowledgeCategoryManagerProps) {
     const [categories, setCategories] = useState<KnowledgeCategory[]>([]);
     const [loading, setLoading] = useState(true);
-    const [newTitle, setNewTitle] = useState('');
-    const [newDescription, setNewDescription] = useState('');
-    const [newIcon, setNewIcon] = useState('grape');
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [icon, setIcon] = useState('grape');
+    const [editId, setEditId] = useState<string | null>(null);
 
     useEffect(() => {
         fetchCategories();
     }, []);
+
+    useEffect(() => {
+        if (initialCategory) {
+            setTitle(initialCategory.title);
+            setDescription(initialCategory.description);
+            setIcon(initialCategory.icon);
+            setEditId(initialCategory.id);
+        } else {
+            resetForm();
+        }
+    }, [initialCategory]);
+
+    const resetForm = () => {
+        setTitle('');
+        setDescription('');
+        setIcon('grape');
+        setEditId(null);
+    };
 
     const fetchCategories = async () => {
         try {
@@ -40,28 +60,31 @@ export function KnowledgeCategoryManager({ onClose, onUpdate }: KnowledgeCategor
         }
     };
 
-    const handleCreate = async () => {
-        if (!newTitle || !newDescription) return;
+    const handleSave = async () => {
+        if (!title || !description) return;
 
         try {
-            const res = await fetch('/api/admin/knowledge-categories', {
-                method: 'POST',
+            const method = editId ? 'PUT' : 'POST';
+            const url = editId ? `/api/admin/knowledge-categories?id=${editId}` : '/api/admin/knowledge-categories';
+
+            const res = await fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    title: newTitle,
-                    description: newDescription,
-                    icon: newIcon,
+                    title,
+                    description,
+                    icon,
                 }),
             });
 
             if (res.ok) {
-                setNewTitle('');
-                setNewDescription('');
+                resetForm();
                 fetchCategories();
                 onUpdate();
+                if (editId) onClose(); // Close if we were editing specific item passed via prop
             }
         } catch (error) {
-            console.error('Error creating category:', error);
+            console.error('Error saving category:', error);
         }
     };
 
@@ -87,28 +110,28 @@ export function KnowledgeCategoryManager({ onClose, onUpdate }: KnowledgeCategor
             <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>Weinwissen Kategorien verwalten</CardTitle>
+                        <CardTitle>{editId ? 'Kategorie bearbeiten' : 'Weinwissen Kategorien verwalten'}</CardTitle>
                         <Button variant="ghost" size="sm" onClick={onClose}>
                             ✕
                         </Button>
                     </CardHeader>
                     <CardContent>
-                        {/* Create New Helper */}
+                        {/* Form */}
                         <div className="mb-8 p-4 bg-gray-50 rounded-lg border">
-                            <h3 className="text-md font-semibold mb-3">Neue Kategorie hinzufügen</h3>
+                            <h3 className="text-md font-semibold mb-3">{editId ? 'Kategorie bearbeiten' : 'Neue Kategorie hinzufügen'}</h3>
                             <div className="space-y-3">
                                 <input
                                     type="text"
                                     placeholder="Titel (z.B. Rebsorten)"
                                     className="w-full p-2 border rounded"
-                                    value={newTitle}
-                                    onChange={(e) => setNewTitle(e.target.value)}
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
                                 />
                                 <textarea
                                     placeholder="Beschreibung (kurz)"
                                     className="w-full p-2 border rounded h-20"
-                                    value={newDescription}
-                                    onChange={(e) => setNewDescription(e.target.value)}
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
                                 />
 
                                 <div>
@@ -119,8 +142,8 @@ export function KnowledgeCategoryManager({ onClose, onUpdate }: KnowledgeCategor
                                             return (
                                                 <button
                                                     key={iconKey}
-                                                    onClick={() => setNewIcon(iconKey)}
-                                                    className={`flex flex-col items-center justify-center p-2 rounded border transition-colors ${newIcon === iconKey
+                                                    onClick={() => setIcon(iconKey)}
+                                                    className={`flex flex-col items-center justify-center p-2 rounded border transition-colors ${icon === iconKey
                                                         ? 'bg-accent-burgundy text-white border-accent-burgundy'
                                                         : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900'
                                                         }`}
@@ -134,9 +157,16 @@ export function KnowledgeCategoryManager({ onClose, onUpdate }: KnowledgeCategor
                                     </div>
                                 </div>
 
-                                <Button onClick={handleCreate} disabled={!newTitle || !newDescription}>
-                                    Erstellen
-                                </Button>
+                                <div className="flex gap-2">
+                                    <Button onClick={handleSave} disabled={!title || !description}>
+                                        {editId ? 'Speichern' : 'Erstellen'}
+                                    </Button>
+                                    {editId && (
+                                        <Button variant="secondary" onClick={resetForm}>
+                                            Abbrechen
+                                        </Button>
+                                    )}
+                                </div>
                             </div>
                         </div>
 

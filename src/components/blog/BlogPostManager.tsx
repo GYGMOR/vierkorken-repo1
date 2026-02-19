@@ -25,6 +25,14 @@ export function BlogPostManager({ onClose, onUpdate, initialPost }: BlogPostMana
     const [post, setPost] = useState<Partial<BlogPost>>(initialPost || { status: 'PUBLISHED' });
     const [saving, setSaving] = useState(false);
 
+    useEffect(() => {
+        if (initialPost) {
+            setPost(initialPost);
+        } else {
+            setPost({ status: 'PUBLISHED' });
+        }
+    }, [initialPost]);
+
     const handleSave = async () => {
         if (!post.title || !post.content) {
             alert('Titel und Inhalt sind erforderlich.');
@@ -33,14 +41,11 @@ export function BlogPostManager({ onClose, onUpdate, initialPost }: BlogPostMana
 
         setSaving(true);
         try {
-            const method = post.id ? 'PUT' : 'POST'; // Note: PUT not implemented in API yet, need to add it or use POST for both if API supports upsert 
-            // Actually my API only had POST for create. I need to update API for PUT or handle update in POST. 
-            // Let's assume I'll fix the API or use POST for now and fix later. 
-            // Wait, I should check my API implementation. I only implemented GET, POST. 
-            // I need to add PUT/DELETE to `src/app/api/admin/blog/route.ts`.
+            const method = post.id ? 'PUT' : 'POST';
+            const url = post.id ? `/api/admin/blog?id=${post.id}` : '/api/admin/blog';
 
-            const response = await fetch('/api/admin/blog', {
-                method: 'POST', // Using POST for create. Update needing ID.
+            const response = await fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(post),
             });
