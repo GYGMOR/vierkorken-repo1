@@ -146,7 +146,10 @@ export function WineCard({
         </div>
       )}
 
-      <Card hover className="overflow-hidden h-full flex flex-col border border-wood-light/50 hover:border-wine/30 transition-all">
+      <Card hover className="overflow-hidden h-full flex flex-col border border-wood-light/50 hover:border-wine/30 transition-all relative">
+        {/* Full Card Link Overlay */}
+        <Link href={`/weine/${id}`} className="absolute inset-0 z-10" aria-label={`Details zu ${name}`} />
+
         {/* Image Container */}
         <div className="relative aspect-[3/4] bg-gradient-to-br from-warmwhite to-wood-lightest overflow-hidden">
           {imageUrl ? (
@@ -185,7 +188,7 @@ export function WineCard({
         {/* Favorite Heart Icon - Moved to Top Left based on user image */}
         <button
           onClick={handleToggleFavorite}
-          className="absolute top-4 left-4 w-10 h-10 rounded-full bg-warmwhite/90 hover:bg-warmwhite flex items-center justify-center transition-all shadow-md hover:shadow-lg z-20 border border-wood-light/20"
+          className="absolute top-4 left-4 w-10 h-10 rounded-full bg-warmwhite/90 hover:bg-warmwhite flex items-center justify-center transition-all shadow-md hover:shadow-lg z-20 border border-wood-light/20 cursor-pointer"
           aria-label="Zu Favoriten hinzufügen"
         >
           <svg
@@ -203,9 +206,9 @@ export function WineCard({
         </button>
 
         {/* Badges - Moved down to accommodate Favorite Button */}
-        <div className="absolute top-16 left-4 flex flex-col gap-2 z-10">
+        <div className="absolute top-16 left-4 flex flex-col gap-2 z-10 pointer-events-none">
           {isNew && (
-            <div className="absolute -left-2 transform scale-125 z-20"> {/* Adjusted position */}
+            <div className="absolute -left-2 transform scale-125 z-20 pointer-events-auto"> {/* Adjusted position */}
               <NewBadge />
             </div>
           )}
@@ -220,71 +223,69 @@ export function WineCard({
         </div>
 
         {/* Content */}
-        <Link href={`/weine/${id}`} className="flex-1">
-          <div className="p-6 space-y-3">
-            {/* Wine Type */}
-            <p className="text-body-sm text-graphite/60 uppercase tracking-wide">
-              {wineType}
-            </p>
+        <div className="flex-1 p-6 space-y-3">
+          {/* Wine Type */}
+          <p className="text-body-sm text-graphite/60 uppercase tracking-wide">
+            {wineType}
+          </p>
 
-            {/* Wine Name */}
-            <h3 className="font-serif text-h4 text-wine-dark group-hover:text-wine transition-colors line-clamp-2">
-              {name}
-            </h3>
+          {/* Wine Name */}
+          <h3 className="font-serif text-h4 text-wine-dark group-hover:text-wine transition-colors line-clamp-2">
+            {name}
+          </h3>
 
-            {/* Winery */}
-            <p className="text-body text-graphite font-medium">
-              {winery}
-            </p>
+          {/* Winery */}
+          <p className="text-body text-graphite font-medium">
+            {winery}
+          </p>
 
-            {/* Region & Vintage */}
-            <p className="text-body-sm text-graphite/70">
-              {region}, {country}
-              {vintage && ` • ${vintage}`}
-            </p>
+          {/* Region & Vintage */}
+          <p className="text-body-sm text-graphite/70">
+            {region}, {country}
+            {vintage && ` • ${vintage}`}
+          </p>
 
-            {/* Rating Stars - 5 stars in soft gold/grey */}
-            <div className="flex items-center gap-1 pt-1">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <svg
-                  key={star}
-                  className={`w-4 h-4 ${reviewCount > 0 && star <= Math.round(avgRating)
-                    ? 'text-accent-gold'
-                    : 'text-taupe/40'
-                    }`}
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-              ))}
-              <span className="text-xs text-graphite/50 ml-1">
-                {reviewCount > 0 ? `${avgRating.toFixed(1)} (${reviewCount})` : '(Noch keine Bewertung)'}
-              </span>
-            </div>
-
-            {/* Price */}
-            <div className="pt-2 border-t border-wood-light">
-              {discountPercentage && discountPercentage > 0 ? (
-                <div className="flex flex-col">
-                  <span className="text-h4 text-red-700 font-bold font-serif">
-                    {formatPrice(finalPrice)}
-                  </span>
-                  <span className="text-sm text-graphite/60 line-through">
-                    {formatPrice(price)}
-                  </span>
-                </div>
-              ) : (
-                <p className="font-serif text-h4 text-wine-dark">
-                  {formatPrice(price)}
-                </p>
-              )}
-            </div>
+          {/* Rating Stars - 5 stars in soft gold/grey */}
+          <div className="flex items-center gap-1 pt-1">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <svg
+                key={star}
+                className={`w-4 h-4 ${reviewCount > 0 && star <= Math.round(avgRating)
+                  ? 'text-accent-gold'
+                  : 'text-taupe/40'
+                  }`}
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+            ))}
+            <span className="text-xs text-graphite/50 ml-1">
+              {reviewCount > 0 ? `${avgRating.toFixed(1)} (${reviewCount})` : '(Noch keine Bewertung)'}
+            </span>
           </div>
-        </Link>
+
+          {/* Price */}
+          <div className="pt-2 border-t border-wood-light">
+            {discountPercentage && discountPercentage > 0 ? (
+              <div className="flex flex-col">
+                <span className="text-h4 text-red-700 font-bold font-serif">
+                  {formatPrice(finalPrice)}
+                </span>
+                <span className="text-sm text-graphite/60 line-through">
+                  {formatPrice(price)}
+                </span>
+              </div>
+            ) : (
+              <p className="font-serif text-h4 text-wine-dark">
+                {formatPrice(price)}
+              </p>
+            )}
+          </div>
+        </div>
 
         {/* Add to Cart Section */}
-        <div className="p-6 pt-0 mt-auto space-y-3">
+        <div className="p-6 pt-0 mt-auto space-y-3 relative z-20">
           <div className="flex items-center justify-between gap-3">
             <QuantityPicker
               value={quantity}

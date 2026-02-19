@@ -101,6 +101,15 @@ export default function EmailTestPage() {
                             >
                                 4. Passwort zurücksetzen
                             </Button>
+
+                            <Button
+                                onClick={() => handleTest('NEWS')}
+                                disabled={loading}
+                                variant="outline"
+                                className="md:col-span-2 border-accent-burgundy text-accent-burgundy hover:bg-accent-burgundy hover:text-white"
+                            >
+                                5. Newsletter Vorschau (Neuester Beitrag)
+                            </Button>
                         </div>
                     </CardContent>
                 </Card>
