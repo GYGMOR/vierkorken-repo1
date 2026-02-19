@@ -7,6 +7,7 @@ import {
     sendNewOrderNotificationToAdmin,
     sendPasswordResetEmail
 } from '@/lib/email';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(req: NextRequest) {
     try {
@@ -102,6 +103,93 @@ export async function POST(req: NextRequest) {
                     await sendNewOrderNotificationToAdmin('test-order-id', mockOrder, email);
                     result = { success: true, message: 'Admin notification sent to ' + email };
                 }
+                break;
+
+            case 'NEWS':
+                // Fetch latest blog post
+                const latestPost = await prisma.blogPost.findFirst({
+                    where: { status: 'PUBLISHED' },
+                    orderBy: { publishedAt: 'desc' },
+                });
+
+                if (!latestPost) {
+                    return NextResponse.json({ success: false, error: 'Keine veröffentlichten News-Artikel gefunden' }, { status: 404 });
+                }
+
+                // Construct full image URL
+                let imageUrl = latestPost.featuredImage || '';
+                if (imageUrl && !imageUrl.startsWith('http')) {
+                    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://vierkorken.ch';
+                    imageUrl = `${baseUrl}${imageUrl}`;
+                }
+
+                const newsHtml = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="utf-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>${latestPost.title}</title>
+                    </head>
+                    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 0;">
+                        
+                        <!-- Header -->
+                        <div style="background-color: #8B4513; padding: 20px; text-align: center;">
+                        <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">VIER KORKEN</h1>
+                        <p style="color: #e0e0e0; margin: 5px 0 0; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Newsletter</p>
+                        </div>
+
+                        <!-- Hero Image -->
+                        ${imageUrl ? `
+                        <div style="width: 100%; max-height: 300px; overflow: hidden;">
+                            <img src="${imageUrl}" alt="${latestPost.title}" style="width: 100%; height: auto; display: block;" />
+                        </div>
+                        ` : ''}
+
+                        <!-- Content -->
+                        <div style="padding: 30px 20px; background-color: #fff;">
+                        <p style="color: #8B4513; font-size: 14px; font-weight: bold; text-transform: uppercase; margin-bottom: 10px;">
+                            Neu im Blog
+                        </p>
+                        <h2 style="color: #333; margin: 0 0 15px; font-size: 24px; font-family: Georgia, serif;">
+                            ${latestPost.title}
+                        </h2>
+                        
+                        <div style="color: #555; font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
+                            ${latestPost.excerpt || latestPost.content.substring(0, 150) + '...'}
+                        </div>
+
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://vierkorken.ch'}/blog/${latestPost.slug}" 
+                            style="background-color: #8B4513; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: 500;">
+                            Ganzen Artikel lesen
+                            </a>
+                        </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div style="background-color: #f5f5f5; padding: 20px; text-align: center; border-top: 1px solid #ddd; color: #999; font-size: 12px;">
+                        <p style="margin: 0 0 10px;">
+                            © ${new Date().getFullYear()} VIER KORKEN - Premium Weinshop<br>
+                            Steinbrunnengasse 3a, 5707 Seengen
+                        </p>
+                        <p style="margin: 0;">
+                            <a href="#" style="color: #8B4513; text-decoration: none;">Abmelden</a>
+                        </p>
+                        </div>
+                    </body>
+                    </html>
+                `;
+
+                // Uses sendInfoMail which sends from info@vierkorken.ch
+                await sendInfoMail({
+                    to: email,
+                    subject: `📰 Neu bei VIER KORKEN: ${latestPost.title}`,
+                    html: newsHtml,
+                    text: `${latestPost.title}\n\n${latestPost.excerpt}\n\nLesen Sie mehr unter: ${process.env.NEXT_PUBLIC_APP_URL || 'https://vierkorken.ch'}/blog/${latestPost.slug}`,
+                });
+
+                result = { success: true, message: `Newsletter sent for article: "${latestPost.title}"` };
                 break;
 
             case 'PASSWORD_RESET':
