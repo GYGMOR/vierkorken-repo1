@@ -176,7 +176,29 @@ export function KnowledgeCategoryManager({ onClose, onUpdate, initialCategory }:
                             {loading ? (
                                 <p>Lade...</p>
                             ) : categories.length === 0 ? (
-                                <p className="text-gray-500 italic">Noch keine Kategorien erstellt.</p>
+                                <div className="text-center py-8">
+                                    <p className="text-gray-500 italic mb-4">Noch keine Kategorien erstellt.</p>
+                                    <Button
+                                        onClick={async () => {
+                                            if (!confirm('Möchten Sie die Standard-Kategorien wiederherstellen?')) return;
+                                            try {
+                                                const res = await fetch('/api/admin/seed-categories');
+                                                if (res.ok) {
+                                                    fetchCategories();
+                                                    onUpdate();
+                                                } else {
+                                                    alert('Fehler beim Wiederherstellen');
+                                                }
+                                            } catch (e) {
+                                                console.error(e);
+                                                alert('Fehler beim Wiederherstellen');
+                                            }
+                                        }}
+                                        variant="outline"
+                                    >
+                                        Standard-Kategorien wiederherstellen
+                                    </Button>
+                                </div>
                             ) : (
                                 categories.map((cat) => {
                                     const IconComponent = CategoryIcons[cat.icon] || CategoryIcons.grape;

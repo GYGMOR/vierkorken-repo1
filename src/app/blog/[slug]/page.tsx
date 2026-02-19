@@ -31,12 +31,12 @@ export default function BlogPostPage() {
         // Note: Ideally we should have an API endpoint /api/blog/[slug] but for now using the list
         const res = await fetch('/api/admin/blog');
         const data = await res.json();
-        
+
         if (data.posts) {
-            const foundPost = data.posts.find((p: BlogPost) => p.slug === slug);
-            if (foundPost) {
-                setPost(foundPost);
-            }
+          const foundPost = data.posts.find((p: BlogPost) => p.slug === slug);
+          if (foundPost) {
+            setPost(foundPost);
+          }
         }
       } catch (error) {
         console.error('Error fetching blog post:', error);
@@ -79,7 +79,7 @@ export default function BlogPostPage() {
       <div className="bg-warmwhite min-h-screen">
         {/* Back Button */}
         <div className="container-custom pt-8">
-          <BackButton href="/weinwissen" label="Zurück zu Weinwissen" />
+          <BackButton href="/blog" label="Zurück zu Weinwissen" />
         </div>
 
         <article className="section-padding pt-8">
@@ -87,16 +87,16 @@ export default function BlogPostPage() {
             {/* Header */}
             <div className="space-y-6 mb-8 text-center md:text-left">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent-burgundy/10 rounded-full border border-accent-burgundy/20 w-fit">
-                    <span className="text-accent-burgundy font-medium text-xs tracking-wider">WEINWISSEN</span>
-                  </div>
-                  <time className="text-graphite/60 text-sm">
-                    {new Date(post.publishedAt).toLocaleDateString('de-CH', {
-                        day: '2-digit',
-                        month: 'long',
-                        year: 'numeric'
-                    })}
-                  </time>
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent-burgundy/10 rounded-full border border-accent-burgundy/20 w-fit">
+                  <span className="text-accent-burgundy font-medium text-xs tracking-wider">WEINWISSEN</span>
+                </div>
+                <time className="text-graphite/60 text-sm">
+                  {new Date(post.publishedAt).toLocaleDateString('de-CH', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric'
+                  })}
+                </time>
               </div>
 
               <h1 className="text-display font-serif font-light text-graphite-dark leading-tight">
@@ -124,7 +124,7 @@ export default function BlogPostPage() {
             )}
 
             {/* Content */}
-            <div 
+            <div
               className="prose prose-lg max-w-none prose-headings:font-serif prose-headings:font-light prose-headings:text-graphite-dark prose-p:text-graphite prose-a:text-accent-burgundy prose-a:no-underline hover:prose-a:underline prose-blockquote:border-accent-burgundy prose-li:text-graphite"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
@@ -133,11 +133,11 @@ export default function BlogPostPage() {
 
         {/* Share / CTA Footer (Optional) */}
         <div className="container-custom pb-16">
-            <div className="border-t border-taupe-light pt-8 flex justify-center">
-                 <Link href="/weinwissen" className="text-accent-burgundy hover:text-graphite-dark transition-colors font-serif italic text-lg">
-                    ← Weitere Artikel entdecken
-                 </Link>
-            </div>
+          <div className="border-t border-taupe-light pt-8 flex justify-center">
+            <Link href="/blog" className="text-accent-burgundy hover:text-graphite-dark transition-colors font-serif italic text-lg">
+              ← Weitere Artikel entdecken
+            </Link>
+          </div>
         </div>
       </div>
     </MainLayout>
