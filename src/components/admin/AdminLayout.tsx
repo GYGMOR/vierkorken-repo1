@@ -124,6 +124,15 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </svg>
       ),
     },
+    {
+      name: 'E-Mail Test',
+      href: '/admin/email-test',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+      ),
+    },
   ];
 
   return (
@@ -166,8 +175,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 <Link
                   href={item.href}
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${isActive
-                      ? 'bg-accent-burgundy text-warmwhite'
-                      : 'text-taupe hover:bg-graphite hover:text-warmwhite'
+                    ? 'bg-accent-burgundy text-warmwhite'
+                    : 'text-taupe hover:bg-graphite hover:text-warmwhite'
                     }`}
                 >
                   {item.icon}
@@ -184,8 +193,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                           key={subitem.name}
                           href={subitem.href}
                           className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isSubActive
-                              ? 'bg-accent-burgundy/80 text-warmwhite'
-                              : 'text-taupe/80 hover:bg-graphite hover:text-warmwhite'
+                            ? 'bg-accent-burgundy/80 text-warmwhite'
+                            : 'text-taupe/80 hover:bg-graphite hover:text-warmwhite'
                             }`}
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

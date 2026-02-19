@@ -81,6 +81,12 @@
     @apply focus:ring-taupe-medium;
   }
 
+  .btn-outline {
+    @apply bg-transparent text-graphite border-2 border-graphite;
+    @apply hover:bg-graphite hover:text-warmwhite;
+    @apply focus:ring-graphite;
+  }
+
   /* Input Base Styles */
   .input {
     @apply w-full px-4 py-3 rounded-lg border border-taupe;

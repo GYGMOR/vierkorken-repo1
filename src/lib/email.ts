@@ -575,8 +575,8 @@ Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
 /**
  * Send new order notification to admin/vendor (verwendet info@vierkorken.ch)
  */
-export async function sendNewOrderNotificationToAdmin(orderId: string, orderDetails: any) {
-  const adminEmail = process.env.ADMIN_EMAIL || 'info@vierkorken.ch';
+export async function sendNewOrderNotificationToAdmin(orderId: string, orderDetails: any, overrideRecipient?: string) {
+  const adminEmail = overrideRecipient || process.env.ADMIN_EMAIL || 'info@vierkorken.ch';
 
   // Format items list for email
   const itemsList = orderDetails.items
