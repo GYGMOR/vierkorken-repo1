@@ -68,7 +68,7 @@ export async function generateTicketPDF(ticket: EventTicketData): Promise<void> 
   doc.setFontSize(32);
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
-  doc.text('VIER KORKEN', 105, 20, { align: 'center' });
+  doc.text('VIER KORKEN Weinboutique', 105, 20, { align: 'center' });
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
@@ -220,7 +220,7 @@ export async function generateTicketPDF(ticket: EventTicketData): Promise<void> 
   doc.setFontSize(8);
   doc.setTextColor(gray);
   doc.setFont('helvetica', 'normal');
-  doc.text('VIER KORKEN Wein-Boutique', 105, 275, { align: 'center' });
+  doc.text('VIER KORKEN Weinboutique Wein-Boutique', 105, 275, { align: 'center' });
   doc.text('Steinbrunnengasse 3a, 5707 Seengen | Tel: 062 390 04 04 | info@vierkorken.ch', 105, 280, { align: 'center' });
 
   // Watermark
@@ -230,5 +230,5 @@ export async function generateTicketPDF(ticket: EventTicketData): Promise<void> 
   doc.text('TICKET', 105, 150, { align: 'center', angle: 45 });
 
   // Save PDF
-  doc.save(`VIER KORKEN-Ticket-${ticket.ticketNumber}.pdf`);
+  doc.save(`VIER KORKEN Weinboutique-Ticket-${ticket.ticketNumber}.pdf`);
 }

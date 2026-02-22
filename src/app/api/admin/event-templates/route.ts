@@ -5,12 +5,13 @@ import { authOptions } from '@/lib/auth-options';
 
 export async function GET() {
     try {
-        const categories = await prisma.knowledgeCategory.findMany({
-            orderBy: { sortOrder: 'asc' },
+        const templates = await prisma.eventTemplate.findMany({
+            orderBy: { order: 'asc' },
         });
-        return NextResponse.json({ success: true, categories });
+        return NextResponse.json({ success: true, templates });
     } catch (error) {
-        return NextResponse.json({ success: false, error: 'Failed to fetch categories' }, { status: 500 });
+        console.error('Error fetching event templates:', error);
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }
 
@@ -21,21 +22,24 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { title, description, icon, image } = await request.json();
+        const body = await request.json();
+        const { title, description, content, imageUrl, isActive, order } = body;
 
-        const category = await prisma.knowledgeCategory.create({
+        const template = await prisma.eventTemplate.create({
             data: {
                 title,
                 description,
-                icon: icon || 'grape',
-                image,
-                sortOrder: 0,
+                content: content || '',
+                imageUrl: imageUrl || null,
+                isActive: isActive ?? true,
+                order: order || 0,
             },
         });
 
-        return NextResponse.json({ success: true, category });
+        return NextResponse.json({ success: true, template });
     } catch (error) {
-        return NextResponse.json({ success: false, error: 'Failed to create category' }, { status: 500 });
+        console.error('Error creating event template:', error);
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }
 
@@ -53,21 +57,25 @@ export async function PUT(request: Request) {
             return NextResponse.json({ success: false, error: 'ID is required' }, { status: 400 });
         }
 
-        const { title, description, icon, image } = await request.json();
+        const body = await request.json();
+        const { title, description, content, imageUrl, isActive, order } = body;
 
-        const category = await prisma.knowledgeCategory.update({
+        const template = await prisma.eventTemplate.update({
             where: { id },
             data: {
                 title,
                 description,
-                icon,
-                image,
+                content,
+                imageUrl,
+                isActive,
+                order,
             },
         });
 
-        return NextResponse.json({ success: true, category });
+        return NextResponse.json({ success: true, template });
     } catch (error) {
-        return NextResponse.json({ success: false, error: 'Failed to update category' }, { status: 500 });
+        console.error('Error updating event template:', error);
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }
 
@@ -85,12 +93,13 @@ export async function DELETE(request: Request) {
             return NextResponse.json({ success: false, error: 'ID is required' }, { status: 400 });
         }
 
-        await prisma.knowledgeCategory.delete({
+        await prisma.eventTemplate.delete({
             where: { id },
         });
 
         return NextResponse.json({ success: true });
     } catch (error) {
-        return NextResponse.json({ success: false, error: 'Failed to delete category' }, { status: 500 });
+        console.error('Error deleting event template:', error);
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
 }

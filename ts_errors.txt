@@ -1,0 +1,19 @@
+﻿src/app/admin/settings/homepage/page.tsx(119,5): error TS2657: JSX expressions must have one parent element.
+src/app/admin/settings/homepage/page.tsx(142,10): error TS17008: JSX element 'Card' has no corresponding closing tag.
+src/app/admin/settings/homepage/page.tsx(174,22): error TS17008: JSX element 'label' has no corresponding closing tag.
+src/app/admin/settings/homepage/page.tsx(185,41): error TS1127: Invalid character.
+src/app/admin/settings/homepage/page.tsx(185,145): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/app/admin/settings/homepage/page.tsx(185,146): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/app/admin/settings/homepage/page.tsx(186,41): error TS1127: Invalid character.
+src/app/admin/settings/homepage/page.tsx(186,162): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/app/admin/settings/homepage/page.tsx(186,163): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/app/admin/settings/homepage/page.tsx(188,21): error TS1005: ')' expected.
+src/app/admin/settings/homepage/page.tsx(188,23): error TS17002: Expected corresponding JSX closing tag for 'div'.
+src/app/admin/settings/homepage/page.tsx(189,21): error TS17002: Expected corresponding JSX closing tag for 'CardContent'.
+src/app/admin/settings/homepage/page.tsx(191,17): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/app/admin/settings/homepage/page.tsx(192,15): error TS17002: Expected corresponding JSX closing tag for 'AdminLayout'.
+src/app/admin/settings/homepage/page.tsx(199,11): error TS1005: ')' expected.
+src/app/admin/settings/homepage/page.tsx(200,9): error TS1109: Expression expected.
+src/app/admin/settings/homepage/page.tsx(201,7): error TS1109: Expression expected.
+src/app/admin/settings/homepage/page.tsx(202,5): error TS1109: Expression expected.
+src/app/admin/settings/homepage/page.tsx(203,3): error TS1109: Expression expected.

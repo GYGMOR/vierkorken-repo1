@@ -1188,6 +1188,7 @@ model KnowledgeCategory {
   title       String
   description String   @db.Text
   icon        String   // "grape", "nose", "storage", "food"
+  image       String?  @db.Text
   sortOrder   Int      @default(0)
   isActive    Boolean  @default(true)
   
@@ -1195,4 +1196,58 @@ model KnowledgeCategory {
   updatedAt   DateTime @updatedAt
   
   @@map("knowledgecategory")
+}
+
+// ============================================================
+// ABOUT US IMAGES
+// ============================================================
+
+model AboutPageImage {
+  id          String   @id @default(cuid())
+  url         String   @db.Text
+  side        String   // "left" or "right"
+  order       Int      @default(0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([side])
+  @@map("aboutpageimage")
+}
+
+// ============================================================
+// EVENT TEMPLATES
+// ============================================================
+
+model EventTemplate {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @db.Text
+  content     String?  @db.Text
+  imageUrl    String?  @db.Text
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("eventtemplate")
+}
+
+// ============================================================
+// HOMEPAGE SECTIONS
+// ============================================================
+
+model HomepageSection {
+  id          String   @id @default(cuid())
+  identifier  String   @unique // e.g., "hero", "news", "new-arrivals", "categories", "discounted", "loyalty", "gift-cards"
+  title       String?
+  isVisible   Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  settings    Json?    // E.g. {"itemsPerRow": 4}
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("homepagesection")
 }

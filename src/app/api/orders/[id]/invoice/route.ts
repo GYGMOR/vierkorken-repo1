@@ -97,7 +97,7 @@ export async function GET(
     doc
       .fontSize(24)
       .font('Helvetica-Bold')
-      .text('VIER KORKEN', 50, 50);
+      .text('VIER KORKEN Weinboutique', 50, 50);
 
     doc
       .fontSize(10)

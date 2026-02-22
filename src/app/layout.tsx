@@ -23,32 +23,32 @@ const cormorant = Cormorant_Garamond({
 
 export const metadata: Metadata = {
   title: {
-    default: 'VIER KORKEN – Premium Weinshop',
-    template: '%s | VIER KORKEN',
+    default: 'VIER KORKEN Weinboutique – Premium Weinshop',
+    template: '%s | VIER KORKEN Weinboutique',
   },
-  description: 'Entdecken Sie exquisite Weine aus aller Welt. VIER KORKEN verbindet Weinkompetenz, Kultur und Genuss in einer stilvollen digitalen Weinwelt.',
+  description: 'Entdecken Sie exquisite Weine aus aller Welt. Die VIER KORKEN Weinboutique verbindet Weinkompetenz, Kultur und Genuss in einer stilvollen digitalen Weinwelt.',
   keywords: ['Wein', 'Weinshop', 'Premium Weine', 'Weingut', 'Weinverkostung', 'Schweiz'],
-  authors: [{ name: 'VIER KORKEN' }],
-  creator: 'VIER KORKEN',
+  authors: [{ name: 'VIER KORKEN Weinboutique' }],
+  creator: 'VIER KORKEN Weinboutique',
   openGraph: {
     type: 'website',
     locale: 'de_CH',
     url: process.env.NEXT_PUBLIC_APP_URL,
-    siteName: 'VIER KORKEN',
-    title: 'VIER KORKEN – Premium Weinshop',
+    siteName: 'VIER KORKEN Weinboutique',
+    title: 'VIER KORKEN Weinboutique – Premium Weinshop',
     description: 'Entdecken Sie exquisite Weine aus aller Welt.',
     images: [
       {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'VIER KORKEN',
+        alt: 'VIER KORKEN Weinboutique',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'VIER KORKEN – Premium Weinshop',
+    title: 'VIER KORKEN Weinboutique – Premium Weinshop',
     description: 'Entdecken Sie exquisite Weine aus aller Welt.',
     images: ['/og-image.jpg'],
   },

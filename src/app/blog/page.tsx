@@ -37,6 +37,7 @@ interface KnowledgeCategory {
   title: string;
   description: string;
   icon: string;
+  image?: string;
 }
 // End Types
 
@@ -182,8 +183,14 @@ export default function WeinwissenPage() {
 
             <div className="card p-8 mb-8 bg-gradient-to-br from-accent-burgundy/5 to-rose-light/20 relative overflow-hidden">
               {/* Decoration */}
-              <div className="absolute top-0 right-0 p-8 opacity-5">
-                <svg className="w-32 h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" /></svg>
+              <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-[0.04]">
+                <Image
+                  src="/images/layout/logo_icon.png"
+                  alt="Vier Korken Logo"
+                  width={150}
+                  height={150}
+                  className="object-contain filter grayscale"
+                />
               </div>
 
               <div className="relative z-10">
@@ -231,16 +238,35 @@ export default function WeinwissenPage() {
                   const IconComponent = CategoryIcons[cat.icon] || CategoryIcons.grape;
                   return (
                     <div key={cat.id} className="relative group/cat">
-                      <Card className="hover:shadow-strong transition-shadow cursor-pointer border-none shadow-md bg-white h-full">
-                        <CardHeader>
-                          <div className="w-12 h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center mb-4">
-                            <IconComponent className="w-6 h-6 text-accent-burgundy" />
+                      <Card className="hover:shadow-strong transition-shadow cursor-pointer border-none shadow-md bg-white h-full flex flex-row overflow-hidden">
+                        {cat.image ? (
+                          <>
+                            <div className="w-1/3 min-w-[100px] relative bg-gray-100 flex-shrink-0">
+                              <Image
+                                src={cat.image}
+                                alt={cat.title}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                            <div className="flex-1 p-5 flex flex-col justify-center">
+                              <h3 className="font-semibold text-lg text-graphite-dark mb-2">{cat.title}</h3>
+                              <p className="text-sm text-graphite line-clamp-3">{cat.description}</p>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex-1 w-full">
+                            <CardHeader>
+                              <div className="w-12 h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center mb-4">
+                                <IconComponent className="w-6 h-6 text-accent-burgundy" />
+                              </div>
+                              <CardTitle>{cat.title}</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <p className="text-sm text-graphite">{cat.description}</p>
+                            </CardContent>
                           </div>
-                          <CardTitle>{cat.title}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-sm text-graphite">{cat.description}</p>
-                        </CardContent>
+                        )}
                       </Card>
                       {isAdmin && (
                         <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover/cat:opacity-100 transition-opacity bg-white/80 rounded-lg p-1 shadow-sm">

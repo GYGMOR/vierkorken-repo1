@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { CategoryIcons } from './CategoryIcons';
+import { ImageUploader } from '@/components/admin/ImageUploader';
 
 interface KnowledgeCategory {
     id: string;
     title: string;
     description: string;
     icon: string;
+    image?: string | null;
 }
 
 interface KnowledgeCategoryManagerProps {
@@ -22,6 +24,7 @@ export function KnowledgeCategoryManager({ onClose, onUpdate, initialCategory }:
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [icon, setIcon] = useState('grape');
+    const [image, setImage] = useState<string | null>(null);
     const [editId, setEditId] = useState<string | null>(null);
 
     useEffect(() => {
@@ -33,6 +36,7 @@ export function KnowledgeCategoryManager({ onClose, onUpdate, initialCategory }:
             setTitle(initialCategory.title);
             setDescription(initialCategory.description);
             setIcon(initialCategory.icon);
+            setImage(initialCategory.image || null);
             setEditId(initialCategory.id);
         } else {
             resetForm();
@@ -43,6 +47,7 @@ export function KnowledgeCategoryManager({ onClose, onUpdate, initialCategory }:
         setTitle('');
         setDescription('');
         setIcon('grape');
+        setImage(null);
         setEditId(null);
     };
 
@@ -74,6 +79,7 @@ export function KnowledgeCategoryManager({ onClose, onUpdate, initialCategory }:
                     title,
                     description,
                     icon,
+                    image,
                 }),
             });
 
@@ -133,6 +139,29 @@ export function KnowledgeCategoryManager({ onClose, onUpdate, initialCategory }:
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
                                 />
+
+                                {/* Image Upload Component */}
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Kategoriebild (optional)</label>
+                                    {image ? (
+                                        <div className="relative group w-48 aspect-square bg-gray-100 rounded-lg overflow-hidden border">
+                                            <img src={image} alt="Vorschau" className="w-full h-full object-cover" />
+                                            <button
+                                                onClick={() => setImage(null)}
+                                                className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="max-w-md">
+                                            <ImageUploader
+                                                onUploadComplete={(url) => setImage(url)}
+                                                maxSizeMB={2}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
 
                                 <div>
                                     <label className="block text-sm font-medium mb-2">Icon auswählen:</label>

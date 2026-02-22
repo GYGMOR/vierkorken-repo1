@@ -34,7 +34,7 @@ export default function KontaktPage() {
               <div className="flex-1 text-center md:text-left">
                 <h2 className="text-h3 font-serif mb-2">Geschäftsführerin</h2>
                 <p className="text-graphite mb-4">
-                  Ihre Ansprechpartnerin für alle Fragen rund um VIER KORKEN.
+                  Ihre Ansprechpartnerin für alle Fragen rund um VIER KORKEN Weinboutique.
                 </p>
                 <div className="space-y-2 text-graphite-dark">
                   <p><strong>Name:</strong> Christina Hediger</p>
@@ -51,7 +51,7 @@ export default function KontaktPage() {
             <div className="card p-6">
               <h3 className="text-h4 font-serif mb-4">Unser Standort</h3>
               <div className="space-y-2 text-graphite mb-4">
-                <p className="font-semibold text-graphite-dark">VIER KORKEN</p>
+                <p className="font-semibold text-graphite-dark">VIER KORKEN Weinboutique</p>
                 <p>Steinbrunnengasse 3A</p>
                 <p>5707 Seengen</p>
                 <p>Schweiz</p>

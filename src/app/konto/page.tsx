@@ -1256,7 +1256,7 @@ function ShareSection() {
   };
 
   const shareOnWhatsApp = () => {
-    const text = `Entdecke VIER KORKEN - Exklusive Weine und Events! ${shareUrl}?ref=${referralCode}`;
+    const text = `Entdecke VIER KORKEN Weinboutique - Exklusive Weine und Events! ${shareUrl}?ref=${referralCode}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
@@ -1274,7 +1274,7 @@ function ShareSection() {
     <div className="border-t border-taupe-light pt-6">
       <h4 className="text-sm font-semibold text-graphite-dark mb-3">Webseite teilen</h4>
       <p className="text-xs text-graphite/70 mb-4">
-        Teilen Sie VIER KORKEN und erhalten Sie 250 Loyalty Punkte, sobald sich jemand über Ihren Link registriert!
+        Teilen Sie VIER KORKEN Weinboutique und erhalten Sie 250 Loyalty Punkte, sobald sich jemand über Ihren Link registriert!
       </p>
 
       {/* Social Media Buttons */}

@@ -39,7 +39,7 @@ export function NewProductsCarousel({ products }: NewProductsCarouselProps) {
                                 // If data is missing (e.g. winery/region not in standard api/klara/articles response?), check implementation.
                                 // In page.tsx: categories are fetched. But articles?
                                 // I'll need to map as best as possible.
-                                winery={product.customData?.winery || 'VIER KORKEN'}
+                                winery={product.customData?.winery || 'VIER KORKEN Weinboutique'}
                                 region={product.customData?.region || ''}
                                 country={product.customData?.country || ''}
                                 vintage={product.customData?.vintage ? parseInt(product.customData.vintage) : undefined}

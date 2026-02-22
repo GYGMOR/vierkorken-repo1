@@ -108,6 +108,33 @@ export default function HomePage() {
   // Fetch New Products and Discounted Products
   const [newProducts, setNewProducts] = useState<any[]>([]);
   const [discountedProducts, setDiscountedProducts] = useState<any[]>([]);
+  const [sections, setSections] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function fetchSections() {
+      try {
+        const res = await fetch('/api/homepage-sections');
+        const data = await res.json();
+        if (data.success && data.sections) {
+          setSections(data.sections);
+        }
+      } catch (error) {
+        console.error('Error fetching homepage sections:', error);
+      }
+    }
+    fetchSections();
+  }, []);
+
+  const getSectionStyle = (identifier: string, defaultOrder: number) => {
+    if (sections.length === 0) return { order: defaultOrder };
+    const section = sections.find(s => s.identifier === identifier);
+    if (!section) return { order: defaultOrder, display: 'none' };
+    return {
+      order: section.sortOrder,
+      display: section.isVisible ? 'block' : 'none'
+    };
+  };
+
   useEffect(() => {
     async function fetchNewProducts() {
       try {
@@ -209,195 +236,210 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* News Section */}
-      {!newsLoading && news.length > 0 && (
-        <section className="section-padding bg-gradient-to-br from-warmwhite via-rose-light/10 to-warmwhite">
-          <div className="container-custom">
-            <div className="text-center mb-12">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-wine/10 rounded-full border border-wine/20 mb-4">
-                <NewsIcon />
-                <span className="text-wine font-medium text-sm">AKTUELLES</span>
-              </div>
-              <h2 className="text-h2 font-serif font-light mb-4">News & Neuigkeiten</h2>
-              <p className="text-body-lg text-graphite">Bleiben Sie informiert über neue Weine, Events und mehr.</p>
-            </div>
-
-            {/* Desktop: Grid */}
-            <div className="hidden md:grid md:grid-cols-3 gap-8 mb-8">
-              {news.map((item) => (
-                <NewsCard key={item.id} news={item} />
-              ))}
-            </div>
-
-            {/* Mobile: Swipe Carousel */}
-            <div className="md:hidden mb-8">
-              <NewsCarousel news={news} />
-            </div>
-
-            <div className="text-center">
-              <Link href="/news" className="btn btn-secondary">
-                Alle News anzeigen
-              </Link>
-            </div>
-
-            {/* Newsletter Subscription */}
-            <div className="mt-16 max-w-2xl mx-auto">
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-strong p-8 border border-wine/10">
-                <div className="text-center mb-6">
-                  <h3 className="text-2xl font-serif font-light text-graphite-dark mb-2">
-                    Newsletter abonnieren
-                  </h3>
-                  <p className="text-graphite">
-                    Erhalten Sie exklusive Angebote und bleiben Sie über Neuigkeiten informiert.
-                  </p>
+      <div className="flex flex-col w-full overflow-hidden">
+        {/* News Section */}
+        {!newsLoading && news.length > 0 && (
+          <section className="section-padding bg-gradient-to-br from-warmwhite via-rose-light/10 to-warmwhite" style={getSectionStyle('news', 2)}>
+            <div className="container-custom">
+              <div className="text-center mb-12">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-wine/10 rounded-full border border-wine/20 mb-4">
+                  <NewsIcon />
+                  <span className="text-wine font-medium text-sm">AKTUELLES</span>
                 </div>
-
-                <NewsletterSignup
-                  onSuccess={(email) => {
-                    setNewsletterEmail(email);
-                    setShowAccountModal(true);
-                  }}
-                />
+                <h2 className="text-h2 font-serif font-light mb-4">News & Neuigkeiten</h2>
+                <p className="text-body-lg text-graphite">Bleiben Sie informiert über neue Weine, Events und mehr.</p>
               </div>
-            </div>
-          </div>
-        </section>
-      )}
 
-      {/* Account Creation Modal */}
-      {showAccountModal && (
-        <AccountCreationModal
-          email={newsletterEmail}
-          onClose={() => setShowAccountModal(false)}
-        />
-      )}
-
-      {/* New Products Carousel */}
-      {newProducts.length > 0 && (
-        <section className="section-padding overflow-hidden bg-warmwhite-light border-y border-taupe-light/30">
-          <div className="container-custom mb-8 text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 rounded-full border border-green-200 mb-4">
-              <svg className="w-5 h-5 text-green-700" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6-4.8-6 4.8 2.4-7.2-6-4.8h7.6z" /></svg>
-              <span className="text-green-800 font-medium text-sm">NEU EINGETROFFEN</span>
-            </div>
-            <h2 className="text-h2 font-serif font-light mb-2">Unsere Neuheiten</h2>
-            <p className="text-body-lg text-graphite">Entdecken Sie unsere neuesten Weinschätze.</p>
-          </div>
-          <NewProductsCarousel products={newProducts} />
-        </section>
-      )}
-
-      {/* Discounted Products Carousel */}
-      {discountedProducts.length > 0 && (
-        <section className="section-padding overflow-hidden bg-white border-b border-taupe-light/30">
-          <div className="container-custom mb-8 text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-100 rounded-full border border-red-200 mb-4">
-              <svg className="w-5 h-5 text-red-700" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6-4.8-6 4.8 2.4-7.2-6-4.8h7.6z" /></svg>
-              <span className="text-red-800 font-medium text-sm">RABATT WEINE</span>
-            </div>
-            <h2 className="text-h2 font-serif font-light mb-2">Aktuelle Angebote</h2>
-            <p className="text-body-lg text-graphite">Sparen Sie bei unseren ausgewählten Aktionsweinen.</p>
-          </div>
-          <DiscountProductsCarousel products={discountedProducts} />
-        </section>
-      )}
-
-      {/* Wine Types */}
-      <section className="section-padding bg-warmwhite-light">
-        <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-h2 font-serif font-light mb-4">Entdecken Sie unsere Weine</h2>
-            <p className="text-body-lg text-graphite">Vom eleganten Weißwein bis zum kraftvollen Rotwein.</p>
-          </div>
-
-          {loading ? (
-            <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-wine"></div>
-            </div>
-          ) : (
-            <>
-              {/* Main 4 Wine Types */}
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 justify-items-center max-w-6xl mx-auto">
-                {getMainWineCategories(categories).map((category) => (
-                  <WineTypeCard
-                    key={category.id}
-                    categoryId={category.id}
-                    type={category.nameDE}
-                    count={category.count || 0}
-                    color={getColorForWineType(category.nameDE)}
-                  />
+              {/* Desktop: Grid */}
+              <div className="hidden md:grid md:grid-cols-3 gap-8 mb-8">
+                {news.map((item) => (
+                  <NewsCard key={item.id} news={item} />
                 ))}
               </div>
 
-              {/* Additional Popular Categories */}
-              {getPopularCategories(categories).length > 0 && (
-                <>
-                  <div className="text-center mb-8 mt-12">
-                    <h3 className="text-h3 font-serif font-light text-wine-dark">
-                      Weitere beliebte Kategorien
-                    </h3>
-                  </div>
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center max-w-6xl mx-auto">
-                    {getPopularCategories(categories).map((category) => (
-                      <WineTypeCard
-                        key={category.id}
-                        categoryId={category.id}
-                        type={category.nameDE}
-                        count={category.count || 0}
-                        color="from-taupe-light/30 to-warmwhite"
-                      />
-                    ))}
-                  </div>
-                </>
-              )}
-
-              {/* Gift Cards Section */}
-              <div className="text-center mb-8 mt-12">
-                <h3 className="text-h3 font-serif font-light text-wine-dark">
-                  Geschenkideen
-                </h3>
+              {/* Mobile: Swipe Carousel */}
+              <div className="md:hidden mb-8">
+                <NewsCarousel news={news} />
               </div>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center max-w-6xl mx-auto">
-                {/* Gift Cards */}
-                <Link
-                  href="/geschenkgutscheine"
-                  className="card card-hover p-8 text-center bg-gradient-to-br from-accent-gold/10 to-warmwhite border-2 border-accent-gold/20 group transition-all shadow-lg w-full min-w-[250px]"
-                >
-                  <div className="flex justify-center mb-4">
-                    <svg className="w-12 h-12 text-accent-burgundy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
-                    </svg>
-                  </div>
-                  <h3 className="text-h4 font-serif mb-2 text-wine-dark group-hover:text-wine transition-colors">
-                    Geschenkgutscheine
-                  </h3>
-                  <p className="text-sm text-graphite/70 group-hover:text-wine transition-colors">
-                    Perfektes Geschenk
-                  </p>
+
+              <div className="text-center">
+                <Link href="/news" className="btn btn-secondary">
+                  Alle News anzeigen
                 </Link>
               </div>
-            </>
-          )}
-        </div>
-      </section>
 
-      {/* Loyalty Preview */}
-      <section className="section-padding">
-        <div className="container-custom">
-          <div className="max-w-4xl mx-auto text-center space-y-6">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent-gold/10 rounded-full border border-accent-gold/20">
-              <span className="text-accent-gold font-medium text-sm">LOYALTY CLUB</span>
+              {/* Newsletter Subscription */}
+              <div className="mt-16 max-w-2xl mx-auto">
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-strong p-8 border border-wine/10">
+                  <div className="text-center mb-6">
+                    <h3 className="text-2xl font-serif font-light text-graphite-dark mb-2">
+                      Newsletter abonnieren
+                    </h3>
+                    <p className="text-graphite">
+                      Erhalten Sie exklusive Angebote und bleiben Sie über Neuigkeiten informiert.
+                    </p>
+                  </div>
+
+                  <NewsletterSignup
+                    onSuccess={(email) => {
+                      setNewsletterEmail(email);
+                      setShowAccountModal(true);
+                    }}
+                  />
+                </div>
+              </div>
             </div>
-            <h2 className="text-h2 font-serif font-light">Werden Sie Teil des Clubs</h2>
-            <p className="text-body-lg text-graphite max-w-2xl mx-auto">
-              Mit jedem Einkauf sammeln Sie Punkte, steigen in exklusive Level auf und erhalten Willkommensgeschenke sowie Zugang zu besonderen Weinen und Events.
-            </p>
-            <Link href="/club" className="btn btn-accent">
-              Mehr erfahren
-            </Link>
+          </section>
+        )}
+
+        {/* Account Creation Modal */}
+        {showAccountModal && (
+          <AccountCreationModal
+            email={newsletterEmail}
+            onClose={() => setShowAccountModal(false)}
+          />
+        )}
+
+        {/* New Products Carousel */}
+        {newProducts.length > 0 && (
+          <section className="section-padding overflow-hidden bg-warmwhite-light border-y border-taupe-light/30" style={getSectionStyle('new-arrivals', 1)}>
+            <div className="container-custom mb-8 text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 rounded-full border border-green-200 mb-4">
+                <svg className="w-5 h-5 text-green-700" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6-4.8-6 4.8 2.4-7.2-6-4.8h7.6z" /></svg>
+                <span className="text-green-800 font-medium text-sm">NEU EINGETROFFEN</span>
+              </div>
+              <h2 className="text-h2 font-serif font-light mb-2">Unsere Neuheiten</h2>
+              <p className="text-body-lg text-graphite">Entdecken Sie unsere neuesten Weinschätze.</p>
+            </div>
+            <NewProductsCarousel products={newProducts} />
+          </section>
+        )}
+
+        {/* Discounted Products Carousel */}
+        {discountedProducts.length > 0 && (
+          <section className="section-padding overflow-hidden bg-white border-b border-taupe-light/30" style={getSectionStyle('discounted', 4)}>
+            <div className="container-custom mb-8 text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-100 rounded-full border border-red-200 mb-4">
+                <svg className="w-5 h-5 text-red-700" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6-4.8-6 4.8 2.4-7.2-6-4.8h7.6z" /></svg>
+                <span className="text-red-800 font-medium text-sm">RABATT WEINE</span>
+              </div>
+              <h2 className="text-h2 font-serif font-light mb-2">Aktuelle Angebote</h2>
+              <p className="text-body-lg text-graphite">Sparen Sie bei unseren ausgewählten Aktionsweinen.</p>
+            </div>
+            <DiscountProductsCarousel products={discountedProducts} />
+          </section>
+        )}
+
+        {/* Wine Types */}
+        <section className="section-padding bg-warmwhite-light" style={getSectionStyle('categories', 3)}>
+          <div className="container-custom">
+            <div className="text-center mb-12">
+              <h2 className="text-h2 font-serif font-light mb-4">Entdecken Sie unsere Weine</h2>
+              <p className="text-body-lg text-graphite">Vom eleganten Weißwein bis zum kraftvollen Rotwein.</p>
+            </div>
+
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-wine"></div>
+              </div>
+            ) : (
+              <>
+                {/* Main 4 Wine Types */}
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 justify-items-center max-w-6xl mx-auto">
+                  {getMainWineCategories(categories).map((category) => (
+                    <WineTypeCard
+                      key={category.id}
+                      categoryId={category.id}
+                      type={category.nameDE}
+                      count={category.count || 0}
+                      color={getColorForWineType(category.nameDE)}
+                    />
+                  ))}
+                </div>
+
+                {/* Additional Popular Categories */}
+                {getPopularCategories(categories).length > 0 && (
+                  <>
+                    <div className="text-center mb-8 mt-12">
+                      <h3 className="text-h3 font-serif font-light text-wine-dark">
+                        Weitere beliebte Kategorien
+                      </h3>
+                    </div>
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center max-w-6xl mx-auto">
+                      {getPopularCategories(categories).map((category) => (
+                        <WineTypeCard
+                          key={category.id}
+                          categoryId={category.id}
+                          type={category.nameDE}
+                          count={category.count || 0}
+                          color="from-taupe-light/30 to-warmwhite"
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+
+              </>
+            )}
           </div>
-        </div>
-      </section>
+        </section>
+
+        <section className="section-padding bg-warmwhite-light" style={getSectionStyle('gift-cards', 6)}>
+          <div className="container-custom">
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-wine"></div>
+              </div>
+            ) : (
+              <>
+                {/* Gift Cards Section */}
+                <div className="text-center mb-8">
+                  <h3 className="text-h3 font-serif font-light text-wine-dark">
+                    Geschenkideen
+                  </h3>
+                </div>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center max-w-6xl mx-auto">
+                  {/* Gift Cards */}
+                  <Link
+                    href="/geschenkgutscheine"
+                    className="card card-hover p-8 text-center bg-gradient-to-br from-accent-gold/10 to-warmwhite border-2 border-accent-gold/20 group transition-all shadow-lg w-full min-w-[250px]"
+                  >
+                    <div className="flex justify-center mb-4">
+                      <svg className="w-12 h-12 text-accent-burgundy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                      </svg>
+                    </div>
+                    <h3 className="text-h4 font-serif mb-2 text-wine-dark group-hover:text-wine transition-colors">
+                      Geschenkgutscheine
+                    </h3>
+                    <p className="text-sm text-graphite/70 group-hover:text-wine transition-colors">
+                      Perfektes Geschenk
+                    </p>
+                  </Link>
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+
+        {/* Loyalty Preview */}
+        <section className="section-padding" style={getSectionStyle('loyalty', 5)}>
+          <div className="container-custom">
+            <div className="max-w-4xl mx-auto text-center space-y-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent-gold/10 rounded-full border border-accent-gold/20">
+                <span className="text-accent-gold font-medium text-sm">LOYALTY CLUB</span>
+              </div>
+              <h2 className="text-h2 font-serif font-light">Werden Sie Teil des Clubs</h2>
+              <p className="text-body-lg text-graphite max-w-2xl mx-auto">
+                Mit jedem Einkauf sammeln Sie Punkte, steigen in exklusive Level auf und erhalten Willkommensgeschenke sowie Zugang zu besonderen Weinen und Events.
+              </p>
+              <Link href="/club" className="btn btn-accent">
+                Mehr erfahren
+              </Link>
+            </div>
+          </div>
+        </section>
+      </div>
 
     </MainLayout>
   );

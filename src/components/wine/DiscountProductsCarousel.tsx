@@ -27,7 +27,7 @@ export function DiscountProductsCarousel({ products }: DiscountProductsCarouselP
                                 id={product.id}
                                 slug={product.articleNumber}
                                 name={product.name}
-                                winery={product.customData?.winery || 'VIER KORKEN'}
+                                winery={product.customData?.winery || 'VIER KORKEN Weinboutique'}
                                 region={product.customData?.region || ''}
                                 country={product.customData?.country || ''}
                                 vintage={product.customData?.vintage ? parseInt(product.customData.vintage) : undefined}

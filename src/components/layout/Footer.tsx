@@ -14,7 +14,7 @@ export function Footer({ className }: FooterProps) {
         <div className="grid md:grid-cols-4 gap-8 mb-12">
           {/* Brand */}
           <div>
-            <h3 className="font-serif text-xl mb-4 text-accent-gold">VIER KORKEN</h3>
+            <h3 className="font-serif text-xl mb-4 text-accent-gold">VIER KORKEN Weinboutique</h3>
             <p className="text-warmwhite/70 text-sm">
               Ihre digitale Weinwelt für Genuss, Kultur und Gemeinschaft.
             </p>
@@ -128,7 +128,7 @@ export function Footer({ className }: FooterProps) {
         <div className="divider mb-8"></div>
 
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-warmwhite/60">
-          <p>&copy; {currentYear} VIER KORKEN. Alle Rechte vorbehalten.</p>
+          <p>&copy; {currentYear} VIER KORKEN Weinboutique. Alle Rechte vorbehalten.</p>
           <div className="flex items-center gap-6">
             <a
               href="https://www.instagram.com/vier.korken.wein.boutique"

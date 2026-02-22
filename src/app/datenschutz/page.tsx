@@ -28,7 +28,7 @@ export default function DatenschutzPage() {
                 Verantwortlich für die Datenverarbeitung im Sinne des Schweizerischen Datenschutzgesetzes (DSG) und der Datenschutz-Grundverordnung (DSGVO) ist:
               </p>
               <div className="bg-rose-light/30 p-4 md:p-6 rounded-lg mt-2">
-                <p className="font-semibold">VIER KORKEN</p>
+                <p className="font-semibold">VIER KORKEN Weinboutique</p>
                 <p>Christina Hediger</p>
                 <p>Steinbrunnengasse 3A</p>
                 <p>5707 Seengen AG</p>
@@ -150,7 +150,7 @@ export default function DatenschutzPage() {
                   <li>Upload des Identitätsdokuments durch den Kunden</li>
                   <li>Aufnahme eines Live-Selfies</li>
                   <li>Automatisierte Prüfung durch Stripe Identity (Dokumentenechtheit, Gesichtsabgleich, Altersberechnung)</li>
-                  <li>Übermittlung des Verifizierungsergebnisses (verifiziert/nicht verifiziert) an VIER KORKEN</li>
+                  <li>Übermittlung des Verifizierungsergebnisses (verifiziert/nicht verifiziert) an VIER KORKEN Weinboutique</li>
                   <li>Speicherung des Verifizierungsstatus in unserem System</li>
                 </ol>
 
@@ -163,7 +163,7 @@ export default function DatenschutzPage() {
                   <strong>4.6 Speicherdauer</strong>
                 </p>
                 <ul className="list-disc pl-4 md:pl-6 space-y-1 mt-2 text-sm">
-                  <li><strong>Bei VIER KORKEN:</strong> Der Verifizierungsstatus (verifiziert: ja/nein) und die Stripe Verification Session ID werden dauerhaft im Kundenkonto gespeichert. Ihre Identitätsdokumente und Selfies werden von uns nicht gespeichert.</li>
+                  <li><strong>Bei VIER KORKEN Weinboutique:</strong> Der Verifizierungsstatus (verifiziert: ja/nein) und die Stripe Verification Session ID werden dauerhaft im Kundenkonto gespeichert. Ihre Identitätsdokumente und Selfies werden von uns nicht gespeichert.</li>
                   <li><strong>Bei Stripe Identity:</strong> Stripe speichert die Verifizierungsdaten gemäss ihrer Aufbewahrungsrichtlinien (in der Regel 7 Jahre für Compliance-Zwecke). Details finden Sie in der Datenschutzerklärung von Stripe: <a href="https://stripe.com/ch/privacy" className="text-wine hover:underline" target="_blank" rel="noopener noreferrer">stripe.com/ch/privacy</a></li>
                 </ul>
 
@@ -196,7 +196,7 @@ export default function DatenschutzPage() {
                 <li>Zahlungsinformationen (Kreditkartendaten, TWINT, etc.)</li>
               </ul>
               <p className="mt-2">
-                <strong>Wichtig:</strong> VIER KORKEN erhält keine Kreditkartendaten. Diese werden ausschliesslich von Stripe verarbeitet und gespeichert.
+                <strong>Wichtig:</strong> VIER KORKEN Weinboutique erhält keine Kreditkartendaten. Diese werden ausschliesslich von Stripe verarbeitet und gespeichert.
               </p>
               <p className="mt-2">
                 <strong>5.3 Rechtsgrundlage</strong><br />
@@ -479,7 +479,7 @@ export default function DatenschutzPage() {
                 Bei Fragen zum Datenschutz, zur Ausübung Ihrer Rechte oder bei Beschwerden kontaktieren Sie uns bitte:
               </p>
               <div className="bg-rose-light/30 p-4 md:p-6 rounded-lg mt-2">
-                <p className="font-semibold">VIER KORKEN - Datenschutz</p>
+                <p className="font-semibold">VIER KORKEN Weinboutique - Datenschutz</p>
                 <p>Joel Hediger</p>
                 <p>Steinbrunnengasse 3A</p>
                 <p>5707 Seengen AG</p>

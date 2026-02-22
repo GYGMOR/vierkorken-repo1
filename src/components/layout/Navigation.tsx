@@ -75,15 +75,18 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
-            <Link href="/weine" className="text-graphite hover:text-graphite-dark transition-colors">
+          <div className="hidden md:flex items-center gap-6 lg:gap-8">
+            <Link href="/weine" className="text-graphite hover:text-graphite-dark transition-colors whitespace-nowrap">
               Weine
             </Link>
-            <Link href="/news" className="text-graphite hover:text-graphite-dark transition-colors">
-              News
+            <Link href="/blog" className="text-graphite hover:text-graphite-dark transition-colors whitespace-nowrap">
+              Discover
             </Link>
-            <Link href="/events" className="text-graphite hover:text-graphite-dark transition-colors">
-              Events
+            <Link href="/dein-event" className="text-graphite hover:text-graphite-dark transition-colors whitespace-nowrap">
+              Dein Event
+            </Link>
+            <Link href="/mieten" className="text-graphite hover:text-graphite-dark transition-colors whitespace-nowrap">
+              Mieten
             </Link>
 
             {/* Dropdown "Mehr" */}
@@ -97,11 +100,14 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
 
               <div className="absolute right-0 top-full pt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                 <div className="bg-warmwhite rounded-lg shadow-strong border border-taupe-light overflow-hidden">
+                  <Link href="/events" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
+                    Events
+                  </Link>
                   <Link href="/club" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
                     Loyalty Club
                   </Link>
-                  <Link href="/blog" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
-                    Weinwissen
+                  <Link href="/news" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
+                    News
                   </Link>
                   <div className="border-t border-taupe-light/50"></div>
                   <Link href="/uber-uns" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
@@ -261,12 +267,27 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
                 Weine
               </Link>
               <Link
-                href="/news"
+                href="/blog"
                 className="text-graphite hover:text-graphite-dark transition-colors py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                News
+                Discover
               </Link>
+              <Link
+                href="/dein-event"
+                className="text-graphite hover:text-graphite-dark transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Dein Event
+              </Link>
+              <Link
+                href="/mieten"
+                className="text-graphite hover:text-graphite-dark transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Mieten
+              </Link>
+              <div className="border-t border-taupe-light/30 my-1"></div>
               <Link
                 href="/events"
                 className="text-graphite hover:text-graphite-dark transition-colors py-2"
@@ -274,20 +295,19 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
               >
                 Events
               </Link>
-              <div className="border-t border-taupe-light/30 my-1"></div>
+              <Link
+                href="/news"
+                className="text-graphite hover:text-graphite-dark transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                News
+              </Link>
               <Link
                 href="/club"
                 className="text-graphite hover:text-graphite-dark transition-colors py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Loyalty Club
-              </Link>
-              <Link
-                href="/blog"
-                className="text-graphite hover:text-graphite-dark transition-colors py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Weinwissen
               </Link>
               <Link
                 href="/uber-uns"
@@ -352,7 +372,7 @@ function SearchModal({ onClose }: { onClose: () => void }) {
     { title: 'Weine', url: '/weine', description: 'Entdecken Sie unsere Weinauswahl' },
     { title: 'Events', url: '/events', description: 'Exklusive Weinerlebnisse' },
     { title: 'Loyalty Club', url: '/club', description: 'Punkte sammeln und Vorteile genießen' },
-    { title: 'Über uns', url: '/uber-uns', description: 'Erfahren Sie mehr über VIER KORKEN' },
+    { title: 'Über uns', url: '/uber-uns', description: 'Erfahren Sie mehr über VIER KORKEN Weinboutique' },
     { title: 'Kontakt', url: '/kontakt', description: 'Nehmen Sie Kontakt mit uns auf' },
   ];
 

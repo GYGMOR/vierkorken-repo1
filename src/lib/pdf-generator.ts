@@ -85,7 +85,7 @@ export function generateInvoicePDF(order: Order): void {
   doc.setFontSize(24);
   doc.setTextColor(primaryColor);
   doc.setFont('helvetica', 'bold');
-  doc.text('VIER KORKEN', 20, 25);
+  doc.text('VIER KORKEN Weinboutique', 20, 25);
 
   doc.setFontSize(9);
   doc.setTextColor(grayColor);

@@ -434,7 +434,7 @@ export default function OrderTrackingPage() {
                     </svg>
                   </div>
                   <div>
-                    <p className="font-semibold text-graphite-dark">VIER KORKEN</p>
+                    <p className="font-semibold text-graphite-dark">VIER KORKEN Weinboutique</p>
                     <p className="text-graphite">Steinbrunnengasse 3A</p>
                     <p className="text-graphite">5707 Seengen AG</p>
                     <p className="text-graphite">Schweiz</p>
