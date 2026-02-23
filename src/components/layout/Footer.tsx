@@ -35,7 +35,7 @@ export function Footer({ className }: FooterProps) {
 
           {/* Shop */}
           <div>
-            <h4 className="font-semibold mb-4 text-accent-gold">Shop</h4>
+            <h4 className="font-semibold mb-4 text-accent-gold">Weinshop</h4>
             <ul className="space-y-2 text-sm text-warmwhite/70">
               <li>
                 <Link href="/weine" className="hover:text-warmwhite transition-colors">
@@ -70,13 +70,28 @@ export function Footer({ className }: FooterProps) {
             <h4 className="font-semibold mb-4 text-accent-gold">Entdecken</h4>
             <ul className="space-y-2 text-sm text-warmwhite/70">
               <li>
+                <Link href="/news" className="hover:text-warmwhite transition-colors">
+                  News
+                </Link>
+              </li>
+              <li>
                 <Link href="/events" className="hover:text-warmwhite transition-colors">
                   Events
                 </Link>
               </li>
               <li>
+                <Link href="/dein-event" className="hover:text-warmwhite transition-colors">
+                  Dein Event
+                </Link>
+              </li>
+              <li>
+                <Link href="/mieten" className="hover:text-warmwhite transition-colors">
+                  Mieten
+                </Link>
+              </li>
+              <li>
                 <Link href="/club" className="hover:text-warmwhite transition-colors">
-                  Loyalty Club
+                  Treueprogramm
                 </Link>
               </li>
               <li>

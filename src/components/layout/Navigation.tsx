@@ -79,8 +79,8 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
             <Link href="/weine" className="text-graphite hover:text-graphite-dark transition-colors whitespace-nowrap">
               Weine
             </Link>
-            <Link href="/blog" className="text-graphite hover:text-graphite-dark transition-colors whitespace-nowrap">
-              Discover
+            <Link href="/news" className="text-graphite hover:text-graphite-dark transition-colors whitespace-nowrap">
+              News
             </Link>
             <Link href="/dein-event" className="text-graphite hover:text-graphite-dark transition-colors whitespace-nowrap">
               Dein Event
@@ -104,10 +104,10 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
                     Events
                   </Link>
                   <Link href="/club" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
-                    Loyalty Club
+                    Treueprogramm
                   </Link>
-                  <Link href="/news" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
-                    News
+                  <Link href="/blog" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
+                    Weinwissen
                   </Link>
                   <div className="border-t border-taupe-light/50"></div>
                   <Link href="/uber-uns" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
@@ -267,11 +267,11 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
                 Weine
               </Link>
               <Link
-                href="/blog"
+                href="/news"
                 className="text-graphite hover:text-graphite-dark transition-colors py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Discover
+                News
               </Link>
               <Link
                 href="/dein-event"
@@ -296,18 +296,18 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
                 Events
               </Link>
               <Link
-                href="/news"
+                href="/blog"
                 className="text-graphite hover:text-graphite-dark transition-colors py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                News
+                Weinwissen
               </Link>
               <Link
                 href="/club"
                 className="text-graphite hover:text-graphite-dark transition-colors py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Loyalty Club
+                Treueprogramm
               </Link>
               <Link
                 href="/uber-uns"

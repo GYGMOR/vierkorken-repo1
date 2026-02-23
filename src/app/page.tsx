@@ -398,7 +398,7 @@ export default function HomePage() {
                     Geschenkideen
                   </h3>
                 </div>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center max-w-6xl mx-auto">
+                <div className="grid sm:grid-cols-2 lg:grid-cols-2 gap-6 justify-items-center max-w-4xl mx-auto">
                   {/* Gift Cards */}
                   <Link
                     href="/geschenkgutscheine"
@@ -414,6 +414,24 @@ export default function HomePage() {
                     </h3>
                     <p className="text-sm text-graphite/70 group-hover:text-wine transition-colors">
                       Perfektes Geschenk
+                    </p>
+                  </Link>
+
+                  {/* Divers (Glasses etc) */}
+                  <Link
+                    href="/weine?category=divers"
+                    className="card card-hover p-8 text-center bg-gradient-to-br from-wood-light/20 to-warmwhite border-2 border-wood/20 group transition-all shadow-lg w-full min-w-[250px]"
+                  >
+                    <div className="flex justify-center mb-4">
+                      <svg className="w-12 h-12 text-wood-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M19 3v4M5 7h14a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9a2 2 0 012-2zm0 0V3h14v4M9 11v6m6-6v6" />
+                      </svg>
+                    </div>
+                    <h3 className="text-h4 font-serif mb-2 text-wine-dark group-hover:text-wine transition-colors">
+                      Divers
+                    </h3>
+                    <p className="text-sm text-graphite/70 group-hover:text-wine transition-colors">
+                      Weingläser & Zubehör
                     </p>
                   </Link>
                 </div>

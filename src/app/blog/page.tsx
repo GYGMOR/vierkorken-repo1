@@ -183,7 +183,7 @@ export default function WeinwissenPage() {
 
             <div className="card p-8 mb-8 bg-gradient-to-br from-accent-burgundy/5 to-rose-light/20 relative overflow-hidden">
               {/* Decoration */}
-              <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-[0.04]">
+              <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-20">
                 <Image
                   src="/images/layout/logo_icon.png"
                   alt="Vier Korken Logo"

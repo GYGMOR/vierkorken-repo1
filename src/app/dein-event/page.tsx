@@ -5,6 +5,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { EventTemplateEditor } from '@/components/events/EventTemplateEditor';
+import { ImageUploader } from '@/components/admin/ImageUploader';
 
 interface EventTemplate {
     id: string;
@@ -31,6 +32,10 @@ export default function DeinEventPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitStatus, setSubmitStatus] = useState<{ type: 'success' | 'error' | null, message: string }>({ type: null, message: '' });
 
+    // Header image state
+    const [headerImage, setHeaderImage] = useState<string>('/images/layout/wein_regal_nah.jpg');
+    const [headerImageEditorOpen, setHeaderImageEditorOpen] = useState(false);
+
     const fetchTemplates = async () => {
         try {
             const res = await fetch('/api/admin/event-templates');
@@ -46,9 +51,40 @@ export default function DeinEventPage() {
         }
     };
 
+    const fetchSettings = async () => {
+        try {
+            const res = await fetch('/api/settings?key=event_page_header_image');
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success && data.setting?.value) {
+                    setHeaderImage(data.setting.value);
+                }
+            }
+        } catch (e) {
+            console.error('Error fetching settings:', e);
+        }
+    };
+
     useEffect(() => {
         fetchTemplates();
+        fetchSettings();
     }, [isAdmin]);
+
+    const handleHeaderImageUpload = async (url: string) => {
+        try {
+            const res = await fetch('/api/settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: 'event_page_header_image', value: url }),
+            });
+            if (res.ok) {
+                setHeaderImage(url);
+                setHeaderImageEditorOpen(false);
+            }
+        } catch (e) {
+            console.error('Error saving header image:', e);
+        }
+    };
 
     const handleDelete = async (id: string) => {
         if (!confirm('Vorlage wirklich löschen?')) return;
@@ -90,17 +126,25 @@ export default function DeinEventPage() {
     return (
         <MainLayout>
             <div className="bg-gradient-to-b from-warmwhite to-white min-h-screen">
-                {/* Hero Section */}
-                <section className="relative h-[400px] flex items-center justify-center overflow-hidden">
+                <section className="relative h-[400px] flex items-center justify-center overflow-hidden group">
                     <div className="absolute inset-0 bg-graphite-dark">
                         <Image
-                            src="/images/layout/wein_regal_nah.jpg"
+                            src={headerImage}
                             alt="Dein Event Background"
                             fill
-                            className="object-cover opacity-30"
+                            className="object-cover opacity-40 transition-opacity duration-700"
                             priority
                         />
                     </div>
+                    {isAdmin && (
+                        <button
+                            onClick={() => setHeaderImageEditorOpen(true)}
+                            className="absolute top-4 right-4 z-20 bg-white/90 hover:bg-white text-graphite rounded-full p-3 shadow-lg transition-all opacity-0 group-hover:opacity-100"
+                            title="Header-Bild ändern"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        </button>
+                    )}
                     <div className="relative z-10 text-center text-white px-4 max-w-3xl">
                         <h1 className="text-display font-serif font-light mb-6">Dein Event</h1>
                         <p className="text-body-lg text-white/90">
@@ -278,6 +322,24 @@ export default function DeinEventPage() {
                     onClose={() => setEditorOpen(false)}
                     onUpdate={fetchTemplates}
                 />
+            )}
+
+            {headerImageEditorOpen && (
+                <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl w-full max-w-lg p-6 lg:p-8 relative max-h-[90vh] overflow-y-auto">
+                        <button
+                            onClick={() => setHeaderImageEditorOpen(false)}
+                            className="absolute top-4 right-4 text-graphite/40 hover:text-graphite transition-colors"
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+
+                        <h2 className="text-h3 font-serif text-graphite-dark mb-6">Header-Bild ändern</h2>
+                        <ImageUploader onUploadComplete={handleHeaderImageUpload} />
+                    </div>
+                </div>
             )}
         </MainLayout>
     );
