@@ -16,6 +16,13 @@ interface KlaraCategory {
   count?: number;
 }
 
+interface HomepageCategory {
+  id: string; // Klara ID
+  nameDE: string;
+  isVisible: boolean;
+  sortOrder: number;
+}
+
 interface NewsItem {
   id: string;
   slug: string;
@@ -61,19 +68,47 @@ export default function HomePage() {
     fetchSeason();
   }, []);
 
-  // Fetch categories with counts (API already returns count!)
+  // Fetch categories with counts and apply custom sorting
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const response = await fetch('/api/klara/categories');
+        const [klaraRes, settingsRes] = await Promise.all([
+          fetch('/api/klara/categories'),
+          fetch('/api/settings?key=homepage_category_order')
+        ]);
 
-        if (response.ok) {
-          const data = await response.json();
+        if (klaraRes.ok) {
+          const klaraData = await klaraRes.json();
+          let sortedCategories = klaraData.data || [];
 
-          if (data.success) {
-            // API already returns categories with count!
-            setCategories(data.data);
+          if (settingsRes.ok) {
+            const settingsData = await settingsRes.json();
+            if (settingsData.success && settingsData.setting?.value) {
+              try {
+                const customOrder: HomepageCategory[] = JSON.parse(settingsData.setting.value);
+
+                // 1. Filter out invisible categories
+                const visibleIds = new Set(
+                  customOrder.filter(c => c.isVisible).map(c => c.id)
+                );
+
+                // If customOrder exists, filter. Otherwise show all.
+                if (customOrder.length > 0) {
+                  sortedCategories = sortedCategories.filter((c: any) => visibleIds.has(c.id));
+                }
+
+                // 2. Sort according to custom order
+                sortedCategories.sort((a: any, b: any) => {
+                  const orderA = customOrder.find(c => c.id === a.id)?.sortOrder ?? 999;
+                  const orderB = customOrder.find(c => c.id === b.id)?.sortOrder ?? 999;
+                  return orderA - orderB;
+                });
+
+              } catch (e) { console.error('Error parsing category settings'); }
+            }
           }
+
+          setCategories(sortedCategories);
         }
       } catch (error) {
         console.error('Error fetching categories:', error);
@@ -465,39 +500,14 @@ export default function HomePage() {
 
 // Helper Functions
 function getMainWineCategories(categories: KlaraCategory[]): KlaraCategory[] {
-  const mainTypes = ['Rotwein', 'Weisswein', 'Rosewein', 'Roséwein', 'Schaumwein'];
-
-  const found = categories.filter((cat) =>
-    mainTypes.some((type) => cat.nameDE.toLowerCase().includes(type.toLowerCase()))
-  );
-
-  // Ensure we have exactly 4 categories, prioritizing in this order
-  const rotwein = found.find((c) => c.nameDE.toLowerCase().includes('rotwein'));
-  const weisswein = found.find((c) => c.nameDE.toLowerCase().includes('weisswein'));
-  const rosewein = found.find((c) => c.nameDE.toLowerCase().includes('rosewein') || c.nameDE.toLowerCase().includes('roséwein'));
-  const schaumwein = found.find((c) => c.nameDE.toLowerCase().includes('schaumwein'));
-
-  const result = [];
-  if (rotwein) result.push(rotwein);
-  if (weisswein) result.push(weisswein);
-  if (rosewein) result.push(rosewein);
-  if (schaumwein) result.push(schaumwein);
-
-  return result;
+  // If we have custom sorted categories, simply take the first 4
+  return categories.slice(0, 4);
 }
 
 function getPopularCategories(categories: KlaraCategory[]): KlaraCategory[] {
-  const mainTypes = ['Rotwein', 'Weisswein', 'Rosewein', 'Roséwein', 'Schaumwein'];
-
-  // Get categories that are NOT main wine types
-  const otherCategories = categories.filter((cat) =>
-    !mainTypes.some((type) => cat.nameDE.toLowerCase().includes(type.toLowerCase()))
-  );
-
-  // Sort by count (most popular first) and take top 4
-  return otherCategories
-    .sort((a, b) => (b.count || 0) - (a.count || 0))
-    .slice(0, 4);
+  // Return everything after the first 4
+  if (categories.length <= 4) return [];
+  return categories.slice(4);
 }
 
 function getColorForWineType(typeName: string): string {
