@@ -61,17 +61,17 @@ export async function POST(req: NextRequest) {
     console.log('🍷 Wine items:', wineItems.length);
     console.log('🎫 Event items:', eventItems.length);
 
-    // Log what we're trying to create for wines
+    // Log what we're trying to create for wines/divers
     const orderItemsToCreate = wineItems.map((item: any) => {
       const quantity = parseInt(item.quantity) || 1;
       const unitPrice = parseFloat(item.price) || 0;
 
       return {
         variantId: null,
-        wineName: String(item.name || 'Unbekannter Wein'),
-        winery: String(item.winery || 'Unbekannt'),
+        wineName: String(item.name || 'Unbekannter Artikel'),
+        winery: String(item.winery || (item.type === 'divers' ? 'Zubehör & Divers' : 'Unbekannt')),
         vintage: item.vintage ? parseInt(String(item.vintage)) : null,
-        bottleSize: 0.75,
+        bottleSize: item.type === 'divers' ? 0 : 0.75,
         quantity: quantity,
         unitPrice: unitPrice,
         totalPrice: unitPrice * quantity,
@@ -210,6 +210,8 @@ export async function POST(req: NextRequest) {
         }
       } else if (item.type === 'event') {
         description = item.eventDate ? `Event am ${item.eventDate}` : 'Event-Ticket';
+      } else if (item.type === 'divers') {
+        description = 'Divers & Zubehör';
       } else {
         description = 'VIER KORKEN Weinboutique Produkt';
       }

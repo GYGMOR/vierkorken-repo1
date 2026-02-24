@@ -1251,3 +1251,27 @@ model HomepageSection {
   
   @@map("homepagesection")
 }
+
+// ============================================================
+// DIVERS PRODUCTS
+// ============================================================
+
+enum DiversProductType {
+  SELL
+  RENT
+}
+
+model DiversProduct {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  price       Decimal  @db.Decimal(10, 2)
+  image       String?
+  type        DiversProductType @default(SELL)
+  isActive    Boolean  @default(true)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("diversproduct")
+}

@@ -8,7 +8,7 @@ export interface CartItem {
   price: number;
   quantity: number;
   imageUrl?: string;
-  type: 'wine' | 'event';
+  type: 'wine' | 'event' | 'divers';
   slug?: string;
   winery?: string;
   vintage?: number;

@@ -82,11 +82,11 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
             <Link href="/news" className="text-graphite hover:text-graphite-dark transition-colors whitespace-nowrap">
               News
             </Link>
-            <Link href="/dein-event" className="text-graphite hover:text-graphite-dark transition-colors whitespace-nowrap">
-              Dein Event
+            <Link href="/events" className="text-graphite hover:text-graphite-dark transition-colors whitespace-nowrap">
+              Events
             </Link>
-            <Link href="/mieten" className="text-graphite hover:text-graphite-dark transition-colors whitespace-nowrap">
-              Mieten
+            <Link href="/uber-uns" className="text-graphite hover:text-graphite-dark transition-colors whitespace-nowrap">
+              Über uns
             </Link>
 
             {/* Dropdown "Mehr" */}
@@ -100,21 +100,23 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
 
               <div className="absolute right-0 top-full pt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                 <div className="bg-warmwhite rounded-lg shadow-strong border border-taupe-light overflow-hidden">
-                  <Link href="/events" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
-                    Events
+                  <Link href="/geschenkgutscheine" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
+                    Geschenkgutscheine
+                  </Link>
+                  <Link href="/divers" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
+                    Divers
                   </Link>
                   <Link href="/club" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
                     Treueprogramm
                   </Link>
-                  <Link href="/blog" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
-                    Weinwissen
-                  </Link>
-                  <div className="border-t border-taupe-light/50"></div>
-                  <Link href="/uber-uns" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
-                    Über uns
-                  </Link>
                   <Link href="/kontakt" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
                     Kontakt
+                  </Link>
+                  <Link href="/dein-event" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
+                    Dein Event
+                  </Link>
+                  <Link href="/blog" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
+                    Weinwissen
                   </Link>
                 </div>
               </div>
@@ -274,40 +276,11 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
                 News
               </Link>
               <Link
-                href="/dein-event"
-                className="text-graphite hover:text-graphite-dark transition-colors py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Dein Event
-              </Link>
-              <Link
-                href="/mieten"
-                className="text-graphite hover:text-graphite-dark transition-colors py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Mieten
-              </Link>
-              <div className="border-t border-taupe-light/30 my-1"></div>
-              <Link
                 href="/events"
                 className="text-graphite hover:text-graphite-dark transition-colors py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Events
-              </Link>
-              <Link
-                href="/blog"
-                className="text-graphite hover:text-graphite-dark transition-colors py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Weinwissen
-              </Link>
-              <Link
-                href="/club"
-                className="text-graphite hover:text-graphite-dark transition-colors py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Treueprogramm
               </Link>
               <Link
                 href="/uber-uns"
@@ -316,12 +289,51 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
               >
                 Über uns
               </Link>
+
+              <div className="border-t border-taupe-light/30 my-1"></div>
+              <div className="text-sm font-semibold text-graphite-dark uppercase tracking-wider py-1">Mehr</div>
+
+              <Link
+                href="/geschenkgutscheine"
+                className="text-graphite hover:text-graphite-dark transition-colors py-2 pl-4"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Geschenkgutscheine
+              </Link>
+              <Link
+                href="/divers"
+                className="text-graphite hover:text-graphite-dark transition-colors py-2 pl-4"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Divers
+              </Link>
+              <Link
+                href="/club"
+                className="text-graphite hover:text-graphite-dark transition-colors py-2 pl-4"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Treueprogramm
+              </Link>
               <Link
                 href="/kontakt"
-                className="text-graphite hover:text-graphite-dark transition-colors py-2"
+                className="text-graphite hover:text-graphite-dark transition-colors py-2 pl-4"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Kontakt
+              </Link>
+              <Link
+                href="/dein-event"
+                className="text-graphite hover:text-graphite-dark transition-colors py-2 pl-4"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Dein Event
+              </Link>
+              <Link
+                href="/blog"
+                className="text-graphite hover:text-graphite-dark transition-colors py-2 pl-4"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Weinwissen
               </Link>
             </div>
           </div>
