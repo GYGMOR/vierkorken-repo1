@@ -109,7 +109,7 @@ function RegisterForm() {
         {/* Header */}
         <div className="text-center">
           <Link href="/" className="font-serif text-3xl font-light text-graphite-dark hover:text-graphite transition-colors">
-            VIER KORKEN Weinboutique
+            Vier Korken Wein-Boutique
           </Link>
           <h2 className="mt-6 text-2xl md:text-3xl font-serif font-light text-graphite-dark">
             Konto erstellen

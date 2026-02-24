@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { cn } from '@/lib/utils';
 import { UserAvatar } from '@/components/ui/UserAvatar';
@@ -15,6 +16,7 @@ export interface NavigationProps {
 
 export function Navigation({ className, showUserMenu = true }: NavigationProps) {
   const { data: session } = useSession();
+  const pathname = usePathname();
   const { itemCount } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -293,48 +295,23 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
               <div className="border-t border-taupe-light/30 my-1"></div>
               <div className="text-sm font-semibold text-graphite-dark uppercase tracking-wider py-1">Mehr</div>
 
-              <Link
-                href="/geschenkgutscheine"
-                className="text-graphite hover:text-graphite-dark transition-colors py-2 pl-4"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Geschenkgutscheine
-              </Link>
-              <Link
-                href="/divers"
-                className="text-graphite hover:text-graphite-dark transition-colors py-2 pl-4"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Divers
-              </Link>
-              <Link
-                href="/club"
-                className="text-graphite hover:text-graphite-dark transition-colors py-2 pl-4"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Treueprogramm
-              </Link>
-              <Link
-                href="/kontakt"
-                className="text-graphite hover:text-graphite-dark transition-colors py-2 pl-4"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Kontakt
-              </Link>
-              <Link
-                href="/dein-event"
-                className="text-graphite hover:text-graphite-dark transition-colors py-2 pl-4"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Dein Event
-              </Link>
-              <Link
-                href="/blog"
-                className="text-graphite hover:text-graphite-dark transition-colors py-2 pl-4"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Weinwissen
-              </Link>
+              <div className="pl-4 py-2 flex flex-col gap-3">
+                <Link href="/divers" className={`text-xl transition-colors ${pathname === '/divers' ? 'font-serif text-wine' : 'text-graphite'}`} onClick={() => setMobileMenuOpen(false)}>
+                  Zubehör & Divers
+                </Link>
+                <Link href="/klub" className={`text-xl transition-colors ${pathname === '/klub' ? 'font-serif text-wine' : 'text-graphite'}`} onClick={() => setMobileMenuOpen(false)}>
+                  Treueprogramm
+                </Link>
+                <Link href="/kontakt" className={`text-xl transition-colors ${pathname === '/kontakt' ? 'font-serif text-wine' : 'text-graphite'}`} onClick={() => setMobileMenuOpen(false)}>
+                  Kontakt
+                </Link>
+                <Link href="/dein-event" className={`text-xl transition-colors ${pathname === '/dein-event' ? 'font-serif text-wine' : 'text-graphite'}`} onClick={() => setMobileMenuOpen(false)}>
+                  Dein Event
+                </Link>
+                <Link href="/news/categories/weinwissen" className={`text-xl transition-colors ${pathname === '/news/categories/weinwissen' ? 'font-serif text-wine' : 'text-graphite'}`} onClick={() => setMobileMenuOpen(false)}>
+                  Weinwissen
+                </Link>
+              </div>
             </div>
           </div>
         )}
@@ -384,7 +361,7 @@ function SearchModal({ onClose }: { onClose: () => void }) {
     { title: 'Weine', url: '/weine', description: 'Entdecken Sie unsere Weinauswahl' },
     { title: 'Events', url: '/events', description: 'Exklusive Weinerlebnisse' },
     { title: 'Loyalty Club', url: '/club', description: 'Punkte sammeln und Vorteile genießen' },
-    { title: 'Über uns', url: '/uber-uns', description: 'Erfahren Sie mehr über VIER KORKEN Weinboutique' },
+    { title: 'Über uns', url: '/uber-uns', description: 'Erfahren Sie mehr über Vier Korken Wein-Boutique' },
     { title: 'Kontakt', url: '/kontakt', description: 'Nehmen Sie Kontakt mit uns auf' },
   ];
 

@@ -32,7 +32,7 @@ export default function WiderrufsrechtPage() {
                 Um Ihr Widerrufsrecht auszuüben, müssen Sie uns:
               </p>
               <div className="bg-rose-light/30 p-4 md:p-6 rounded-lg mt-3">
-                <p className="font-semibold">VIER KORKEN Weinboutique</p>
+                <p className="font-semibold">Vier Korken Wein-Boutique</p>
                 <p>Steinbrunnengasse 3A</p>
                 <p>5707 Seengen</p>
                 <p>Schweiz</p>
@@ -93,7 +93,7 @@ export default function WiderrufsrechtPage() {
               </p>
               <div className="bg-warmwhite-light p-4 md:p-6 rounded-lg mt-3 border border-taupe-light">
                 <p className="font-semibold">Rücksendeadresse:</p>
-                <p className="mt-2">VIER KORKEN Weinboutique</p>
+                <p className="mt-2">Vier Korken Wein-Boutique</p>
                 <p>Steinbrunnengasse 3A</p>
                 <p>5707 Seengen</p>
                 <p>Schweiz</p>
@@ -148,7 +148,7 @@ export default function WiderrufsrechtPage() {
                 </p>
                 <div className="space-y-3 font-mono text-xs md:text-sm">
                   <p>An:</p>
-                  <p className="pl-4">VIER KORKEN Weinboutique</p>
+                  <p className="pl-4">Vier Korken Wein-Boutique</p>
                   <p className="pl-4">Steinbrunnengasse 3A</p>
                   <p className="pl-4">5707 Seengen, Schweiz</p>
                   <p className="pl-4">E-Mail: info@vierkorken.ch</p>

@@ -79,8 +79,8 @@ export async function generateTicketPDFBuffer(ticket: EventTicketData): Promise<
   });
 
   // Header text
-  page.drawText('VIER KORKEN Weinboutique', {
-    x: width / 2 - helveticaBold.widthOfTextAtSize('VIER KORKEN Weinboutique', 32) / 2,
+  page.drawText('Vier Korken Wein-Boutique', {
+    x: width / 2 - helveticaBold.widthOfTextAtSize('Vier Korken Wein-Boutique', 32) / 2,
     y: height - 60,
     size: 32,
     font: helveticaBold,
@@ -316,8 +316,8 @@ export async function generateTicketPDFBuffer(ticket: EventTicketData): Promise<
     color: burgundy,
   });
 
-  page.drawText('VIER KORKEN Weinboutique Wein-Boutique', {
-    x: width / 2 - helvetica.widthOfTextAtSize('VIER KORKEN Weinboutique Wein-Boutique', 8) / 2,
+  page.drawText('Vier Korken Wein-Boutique Wein-Boutique', {
+    x: width / 2 - helvetica.widthOfTextAtSize('Vier Korken Wein-Boutique Wein-Boutique', 8) / 2,
     y: 75,
     size: 8,
     font: helvetica,

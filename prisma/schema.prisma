@@ -1267,6 +1267,7 @@ model DiversProduct {
   description String?  @db.Text
   price       Decimal  @db.Decimal(10, 2)
   image       String?
+  gallery     Json?
   type        DiversProductType @default(SELL)
   isActive    Boolean  @default(true)
   

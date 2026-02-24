@@ -52,7 +52,7 @@ export default function ComingSoonPage() {
       <div className="absolute inset-0 z-0">
         <Image
           src="/images/layout/comingsoon.png"
-          alt="VIER KORKEN Weinboutique - Coming Soon"
+          alt="Vier Korken Wein-Boutique - Coming Soon"
           fill
           priority
           className="object-cover object-center"
@@ -110,7 +110,7 @@ export default function ComingSoonPage() {
             <div className="relative w-48 h-12 sm:w-56 sm:h-14">
               <Image
                 src="/images/layout/logo_text.png"
-                alt="VIER KORKEN Weinboutique"
+                alt="Vier Korken Wein-Boutique"
                 fill
                 className="object-contain"
               />

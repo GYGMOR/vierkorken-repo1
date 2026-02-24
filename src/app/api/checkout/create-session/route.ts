@@ -185,8 +185,19 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Calculate sum of gift cards to exclude from tax
+    const giftCardSubtotal = items
+      .filter((item: any) => item.type === 'giftcard' || item.type === 'geschenkgutschein')
+      .reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
+
     const subtotalAfterDiscount = Math.max(0, subtotal + shippingCost + giftWrapCost - discountAmount);
-    const taxAmount = subtotalAfterDiscount * 0.081;
+
+    // Tax is only computed on the taxable amount (excluding gift cards)
+    // We assume the discount applies evenly, or we just subtract giftCardSubtotal from the taxable base.
+    // Ensure we don't tax less than 0.
+    const taxableAmount = Math.max(0, subtotalAfterDiscount - giftCardSubtotal);
+    const taxAmount = taxableAmount * 0.081;
+
     const total = subtotalAfterDiscount + taxAmount;
 
     // Build line items for Stripe
@@ -213,7 +224,7 @@ export async function POST(req: NextRequest) {
       } else if (item.type === 'divers') {
         description = 'Divers & Zubehör';
       } else {
-        description = 'VIER KORKEN Weinboutique Produkt';
+        description = 'Vier Korken Wein-Boutique Produkt';
       }
 
       return {

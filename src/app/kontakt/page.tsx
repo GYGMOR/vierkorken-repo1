@@ -1,20 +1,47 @@
+'use client';
+
 import { MainLayout } from '@/components/layout/MainLayout';
 import Image from 'next/image';
 import { ContactForm } from './ContactForm';
+import { EditableText } from '@/components/admin/EditableText';
+import { useSession } from 'next-auth/react';
+import { useState, useEffect } from 'react';
 
 export default function KontaktPage() {
+  const { data: session } = useSession();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (session?.user?.email) {
+      fetch('/api/user/profile')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.user.role === 'ADMIN') setIsAdmin(true);
+        });
+    }
+  }, [session]);
+
   return (
     <MainLayout>
       <div className="section-padding bg-gradient-to-br from-warmwhite via-rose-light to-warmwhite">
         <div className="container-custom max-w-5xl">
           {/* Header */}
           <div className="text-center mb-12">
-            <h1 className="text-display font-serif font-light text-graphite-dark mb-4">
-              Kontakt
-            </h1>
-            <p className="text-body-lg text-graphite max-w-2xl mx-auto">
-              Wir freuen uns auf Ihre Nachricht. Besuchen Sie uns oder kontaktieren Sie uns telefonisch.
-            </p>
+            <EditableText
+              settingKey="kontakt_page_header_title"
+              defaultValue="Kontakt"
+              isAdmin={isAdmin}
+              as="h1"
+              className="text-display font-serif font-light text-graphite-dark mb-4"
+            />
+            <EditableText
+              settingKey="kontakt_page_header_subtitle"
+              defaultValue="Wir freuen uns auf Ihre Nachricht. Besuchen Sie uns oder kontaktieren Sie uns telefonisch."
+              isAdmin={isAdmin}
+              as="p"
+              className="text-body-lg text-graphite max-w-2xl mx-auto"
+              multiline={true}
+            />
           </div>
 
           {/* Geschäftsführerin Section */}
@@ -34,7 +61,7 @@ export default function KontaktPage() {
               <div className="flex-1 text-center md:text-left">
                 <h2 className="text-h3 font-serif mb-2">Geschäftsführerin</h2>
                 <p className="text-graphite mb-4">
-                  Ihre Ansprechpartnerin für alle Fragen rund um VIER KORKEN Weinboutique.
+                  Ihre Ansprechpartnerin für alle Fragen rund um Vier Korken Wein-Boutique.
                 </p>
                 <div className="space-y-2 text-graphite-dark">
                   <p><strong>Name:</strong> Christina Hediger</p>
@@ -51,7 +78,7 @@ export default function KontaktPage() {
             <div className="card p-6">
               <h3 className="text-h4 font-serif mb-4">Unser Standort</h3>
               <div className="space-y-2 text-graphite mb-4">
-                <p className="font-semibold text-graphite-dark">VIER KORKEN Weinboutique</p>
+                <p className="font-semibold text-graphite-dark">Vier Korken Wein-Boutique</p>
                 <p>Steinbrunnengasse 3A</p>
                 <p>5707 Seengen</p>
                 <p>Schweiz</p>

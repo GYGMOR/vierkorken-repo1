@@ -13,7 +13,7 @@ export default function AGBPage() {
             <section>
               <h2 className="text-xl md:text-2xl lg:text-h3 font-serif text-graphite-dark mb-3 md:mb-4">1. Geltungsbereich</h2>
               <p>
-                Diese Allgemeinen Geschäftsbedingungen (nachfolgend "AGB") gelten für alle Verträge zwischen der VIER KORKEN Weinboutique (nachfolgend "Anbieter") und dem Kunden (nachfolgend "Kunde"), die über den Online-Shop unter vierkorken.ch geschlossen werden.
+                Diese Allgemeinen Geschäftsbedingungen (nachfolgend "AGB") gelten für alle Verträge zwischen der Vier Korken Wein-Boutique (nachfolgend "Anbieter") und dem Kunden (nachfolgend "Kunde"), die über den Online-Shop unter vierkorken.ch geschlossen werden.
               </p>
               <p className="mt-2">
                 Mit der Bestellung von Waren über den Online-Shop erklärt sich der Kunde mit der Geltung dieser AGB einverstanden. Abweichende, entgegenstehende oder ergänzende Allgemeine Geschäftsbedingungen des Kunden werden nicht Vertragsbestandteil, es sei denn, ihrer Geltung wird ausdrücklich schriftlich zugestimmt.
@@ -23,7 +23,7 @@ export default function AGBPage() {
             <section>
               <h2 className="text-xl md:text-2xl lg:text-h3 font-serif text-graphite-dark mb-3 md:mb-4">2. Vertragspartner und Kontakt</h2>
               <div className="bg-rose-light/30 p-4 md:p-6 rounded-lg">
-                <p className="font-semibold">VIER KORKEN Weinboutique</p>
+                <p className="font-semibold">Vier Korken Wein-Boutique</p>
                 <p>Joel Hediger</p>
                 <p>Steinbrunnengasse 3A</p>
                 <p>5707 Seengen AG</p>
@@ -195,10 +195,10 @@ export default function AGBPage() {
             </section>
 
             <section>
-              <h2 className="text-xl md:text-2xl lg:text-h3 font-serif text-graphite-dark mb-3 md:mb-4">9. VIER KORKEN Weinboutique Loyalty Club</h2>
+              <h2 className="text-xl md:text-2xl lg:text-h3 font-serif text-graphite-dark mb-3 md:mb-4">9. Vier Korken Wein-Boutique Loyalty Club</h2>
               <p>
                 <strong>9.1 Teilnahme</strong><br />
-                Die Teilnahme am VIER KORKEN Weinboutique Loyalty Club ist kostenlos und freiwillig. Sie erfordert die Registrierung eines Kundenkontos.
+                Die Teilnahme am Vier Korken Wein-Boutique Loyalty Club ist kostenlos und freiwillig. Sie erfordert die Registrierung eines Kundenkontos.
               </p>
               <p className="mt-2">
                 <strong>9.2 Punkte sammeln</strong><br />

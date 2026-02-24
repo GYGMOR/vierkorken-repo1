@@ -11,6 +11,7 @@ import { LevelsGrid } from '@/components/loyalty/LevelsGrid';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
+import { EditableText } from '@/components/admin/EditableText';
 
 export const dynamic = 'force-dynamic';
 
@@ -77,12 +78,21 @@ export default async function LoyaltyClubPage() {
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent-gold/20 rounded-full border border-accent-gold/30 backdrop-blur-sm">
               <span className="text-accent-burgundy font-medium text-sm">LOYALTY CLUB</span>
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-light text-graphite-dark">
-              Ihr Vierkorken Club
-            </h1>
-            <p className="text-lg text-graphite max-w-2xl mx-auto">
-              Sammeln Sie Punkte mit jedem Einkauf und genießen Sie exklusive Vorteile
-            </p>
+            <EditableText
+              settingKey="club_page_header_title"
+              defaultValue="Ihr Vierkorken Club"
+              isAdmin={userData.isAdmin}
+              as="h1"
+              className="text-4xl md:text-5xl lg:text-6xl font-serif font-light text-graphite-dark"
+            />
+            <EditableText
+              settingKey="club_page_header_subtitle"
+              defaultValue="Sammeln Sie Punkte mit jedem Einkauf und genießen Sie exklusive Vorteile"
+              isAdmin={userData.isAdmin}
+              as="p"
+              className="text-lg text-graphite max-w-2xl mx-auto"
+              multiline={true}
+            />
           </div>
         </div>
       </div>

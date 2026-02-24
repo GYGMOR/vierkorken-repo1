@@ -8,6 +8,7 @@ import { useSession } from 'next-auth/react';
 import { SwipeGallery } from '@/components/ui/SwipeGallery';
 import { ImageUploader } from '@/components/admin/ImageUploader';
 import { RichTextEditor } from '@/components/admin/RichTextEditor';
+import { EditableText } from '@/components/admin/EditableText';
 
 export default function DeinEventPage() {
     const { data: session } = useSession();
@@ -125,10 +126,21 @@ export default function DeinEventPage() {
                         </button>
                     )}
                     <div className="relative z-10 text-center text-white px-4 max-w-3xl">
-                        <h1 className="text-display font-serif font-light mb-6">Dein Event</h1>
-                        <p className="text-body-lg text-white/90">
-                            Der ideale Raum für Ihre Ideen. Mieten Sie unsere inspirierende Weinboutique für Seminare, Meetings oder kleine Feiern.
-                        </p>
+                        <EditableText
+                            settingKey="dein_event_page_header_title"
+                            defaultValue="Dein Event"
+                            isAdmin={isAdmin}
+                            as="h1"
+                            className="text-display font-serif font-light mb-6"
+                        />
+                        <EditableText
+                            settingKey="dein_event_page_header_subtitle"
+                            defaultValue="Der ideale Raum für Ihre Ideen. Mieten Sie unsere inspirierende Weinboutique für Seminare, Meetings oder kleine Feiern."
+                            isAdmin={isAdmin}
+                            as="p"
+                            className="text-body-lg text-white/90"
+                            multiline={true}
+                        />
                     </div>
                 </section>
 

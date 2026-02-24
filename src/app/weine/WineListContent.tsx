@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { WineCard } from '@/components/wine/WineCard';
 import { Navigation } from '@/components/layout/Navigation';
 import { Footer } from '@/components/layout/Footer';
+import { EditableText } from '@/components/admin/EditableText';
+import { useSession } from 'next-auth/react';
 
 interface KlaraProduct {
   id: string;
@@ -40,6 +42,18 @@ export default function WineListContent() {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   const [sortBy, setSortBy] = useState<SortOption>('name-asc');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    if (session?.user?.email) {
+      fetch('/api/user/profile')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.user.role === 'ADMIN') setIsAdmin(true);
+        });
+    }
+  }, [session]);
 
   // Mobile filter toggle
   const [showFilters, setShowFilters] = useState(false);
@@ -191,13 +205,22 @@ export default function WineListContent() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-serif font-light text-graphite-dark">
-              Unsere Weine
-            </h1>
+            <EditableText
+              settingKey="weine_page_header_title"
+              defaultValue="Unsere Weine"
+              isAdmin={isAdmin}
+              as="h1"
+              className="text-2xl md:text-3xl lg:text-4xl font-serif font-light text-graphite-dark inline-block"
+            />
           </div>
-          <p className="text-sm md:text-base text-graphite max-w-2xl">
-            Entdecken Sie unsere Auswahl - direkt aus dem KLARA System
-          </p>
+
+          <EditableText
+            settingKey="weine_page_header_subtitle"
+            defaultValue="Entdecken Sie unsere Auswahl" // user explicitly wants '- direkt aus dem KLARA System' removed
+            isAdmin={isAdmin}
+            as="p"
+            className="text-sm md:text-base text-graphite max-w-2xl"
+          />
         </div>
       </div>
 
@@ -231,8 +254,8 @@ export default function WineListContent() {
                   <button
                     onClick={() => handleCategoryChange('')}
                     className={`w-full text-left px-3 py-2 rounded transition-colors ${selectedCategory === ''
-                        ? 'bg-accent-burgundy text-warmwhite'
-                        : 'hover:bg-taupe-light text-graphite'
+                      ? 'bg-accent-burgundy text-warmwhite'
+                      : 'hover:bg-taupe-light text-graphite'
                       }`}
                   >
                     Alle Weine ({wines.length})
@@ -244,8 +267,8 @@ export default function WineListContent() {
                         key={category.id}
                         onClick={() => handleCategoryChange(category.id)}
                         className={`w-full text-left px-3 py-2 rounded transition-colors ${selectedCategory === category.id
-                            ? 'bg-accent-burgundy text-warmwhite'
-                            : 'hover:bg-taupe-light text-graphite'
+                          ? 'bg-accent-burgundy text-warmwhite'
+                          : 'hover:bg-taupe-light text-graphite'
                           }`}
                       >
                         {category.nameDE} ({count})

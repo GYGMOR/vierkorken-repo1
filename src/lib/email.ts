@@ -145,7 +145,7 @@ export async function sendPasswordResetEmail(
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background-color: #8B4513; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">VIER KORKEN Weinboutique</h1>
+            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">Vier Korken Wein-Boutique</h1>
           </div>
 
           <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
@@ -177,7 +177,7 @@ export async function sendPasswordResetEmail(
             <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop<br>
+              © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
               Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
             </p>
           </div>
@@ -186,7 +186,7 @@ export async function sendPasswordResetEmail(
     `;
 
   const text = `
-Passwort zurücksetzen - VIER KORKEN Weinboutique
+Passwort zurücksetzen - Vier Korken Wein-Boutique
 
 Hallo ${firstName || ''},
 
@@ -198,14 +198,14 @@ Dieser Link ist nur 1 Stunde gültig.
 
 Falls Sie diese Anfrage nicht gestellt haben, können Sie diese E-Mail ignorieren. Ihr Passwort bleibt unverändert.
 
-© ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
 Bei Fragen: info@vierkorken.ch
     `.trim();
 
   // Verwenden no-reply@ für Passwort-Reset
   await sendNoReplyMail({
     to,
-    subject: 'Passwort zurücksetzen - VIER KORKEN Weinboutique',
+    subject: 'Passwort zurücksetzen - Vier Korken Wein-Boutique',
     html,
     text,
   });
@@ -242,7 +242,7 @@ export async function sendContactEmail(
             <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop<br>
+              © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
               Diese E-Mail wurde automatisch vom Kontaktformular generiert.
             </p>
           </div>
@@ -251,7 +251,7 @@ export async function sendContactEmail(
     `;
 
   const text = `
-VIER KORKEN Weinboutique - Neue Kontaktanfrage
+Vier Korken Wein-Boutique - Neue Kontaktanfrage
 
 KONTAKTDATEN:
 Name: ${name}
@@ -263,7 +263,7 @@ ${message}
 
 Sie können direkt auf diese E-Mail antworten, um dem Kunden zu antworten.
 
-© ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
     `.trim();
 
   await sendInfoMail({
@@ -385,7 +385,7 @@ export async function sendOrderConfirmationEmail(to: string, orderId: string, or
           </head>
           <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="background-color: #8B4513; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-              <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">VIER KORKEN Weinboutique</h1>
+              <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">Vier Korken Wein-Boutique</h1>
             </div>
 
             <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
@@ -468,7 +468,7 @@ export async function sendOrderConfirmationEmail(to: string, orderId: string, or
               <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
               <p style="color: #999; font-size: 12px; text-align: center;">
-                © ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop<br>
+                © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
                 Steinbrunnengasse 3a, 5707 Seengen<br>
                 Tel: 062 390 04 04 | info@vierkorken.ch<br><br>
                 Diese E-Mail wurde automatisch generiert. Bitte antworten Sie nicht direkt darauf.<br>
@@ -480,7 +480,7 @@ export async function sendOrderConfirmationEmail(to: string, orderId: string, or
       `;
 
   const text = `
-VIER KORKEN Weinboutique - Bestellbestätigung
+Vier Korken Wein-Boutique - Bestellbestätigung
 
 Vielen Dank für Ihre Bestellung!
 
@@ -524,7 +524,7 @@ NÄCHSTE SCHRITTE:
 
 Bestellung verfolgen: ${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/bestellung/${orderDetails.orderNumber}
 
-© ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
 Steinbrunnengasse 3a, 5707 Seengen
 Tel: 062 390 04 04 | info@vierkorken.ch
 
@@ -605,7 +605,7 @@ export async function sendNewOrderNotificationToAdmin(orderId: string, orderDeta
           </head>
           <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 700px; margin: 0 auto; padding: 20px;">
             <div style="background-color: #8B4513; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-              <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">VIER KORKEN Weinboutique</h1>
+              <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">Vier Korken Wein-Boutique</h1>
               <p style="color: #fff; margin: 10px 0 0 0; font-size: 14px;">Admin-Benachrichtigung</p>
             </div>
 
@@ -723,7 +723,7 @@ export async function sendNewOrderNotificationToAdmin(orderId: string, orderDeta
               <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
               <p style="color: #999; font-size: 12px; text-align: center;">
-                © ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop<br>
+                © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
                 Diese E-Mail wurde automatisch generiert.
               </p>
             </div>
@@ -732,7 +732,7 @@ export async function sendNewOrderNotificationToAdmin(orderId: string, orderDeta
       `;
 
   const text = `
-VIER KORKEN Weinboutique - Neue Bestellung
+Vier Korken Wein-Boutique - Neue Bestellung
 
 Bestellnummer: ${orderDetails.orderNumber}
 Kunde: ${orderDetails.customerFirstName} ${orderDetails.customerLastName}
@@ -776,7 +776,7 @@ export async function sendMaintenanceSubscriptionEmail(to: string) {
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); padding: 30px 20px; text-align: center; border-radius: 12px 12px 0 0;">
-            <h1 style="color: #fff; margin: 0; font-size: 32px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">VIER KORKEN Weinboutique</h1>
+            <h1 style="color: #fff; margin: 0; font-size: 32px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">Vier Korken Wein-Boutique</h1>
             <div style="margin-top: 12px; height: 1px; width: 80px; background: linear-gradient(to right, transparent, #C9A961, transparent); margin-left: auto; margin-right: auto;"></div>
           </div>
 
@@ -804,13 +804,13 @@ export async function sendMaintenanceSubscriptionEmail(to: string) {
 
             <p style="margin-top: 30px;">
               Mit besten Grüßen,<br>
-              <strong style="color: #6D2932;">Ihr VIER KORKEN Weinboutique Team</strong>
+              <strong style="color: #6D2932;">Ihr Vier Korken Wein-Boutique Team</strong>
             </p>
 
             <hr style="border: none; border-top: 1px solid #E8E3DF; margin: 30px 0;">
 
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop<br>
+              © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
               <a href="mailto:info@vierkorken.ch" style="color: #6D2932; text-decoration: none;">info@vierkorken.ch</a>
             </p>
           </div>
@@ -819,7 +819,7 @@ export async function sendMaintenanceSubscriptionEmail(to: string) {
     `;
 
   const text = `
-VIER KORKEN Weinboutique - Premium Weinshop
+Vier Korken Wein-Boutique - Premium Weinshop
 
 Vielen Dank für Ihr Interesse!
 
@@ -835,16 +835,16 @@ Was Sie erwarten können:
 Wir melden uns bei Ihnen, sobald es soweit ist!
 
 Mit besten Grüßen,
-Ihr VIER KORKEN Weinboutique Team
+Ihr Vier Korken Wein-Boutique Team
 
 ---
-© ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
 info@vierkorken.ch
     `.trim();
 
   await sendInfoMail({
     to,
-    subject: 'Vielen Dank für Ihr Interesse an VIER KORKEN Weinboutique',
+    subject: 'Vielen Dank für Ihr Interesse an Vier Korken Wein-Boutique',
     html,
     text,
   });
@@ -866,7 +866,7 @@ export async function sendLaunchNotificationEmail(to: string) {
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); padding: 40px 20px; text-align: center; border-radius: 12px 12px 0 0;">
-            <h1 style="color: #fff; margin: 0; font-size: 36px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">VIER KORKEN Weinboutique</h1>
+            <h1 style="color: #fff; margin: 0; font-size: 36px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">Vier Korken Wein-Boutique</h1>
             <div style="margin-top: 12px; height: 1px; width: 80px; background: linear-gradient(to right, transparent, #C9A961, transparent); margin-left: auto; margin-right: auto;"></div>
             <p style="color: #FAF8F5; font-size: 18px; margin-top: 20px; margin-bottom: 0;">Wir sind jetzt online!</p>
           </div>
@@ -897,17 +897,17 @@ export async function sendLaunchNotificationEmail(to: string) {
               </ul>
             </div>
 
-            <p>Wir freuen uns darauf, Sie bei VIER KORKEN Weinboutique begrüßen zu dürfen!</p>
+            <p>Wir freuen uns darauf, Sie bei Vier Korken Wein-Boutique begrüßen zu dürfen!</p>
 
             <p style="margin-top: 30px;">
               Prost und beste Grüße,<br>
-              <strong style="color: #6D2932;">Ihr VIER KORKEN Weinboutique Team</strong>
+              <strong style="color: #6D2932;">Ihr Vier Korken Wein-Boutique Team</strong>
             </p>
 
             <hr style="border: none; border-top: 1px solid #E8E3DF; margin: 30px 0;">
 
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop<br>
+              © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
               <a href="mailto:info@vierkorken.ch" style="color: #6D2932; text-decoration: none;">info@vierkorken.ch</a> |
               <a href="${siteUrl}" style="color: #6D2932; text-decoration: none;">www.vierkorken.ch</a>
             </p>
@@ -917,7 +917,7 @@ export async function sendLaunchNotificationEmail(to: string) {
     `;
 
   const text = `
-VIER KORKEN Weinboutique - Premium Weinshop
+Vier Korken Wein-Boutique - Premium Weinshop
 
 Wir sind jetzt online!
 
@@ -934,19 +934,19 @@ BESONDERE HIGHLIGHTS:
 • Kostenloser Versand ab CHF 150
 • Sichere Zahlung mit Stripe oder Klara
 
-Wir freuen uns darauf, Sie bei VIER KORKEN Weinboutique begrüßen zu dürfen!
+Wir freuen uns darauf, Sie bei Vier Korken Wein-Boutique begrüßen zu dürfen!
 
 Prost und beste Grüße,
-Ihr VIER KORKEN Weinboutique Team
+Ihr Vier Korken Wein-Boutique Team
 
 ---
-© ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
 info@vierkorken.ch | ${siteUrl}
     `.trim();
 
   await sendInfoMail({
     to,
-    subject: '🎉 VIER KORKEN Weinboutique ist jetzt online!',
+    subject: '🎉 Vier Korken Wein-Boutique ist jetzt online!',
     html,
     text,
   });
@@ -969,13 +969,13 @@ export async function sendNewsletterConfirmationEmail(to: string) {
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); padding: 30px 20px; text-align: center; border-radius: 12px 12px 0 0;">
-            <h1 style="color: #fff; margin: 0; font-size: 32px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">VIER KORKEN Weinboutique</h1>
+            <h1 style="color: #fff; margin: 0; font-size: 32px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">Vier Korken Wein-Boutique</h1>
             <div style="margin-top: 12px; height: 1px; width: 80px; background: linear-gradient(to right, transparent, #C9A961, transparent); margin-left: auto; margin-right: auto;"></div>
           </div>
 
           <div style="background-color: #FAF8F5; padding: 40px 30px; border-radius: 0 0 12px 12px;">
             <h2 style="color: #6D2932; margin-top: 0; font-family: Georgia, serif; font-weight: 300; font-size: 24px;">
-              Willkommen beim VIER KORKEN Weinboutique Newsletter!
+              Willkommen beim Vier Korken Wein-Boutique Newsletter!
             </h2>
 
             <p>Vielen Dank für Ihr Interesse an unserem Newsletter. Sie sind jetzt angemeldet und erhalten ab sofort:</p>
@@ -1002,7 +1002,7 @@ export async function sendNewsletterConfirmationEmail(to: string) {
 
             <p style="margin-top: 30px;">
               Prost und beste Grüße,<br>
-              <strong style="color: #6D2932;">Ihr VIER KORKEN Weinboutique Team</strong>
+              <strong style="color: #6D2932;">Ihr Vier Korken Wein-Boutique Team</strong>
             </p>
 
             <hr style="border: none; border-top: 1px solid #E8E3DF; margin: 30px 0;">
@@ -1013,7 +1013,7 @@ export async function sendNewsletterConfirmationEmail(to: string) {
             </p>
 
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop<br>
+              © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
               <a href="mailto:info@vierkorken.ch" style="color: #6D2932; text-decoration: none;">info@vierkorken.ch</a>
             </p>
           </div>
@@ -1022,9 +1022,9 @@ export async function sendNewsletterConfirmationEmail(to: string) {
     `;
 
   const text = `
-VIER KORKEN Weinboutique - Premium Weinshop
+Vier Korken Wein-Boutique - Premium Weinshop
 
-Willkommen beim VIER KORKEN Weinboutique Newsletter!
+Willkommen beim Vier Korken Wein-Boutique Newsletter!
 
 Vielen Dank für Ihr Interesse an unserem Newsletter. Sie sind jetzt angemeldet und erhalten ab sofort:
 
@@ -1039,19 +1039,19 @@ Account erstellen: ${siteUrl}/registrieren?email=${encodeURIComponent(to)}
 Wir freuen uns, Sie auf dem Laufenden zu halten!
 
 Prost und beste Grüße,
-Ihr VIER KORKEN Weinboutique Team
+Ihr Vier Korken Wein-Boutique Team
 
 ---
 Sie erhalten diese E-Mail, weil Sie sich für unseren Newsletter angemeldet haben.
 Newsletter abbestellen: ${unsubscribeUrl}
 
-© ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
 info@vierkorken.ch
     `.trim();
 
   await sendInfoMail({
     to,
-    subject: 'Willkommen beim VIER KORKEN Weinboutique Newsletter',
+    subject: 'Willkommen beim Vier Korken Wein-Boutique Newsletter',
     html,
     text,
   });
@@ -1098,7 +1098,7 @@ export async function sendNewsNotificationEmail(
           </div>
           ` : `
           <div style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); padding: 40px 20px; text-align: center; border-radius: 12px 12px 0 0;">
-            <h1 style="color: #fff; margin: 0; font-size: 32px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">VIER KORKEN Weinboutique</h1>
+            <h1 style="color: #fff; margin: 0; font-size: 32px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">Vier Korken Wein-Boutique</h1>
             <div style="margin-top: 15px; height: 1px; width: 80px; background: linear-gradient(to right, transparent, #C9A961, transparent); margin-left: auto; margin-right: auto;"></div>
             <p style="color: #FAF8F5; margin-top: 15px; margin-bottom: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 2px;">Neuigkeiten</p>
           </div>
@@ -1152,7 +1152,7 @@ export async function sendNewsNotificationEmail(
             </p>
 
             <p style="color: #999; font-size: 12px; margin: 10px 0 0;">
-              © ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop<br>
+              © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
               <a href="mailto:info@vierkorken.ch" style="color: #6D2932; text-decoration: none;">info@vierkorken.ch</a>
             </p>
           </div>
@@ -1161,7 +1161,7 @@ export async function sendNewsNotificationEmail(
     `;
 
   const text = `
-VIER KORKEN Weinboutique - Premium Weinshop
+Vier Korken Wein-Boutique - Premium Weinshop
 
 NEUE NEUIGKEITEN
 
@@ -1185,7 +1185,7 @@ Weitere Links:
 Sie erhalten diese E-Mail, weil Sie unseren Newsletter abonniert haben.
 Newsletter abbestellen: ${unsubscribeUrl}
 
-© ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
 info@vierkorken.ch
     `.trim();
 
@@ -1218,7 +1218,7 @@ export async function sendOrderProcessingEmail(
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background-color: #8B4513; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">VIER KORKEN Weinboutique</h1>
+            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">Vier Korken Wein-Boutique</h1>
           </div>
 
           <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
@@ -1250,7 +1250,7 @@ export async function sendOrderProcessingEmail(
             <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop<br>
+              © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
               Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
             </p>
           </div>
@@ -1259,7 +1259,7 @@ export async function sendOrderProcessingEmail(
     `;
 
   const text = `
-VIER KORKEN Weinboutique - Bestellung in Bearbeitung
+Vier Korken Wein-Boutique - Bestellung in Bearbeitung
 
 Hallo ${customerFirstName},
 
@@ -1274,7 +1274,7 @@ Bestellung verfolgen: ${orderUrl}
 
 Vielen Dank für Ihr Vertrauen!
 
-© ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
 Bei Fragen: info@vierkorken.ch
     `.trim();
 
@@ -1313,7 +1313,7 @@ export async function sendOrderShippedEmail(
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background-color: #8B4513; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">VIER KORKEN Weinboutique</h1>
+            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">Vier Korken Wein-Boutique</h1>
           </div>
 
           <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
@@ -1361,7 +1361,7 @@ export async function sendOrderShippedEmail(
             <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop<br>
+              © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
               Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
             </p>
           </div>
@@ -1370,7 +1370,7 @@ export async function sendOrderShippedEmail(
     `;
 
   const text = `
-VIER KORKEN Weinboutique - Bestellung versendet
+Vier Korken Wein-Boutique - Bestellung versendet
 
 Hallo ${customerFirstName},
 
@@ -1388,7 +1388,7 @@ Bestelldetails ansehen: ${orderUrl}
 
 Vielen Dank für Ihre Bestellung. Wir hoffen, Sie genießen Ihre Weine!
 
-© ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
 Bei Fragen: info@vierkorken.ch
     `.trim();
 
@@ -1421,7 +1421,7 @@ export async function sendOrderDeliveredEmail(
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background-color: #8B4513; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">VIER KORKEN Weinboutique</h1>
+            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">Vier Korken Wein-Boutique</h1>
           </div>
 
           <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
@@ -1452,12 +1452,12 @@ export async function sendOrderDeliveredEmail(
               </a>
             </div>
 
-            <p>Vielen Dank für Ihr Vertrauen. Wir freuen uns darauf, Sie bald wieder bei VIER KORKEN Weinboutique begrüßen zu dürfen!</p>
+            <p>Vielen Dank für Ihr Vertrauen. Wir freuen uns darauf, Sie bald wieder bei Vier Korken Wein-Boutique begrüßen zu dürfen!</p>
 
             <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop<br>
+              © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
               Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
             </p>
           </div>
@@ -1466,7 +1466,7 @@ export async function sendOrderDeliveredEmail(
     `;
 
   const text = `
-VIER KORKEN Weinboutique - Bestellung zugestellt
+Vier Korken Wein-Boutique - Bestellung zugestellt
 
 Hallo ${customerFirstName},
 
@@ -1481,9 +1481,9 @@ Bei Fragen zur optimalen Serviertemperatur oder Dekantierung kontaktieren Sie un
 
 Bestelldetails ansehen: ${orderUrl}
 
-Vielen Dank für Ihr Vertrauen. Wir freuen uns darauf, Sie bald wieder bei VIER KORKEN Weinboutique begrüßen zu dürfen!
+Vielen Dank für Ihr Vertrauen. Wir freuen uns darauf, Sie bald wieder bei Vier Korken Wein-Boutique begrüßen zu dürfen!
 
-© ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
 Bei Fragen: info@vierkorken.ch
     `.trim();
 
@@ -1515,7 +1515,7 @@ export async function sendOrderCancelledEmail(
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background-color: #8B4513; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">VIER KORKEN Weinboutique</h1>
+            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">Vier Korken Wein-Boutique</h1>
           </div>
 
           <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
@@ -1547,7 +1547,7 @@ export async function sendOrderCancelledEmail(
             <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop<br>
+              © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
               Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
             </p>
           </div>
@@ -1556,7 +1556,7 @@ export async function sendOrderCancelledEmail(
     `;
 
   const text = `
-VIER KORKEN Weinboutique - Bestellung storniert
+Vier Korken Wein-Boutique - Bestellung storniert
 
 Hallo ${customerFirstName},
 
@@ -1571,7 +1571,7 @@ Bei Fragen zur Stornierung kontaktieren Sie uns bitte unter info@vierkorken.ch
 
 Weiter einkaufen: ${siteUrl}/weine
 
-© ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
 Bei Fragen: info@vierkorken.ch
     `.trim();
 
@@ -1627,7 +1627,7 @@ export async function sendEventTicketsEmail(
       </head>
       <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); padding: 30px 20px; text-align: center; border-radius: 12px 12px 0 0;">
-          <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">VIER KORKEN Weinboutique</h1>
+          <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">Vier Korken Wein-Boutique</h1>
           <div style="margin-top: 12px; height: 1px; width: 80px; background: linear-gradient(to right, transparent, #C9A961, transparent); margin-left: auto; margin-right: auto;"></div>
           <p style="color: #FAF8F5; margin-top: 15px; margin-bottom: 0; font-size: 16px;">Ihre Event-Tickets</p>
         </div>
@@ -1662,7 +1662,7 @@ export async function sendEventTicketsEmail(
           <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
           <p style="color: #999; font-size: 12px; text-align: center;">
-            © ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop<br>
+            © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
             Steinbrunnengasse 3a, 5707 Seengen<br>
             Tel: 062 390 04 04 | info@vierkorken.ch
           </p>
@@ -1672,7 +1672,7 @@ export async function sendEventTicketsEmail(
   `;
 
   const text = `
-VIER KORKEN Weinboutique - Ihre Event-Tickets
+Vier Korken Wein-Boutique - Ihre Event-Tickets
 
 Hallo ${customerFirstName}!
 
@@ -1688,7 +1688,7 @@ Bestellung & Tickets ansehen: ${siteUrl}/bestellung/${orderNumber}
 
 Wir freuen uns auf Sie!
 
-© ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
 Steinbrunnengasse 3a, 5707 Seengen
 Tel: 062 390 04 04 | info@vierkorken.ch
   `.trim();
@@ -1733,7 +1733,7 @@ export async function sendGiftCardEmail(
       </head>
       <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); padding: 40px 20px; text-align: center; border-radius: 12px 12px 0 0;">
-          <h1 style="color: #fff; margin: 0; font-size: 32px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">VIER KORKEN Weinboutique</h1>
+          <h1 style="color: #fff; margin: 0; font-size: 32px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">Vier Korken Wein-Boutique</h1>
           <div style="margin-top: 12px; height: 1px; width: 80px; background: linear-gradient(to right, transparent, #C9A961, transparent); margin-left: auto; margin-right: auto;"></div>
           <p style="color: #C9A961; margin-top: 20px; margin-bottom: 0; font-size: 18px; font-family: Georgia, serif;">Geschenkgutschein</p>
         </div>
@@ -1798,7 +1798,7 @@ export async function sendGiftCardEmail(
           <hr style="border: none; border-top: 1px solid #E8E3DF; margin: 30px 0;">
 
           <p style="color: #999; font-size: 12px; text-align: center;">
-            © ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop<br>
+            © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
             Steinbrunnengasse 3a, 5707 Seengen<br>
             Tel: 062 390 04 04 | info@vierkorken.ch
           </p>
@@ -1808,7 +1808,7 @@ export async function sendGiftCardEmail(
   `;
 
   const text = `
-VIER KORKEN Weinboutique - Geschenkgutschein
+Vier Korken Wein-Boutique - Geschenkgutschein
 
 ${giftCard.recipientName ? `Liebe(r) ${giftCard.recipientName},` : 'Herzlichen Glückwunsch!'}
 
@@ -1829,14 +1829,14 @@ SO LÖSEN SIE IHREN GUTSCHEIN EIN:
 
 Dieser Gutschein ist 3 Jahre gültig und kann für alle Produkte in unserem Shop eingelöst werden.
 
-© ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
 Steinbrunnengasse 3a, 5707 Seengen
 Tel: 062 390 04 04 | info@vierkorken.ch
   `.trim();
 
   await sendInfoMail({
     to: recipientEmail,
-    subject: `Ein Geschenk von ${giftCard.senderName} - VIER KORKEN Weinboutique Gutschein`,
+    subject: `Ein Geschenk von ${giftCard.senderName} - Vier Korken Wein-Boutique Gutschein`,
     html,
     text,
   });
@@ -1894,7 +1894,7 @@ export async function sendEventNotificationEmail(to: string, event: any) {
           </div>
           ` : `
           <div style="background-color: #8B4513; padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">VIER KORKEN Weinboutique</h1>
+            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">Vier Korken Wein-Boutique</h1>
             <p style="color: #e0e0e0; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 1px; font-size: 14px;">Events & Tastings</p>
           </div>
           `}
@@ -1938,7 +1938,7 @@ export async function sendEventNotificationEmail(to: string, event: any) {
             <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
 
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop<br>
+              © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
               Sie erhalten diese E-Mail, weil Sie sich für unseren Newsletter angemeldet haben.<br>
               <a href="${process.env.NEXT_PUBLIC_APP_URL}/newsletter/unsubscribe" style="color: #8B4513; text-decoration: underline;">Abmelden</a>
             </p>
@@ -1948,7 +1948,7 @@ export async function sendEventNotificationEmail(to: string, event: any) {
     `;
 
   const text = `
-VIER KORKEN Weinboutique - Neues Event: ${event.title}
+Vier Korken Wein-Boutique - Neues Event: ${event.title}
 
 ${event.subtitle || ''}
 
@@ -1960,7 +1960,7 @@ ${event.description ? event.description.substring(0, 150) + '...' : ''}
 
 Jetzt anmelden: ${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/events/${event.slug}
 
-© ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
   `.trim();
 
   await sendInfoMail({

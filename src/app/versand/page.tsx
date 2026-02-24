@@ -134,7 +134,7 @@ export default function VersandPage() {
                 Sie können Ihre Bestellung auch direkt bei uns abholen - kostenlos!
               </p>
               <div className="bg-warmwhite p-4 rounded-lg">
-                <p className="font-semibold text-graphite-dark">VIER KORKEN Weinboutique</p>
+                <p className="font-semibold text-graphite-dark">Vier Korken Wein-Boutique</p>
                 <p className="text-graphite">Steinbrunnengasse 3A, 5707 Seengen</p>
                 <p className="text-sm text-graphite mt-2">
                   <strong>Öffnungszeiten:</strong>

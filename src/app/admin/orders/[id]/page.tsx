@@ -307,7 +307,7 @@ export default function OrderDetailPage() {
         <body>
           <div class="label-container">
             <div class="header">
-              <h1>VIER KORKEN Weinboutique</h1>
+              <h1>Vier Korken Wein-Boutique</h1>
               <div class="order-info">
                 <div><strong>${order.orderNumber}</strong></div>
                 <div>${new Date(order.createdAt).toLocaleDateString('de-CH')}</div>
@@ -317,7 +317,7 @@ export default function OrderDetailPage() {
               <div class="sender">
                 <div class="sender-label">Absender</div>
                 <div class="sender-address">
-                  <div class="sender-company">VIER KORKEN Weinboutique</div>
+                  <div class="sender-company">Vier Korken Wein-Boutique</div>
                   <div>Wein-Boutique</div>
                   <div>Steinbrunnengasse 3a</div>
                   <div><strong>5707 Seengen</strong></div>
@@ -482,7 +482,7 @@ export default function OrderDetailPage() {
         {/* Print Header - Only visible when printing */}
         <div className="hidden print:block">
           <h1 className="text-2xl font-serif font-bold text-graphite-dark">
-            VIER KORKEN Weinboutique - Packzettel
+            Vier Korken Wein-Boutique - Packzettel
           </h1>
           <p className="text-lg mt-2">Bestellung: {order.orderNumber}</p>
           <p className="text-sm text-graphite">

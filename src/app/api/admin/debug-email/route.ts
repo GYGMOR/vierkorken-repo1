@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
             case 'INFO':
                 result = await sendInfoMail({
                     to: email,
-                    subject: '🧪 VIER KORKEN Weinboutique Test-E-Mail',
+                    subject: '🧪 Vier Korken Wein-Boutique Test-E-Mail',
                     html: `
             <div style="font-family: sans-serif; padding: 20px; color: #333;">
               <h1 style="color: #8B4513;">Test Erfolgreich</h1>
@@ -135,7 +135,7 @@ export async function POST(req: NextRequest) {
                         
                         <!-- Header -->
                         <div style="background-color: #8B4513; padding: 20px; text-align: center;">
-                        <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">VIER KORKEN Weinboutique</h1>
+                        <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">Vier Korken Wein-Boutique</h1>
                         <p style="color: #e0e0e0; margin: 5px 0 0; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Newsletter</p>
                         </div>
 
@@ -170,7 +170,7 @@ export async function POST(req: NextRequest) {
                         <!-- Footer -->
                         <div style="background-color: #f5f5f5; padding: 20px; text-align: center; border-top: 1px solid #ddd; color: #999; font-size: 12px;">
                         <p style="margin: 0 0 10px;">
-                            © ${new Date().getFullYear()} VIER KORKEN Weinboutique - Premium Weinshop<br>
+                            © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
                             Steinbrunnengasse 3a, 5707 Seengen
                         </p>
                         <p style="margin: 0;">
@@ -184,7 +184,7 @@ export async function POST(req: NextRequest) {
                 // Uses sendInfoMail which sends from info@vierkorken.ch
                 await sendInfoMail({
                     to: email,
-                    subject: `📰 Neu bei VIER KORKEN Weinboutique: ${latestPost.title}`,
+                    subject: `📰 Neu bei Vier Korken Wein-Boutique: ${latestPost.title}`,
                     html: newsHtml,
                     text: `${latestPost.title}\n\n${latestPost.excerpt}\n\nLesen Sie mehr unter: ${process.env.NEXT_PUBLIC_APP_URL || 'https://vierkorken.ch'}/blog/${latestPost.slug}`,
                 });

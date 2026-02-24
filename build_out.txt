@@ -1,0 +1,185 @@
+ ⚠ Invalid next.config.js options detected: 
+ ⚠     Unrecognized key(s) in object: 'swcMinify'
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+   ▲ Next.js 15.5.6
+   - Experiments (use with caution):
+     ✓ optimizeCss
+     · optimizePackageImports
+
+   Creating an optimized production build ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ ✓ Compiled successfully in 19.6s
+   Linting and checking validity of types ...
+   Collecting page data ...
+⚠️ STRIPE_SECRET_KEY is not defined in environment variables. Using placeholder for build.
+⚠️ STRIPE_SECRET_KEY is not defined in environment variables. Using placeholder for build.
+⚠️ STRIPE_SECRET_KEY is not defined in environment variables. Using placeholder for build.
+⚠️ STRIPE_SECRET_KEY is not defined in environment variables. Using placeholder for build.
+⚠️ STRIPE_SECRET_KEY is not defined in environment variables. Using placeholder for build.
+⚠️ STRIPE_SECRET_KEY is not defined in environment variables. Using placeholder for build.
+   Generating static pages (0/108) ...
+⚠️ STRIPE_SECRET_KEY is not defined in environment variables. Using placeholder for build.
+ ⚠ metadataBase property in metadata export is not set for resolving social open graph or twitter images, using "http://localhost:3000". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase
+⚠️ STRIPE_SECRET_KEY is not defined in environment variables. Using placeholder for build.
+⚠️ STRIPE_SECRET_KEY is not defined in environment variables. Using placeholder for build.
+ ⚠ metadataBase property in metadata export is not set for resolving social open graph or twitter images, using "http://localhost:3000". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase
+ ⚠ metadataBase property in metadata export is not set for resolving social open graph or twitter images, using "http://localhost:3000". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase
+ ⚠ metadataBase property in metadata export is not set for resolving social open graph or twitter images, using "http://localhost:3000". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase
+   Generating static pages (27/108) 
+   Generating static pages (54/108) 
+   Generating static pages (81/108) 
+ ✓ Generating static pages (108/108)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                        Size  First Load JS
+┌ ○ /                                             10 kB         150 kB
+├ ○ /_not-found                                    1 kB         103 kB
+├ ○ /admin                                       2.5 kB         126 kB
+├ ○ /admin/coupons                              3.58 kB         127 kB
+├ ○ /admin/email-test                           2.56 kB         126 kB
+├ ○ /admin/events                               5.79 kB         146 kB
+├ ○ /admin/klara                                8.69 kB         283 kB
+├ ƒ /admin/loyalty                              4.91 kB         150 kB
+├ ○ /admin/orders                               3.03 kB         126 kB
+├ ƒ /admin/orders/[id]                          8.46 kB         132 kB
+├ ○ /admin/reviews                              3.77 kB         127 kB
+├ ○ /admin/settings                             3.68 kB         127 kB
+├ ○ /admin/settings/homepage                    3.32 kB         127 kB
+├ ○ /admin/statistiken                          1.68 kB         118 kB
+├ ○ /admin/statistiken/bestellungen             6.55 kB         242 kB
+├ ○ /admin/statistiken/webseite                 7.59 kB         243 kB
+├ ○ /admin/test-qr                              2.14 kB         134 kB
+├ ○ /admin/tickets                              49.9 kB         173 kB
+├ ○ /admin/users                                4.43 kB         128 kB
+├ ○ /admin/wines                                4.22 kB         128 kB
+├ ƒ /admin/wines/[id]                           3.68 kB         127 kB
+├ ○ /agb                                          329 B         134 kB
+├ ƒ /api/admin/about-images                       329 B         102 kB
+├ ƒ /api/admin/blog                               329 B         102 kB
+├ ƒ /api/admin/coupons                            329 B         102 kB
+├ ƒ /api/admin/coupons/[id]                       329 B         102 kB
+├ ƒ /api/admin/debug-email                        329 B         102 kB
+├ ƒ /api/admin/event-carousel                     329 B         102 kB
+├ ƒ /api/admin/event-templates                    329 B         102 kB
+├ ƒ /api/admin/events                             329 B         102 kB
+├ ƒ /api/admin/events/[id]                        329 B         102 kB
+├ ƒ /api/admin/klara/cache                        329 B         102 kB
+├ ƒ /api/admin/klara/import                       329 B         102 kB
+├ ƒ /api/admin/klara/override/[id]                329 B         102 kB
+├ ƒ /api/admin/klara/test-connection              329 B         102 kB
+├ ƒ /api/admin/knowledge-categories               329 B         102 kB
+├ ƒ /api/admin/orders                             329 B         102 kB
+├ ƒ /api/admin/orders/[id]                        329 B         102 kB
+├ ƒ /api/admin/reviews                            329 B         102 kB
+├ ƒ /api/admin/reviews/[id]                       329 B         102 kB
+├ ƒ /api/admin/seed-categories                    329 B         102 kB
+├ ƒ /api/admin/settings/maintenance-mode          329 B         102 kB
+├ ƒ /api/admin/settings/season                    329 B         102 kB
+├ ƒ /api/admin/stats                              329 B         102 kB
+├ ƒ /api/admin/stats/orders                       329 B         102 kB
+├ ƒ /api/admin/stats/web                          329 B         102 kB
+├ ƒ /api/admin/test-qr                            329 B         102 kB
+├ ƒ /api/admin/tickets                            329 B         102 kB
+├ ƒ /api/admin/tickets/scan                       329 B         102 kB
+├ ƒ /api/admin/tips                               329 B         102 kB
+├ ƒ /api/admin/upload                             329 B         102 kB
+├ ƒ /api/admin/users                              329 B         102 kB
+├ ƒ /api/admin/users/[id]                         329 B         102 kB
+├ ƒ /api/admin/wines                              329 B         102 kB
+├ ƒ /api/admin/wines/[id]                         329 B         102 kB
+├ ƒ /api/admin/wines/[id]/images                  329 B         102 kB
+├ ƒ /api/admin/wines/[id]/images/[imageId]        329 B         102 kB
+├ ƒ /api/admin/wines/[id]/variants                329 B         102 kB
+├ ƒ /api/admin/wines/[id]/variants/[variantId]    329 B         102 kB
+├ ƒ /api/auth/[...nextauth]                       329 B         102 kB
+├ ƒ /api/auth/forgot-password                     329 B         102 kB
+├ ƒ /api/auth/register                            329 B         102 kB
+├ ƒ /api/auth/reset-password                      329 B         102 kB
+├ ƒ /api/cart                                     329 B         102 kB
+├ ƒ /api/checkout/create-session                  329 B         102 kB
+├ ƒ /api/checkout/create-verification             329 B         102 kB
+├ ƒ /api/checkout/session                         329 B         102 kB
+├ ƒ /api/checkout/verify-status                   329 B         102 kB
+├ ƒ /api/contact                                  329 B         102 kB
+├ ƒ /api/coupons/validate                         329 B         102 kB
+├ ƒ /api/divers                                   329 B         102 kB
+├ ƒ /api/events                                   329 B         102 kB
+├ ƒ /api/events/[slug]                            329 B         102 kB
+├ ƒ /api/gift-cards/purchase                      329 B         102 kB
+├ ƒ /api/gift-cards/status                        329 B         102 kB
+├ ƒ /api/homepage-sections                        329 B         102 kB
+├ ƒ /api/klara/articles                           329 B         102 kB
+├ ƒ /api/klara/categories                         329 B         102 kB
+├ ƒ /api/klara/overrides                          329 B         102 kB
+├ ƒ /api/klara/sync                               329 B         102 kB
+├ ƒ /api/maintenance/notify-all                   329 B         102 kB
+├ ƒ /api/maintenance/status                       329 B         102 kB
+├ ƒ /api/maintenance/subscribe                    329 B         102 kB
+├ ƒ /api/maintenance/subscriber-count             329 B         102 kB
+├ ƒ /api/news                                     329 B         102 kB
+├ ƒ /api/news/[slug]                              329 B         102 kB
+├ ƒ /api/newsletter/subscribe                     329 B         102 kB
+├ ƒ /api/orders                                   329 B         102 kB
+├ ƒ /api/orders/[id]                              329 B         102 kB
+├ ƒ /api/orders/[id]/confirm                      329 B         102 kB
+├ ƒ /api/orders/[id]/invoice                      329 B         102 kB
+├ ƒ /api/orders/create-cash                       329 B         102 kB
+├ ƒ /api/orders/track/[orderNumber]               329 B         102 kB
+├ ƒ /api/reviews                                  329 B         102 kB
+├ ƒ /api/settings                                 329 B         102 kB
+├ ƒ /api/test-email                               329 B         102 kB
+├ ƒ /api/tickets/[id]/wallet                      329 B         102 kB
+├ ƒ /api/upload                                   329 B         102 kB
+├ ƒ /api/uploads/[...path]                        329 B         102 kB
+├ ƒ /api/user/addresses                           329 B         102 kB
+├ ƒ /api/user/addresses/[id]                      329 B         102 kB
+├ ƒ /api/user/profile                             329 B         102 kB
+├ ƒ /api/user/tickets                             329 B         102 kB
+├ ƒ /api/warmup                                   329 B         102 kB
+├ ƒ /api/webhooks/stripe                          329 B         102 kB
+├ ƒ /api/wines                                    329 B         102 kB
+├ ƒ /api/wines/[slug]                             329 B         102 kB
+├ ƒ /bestellung/[orderNumber]                   5.87 kB         137 kB
+├ ○ /blog                                       11.2 kB         296 kB
+├ ƒ /blog/[slug]                                4.24 kB         138 kB
+├ ○ /checkout                                   9.77 kB         144 kB
+├ ƒ /checkout/success                           4.94 kB         139 kB
+├ ○ /checkout/verify-complete                   3.93 kB         138 kB
+├ ƒ /club                                       5.87 kB         140 kB
+├ ○ /coming-soon                                4.75 kB         121 kB
+├ ○ /datenschutz                                  329 B         134 kB
+├ ○ /dein-event                                 4.74 kB         295 kB
+├ ○ /divers                                     5.27 kB         161 kB
+├ ○ /events                                     15.6 kB         166 kB
+├ ƒ /events/[slug]                               5.7 kB         127 kB
+├ ○ /favoriten                                  3.83 kB         138 kB
+├ ○ /geschenkgutscheine                         6.38 kB         140 kB
+├ ○ /geschenkgutscheine/erfolg                     5 kB         139 kB
+├ ○ /kontakt                                    5.19 kB         139 kB
+├ ○ /konto                                      15.1 kB         329 kB
+├ ƒ /konto/bestellung/[id]                      14.8 kB         277 kB
+├ ○ /login                                       2.4 kB         123 kB
+├ ○ /news                                       10.2 kB         160 kB
+├ ƒ /news/[slug]                                4.76 kB         138 kB
+├ ○ /passwort-vergessen                         2.33 kB         114 kB
+├ ○ /passwort-zuruecksetzen                     2.94 kB         115 kB
+├ ○ /registrieren                               3.11 kB         124 kB
+├ ○ /uber-uns                                   8.11 kB         158 kB
+├ ○ /versand                                      329 B         134 kB
+├ ○ /warenkorb                                  4.71 kB         122 kB
+├ ƒ /weine                                      3.85 kB         141 kB
+├ ƒ /weine/[slug]                               6.25 kB         127 kB
+├ ○ /weinwissen                                 5.38 kB         139 kB
+└ ○ /widerruf                                     329 B         134 kB
++ First Load JS shared by all                    102 kB
+  ├ chunks/1255-7a11682518fd8e0f.js             45.5 kB
+  ├ chunks/4bd1b696-100b9d70ed4e49c1.js         54.2 kB
+  └ other shared chunks (total)                 2.12 kB
+
+
+ƒ Middleware                                    55.8 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

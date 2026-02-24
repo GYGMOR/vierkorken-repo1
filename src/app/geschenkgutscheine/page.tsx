@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { MainLayout } from '@/components/layout/MainLayout';
+import { EditableText } from '@/components/admin/EditableText';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -11,6 +13,19 @@ const GIFT_CARD_AMOUNTS = [20, 30, 50, 70, 100, 150, 200];
 
 export default function GiftCardsPage() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (session?.user?.email) {
+      fetch('/api/user/profile')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.user.role === 'ADMIN') setIsAdmin(true);
+        });
+    }
+  }, [session]);
+
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState('');
   const [recipientEmail, setRecipientEmail] = useState('');
@@ -83,13 +98,21 @@ export default function GiftCardsPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
                 </svg>
               </div>
-              <h1 className="text-h1 font-serif font-light text-graphite-dark mb-4">
-                Geschenkgutscheine
-              </h1>
-              <p className="text-body-lg text-graphite max-w-2xl mx-auto">
-                Schenken Sie Weingenuss. Unsere Geschenkgutscheine sind das perfekte Geschenk
-                für jeden Anlass und können online eingelöst werden.
-              </p>
+              <EditableText
+                settingKey="gutschein_page_header_title"
+                defaultValue="Geschenkgutscheine"
+                isAdmin={isAdmin}
+                as="h1"
+                className="text-h1 font-serif font-light text-graphite-dark mb-4"
+              />
+              <EditableText
+                settingKey="gutschein_page_header_subtitle"
+                defaultValue="Schenken Sie Weingenuss. Unsere Geschenkgutscheine sind das perfekte Geschenk für jeden Anlass und können online eingelöst werden."
+                isAdmin={isAdmin}
+                as="p"
+                className="text-body-lg text-graphite max-w-2xl mx-auto"
+                multiline={true}
+              />
             </div>
 
             <div className="grid lg:grid-cols-2 gap-8">
@@ -108,11 +131,10 @@ export default function GiftCardsPage() {
                           setSelectedAmount(amount);
                           setCustomAmount('');
                         }}
-                        className={`p-4 rounded-lg border-2 transition-all ${
-                          selectedAmount === amount
+                        className={`p-4 rounded-lg border-2 transition-all ${selectedAmount === amount
                             ? 'border-accent-burgundy bg-accent-burgundy/5'
                             : 'border-taupe hover:border-graphite'
-                        }`}
+                          }`}
                       >
                         <div className="font-serif text-h4 text-graphite-dark">
                           CHF {amount}

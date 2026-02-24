@@ -10,6 +10,7 @@ import { BackButton } from '@/components/ui/BackButton';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useCart } from '@/contexts/CartContext';
 import { EventImageCarousel } from '@/components/events/EventImageCarousel';
+import { EditableText } from '@/components/admin/EditableText';
 
 // Mock data for events
 import { useSession } from 'next-auth/react';
@@ -23,7 +24,7 @@ const UPCOMING_EVENTS = [
     date: '2024-11-25',
     time: '18:00',
     duration: 180,
-    venue: 'VIER KORKEN Weinboutique Weinlounge',
+    venue: 'Vier Korken Wein-Boutique Weinlounge',
     type: 'Verkostung',
     price: 95,
     memberPrice: 85,
@@ -59,7 +60,7 @@ const UPCOMING_EVENTS = [
     date: '2024-12-15',
     time: '15:00',
     duration: 150,
-    venue: 'VIER KORKEN Weinboutique Weinlounge',
+    venue: 'Vier Korken Wein-Boutique Weinlounge',
     type: 'Masterclass',
     price: 125,
     memberPrice: 110,
@@ -245,13 +246,21 @@ export default function EventsPage() {
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent-burgundy/10 rounded-full border border-accent-burgundy/20 backdrop-blur-sm">
               <span className="text-accent-burgundy font-medium text-sm">EVENTS</span>
             </div>
-            <h1 className="text-display font-serif font-light text-graphite-dark">
-              Exklusive Weinerlebnisse
-            </h1>
-            <p className="text-body-lg text-graphite">
-              Nehmen Sie an Verkostungen, Masterclasses und exklusiven Weindinners teil.
-              Entdecken Sie neue Weine und treffen Sie Gleichgesinnte.
-            </p>
+            <EditableText
+              settingKey="events_page_header_title"
+              defaultValue="Exklusive Weinerlebnisse"
+              isAdmin={isAdmin}
+              as="h1"
+              className="text-display font-serif font-light text-graphite-dark"
+            />
+            <EditableText
+              settingKey="events_page_header_subtitle"
+              defaultValue="Nehmen Sie an Verkostungen, Masterclasses und exklusiven Weindinners teil. Entdecken Sie neue Weine und treffen Sie Gleichgesinnte."
+              isAdmin={isAdmin}
+              as="p"
+              className="text-body-lg text-graphite"
+              multiline={true}
+            />
           </div>
         </div>
       </div>

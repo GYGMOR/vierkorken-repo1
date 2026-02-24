@@ -34,14 +34,14 @@ export async function GET(req: NextRequest) {
     try {
       const result = await sendInfoMail({
         to: testEmail,
-        subject: '🧪 VIER KORKEN Weinboutique Test-E-Mail via Resend.com',
+        subject: '🧪 Vier Korken Wein-Boutique Test-E-Mail via Resend.com',
         html: `
           <!DOCTYPE html>
           <html>
             <head><meta charset="utf-8"></head>
             <body style="font-family: Arial, sans-serif; padding: 20px;">
               <div style="background-color: #8B4513; color: white; padding: 20px; text-align: center;">
-                <h1>VIER KORKEN Weinboutique</h1>
+                <h1>Vier Korken Wein-Boutique</h1>
                 <p>E-Mail System Test (Resend.com)</p>
               </div>
               <div style="padding: 20px; background-color: #f9f9f9;">
@@ -52,13 +52,13 @@ export async function GET(req: NextRequest) {
                 <hr>
                 <p style="color: #666; font-size: 12px;">
                   Falls Sie diese E-Mail nicht erwarten, können Sie sie ignorieren.
-                  Dies ist eine automatische Test-E-Mail vom VIER KORKEN Weinboutique System.
+                  Dies ist eine automatische Test-E-Mail vom Vier Korken Wein-Boutique System.
                 </p>
               </div>
             </body>
           </html>
         `,
-        text: `VIER KORKEN Weinboutique E-Mail System Test (Resend.com)\n\n✅ Das E-Mail-System funktioniert!\n\nDiese Test-E-Mail wurde erfolgreich über Resend.com von ${process.env.MAIL_FROM_INFO} gesendet.\n\nZeitstempel: ${new Date().toLocaleString('de-CH')}\nTest-ID: ${Date.now()}`,
+        text: `Vier Korken Wein-Boutique E-Mail System Test (Resend.com)\n\n✅ Das E-Mail-System funktioniert!\n\nDiese Test-E-Mail wurde erfolgreich über Resend.com von ${process.env.MAIL_FROM_INFO} gesendet.\n\nZeitstempel: ${new Date().toLocaleString('de-CH')}\nTest-ID: ${Date.now()}`,
       });
 
       testResults.tests.push({

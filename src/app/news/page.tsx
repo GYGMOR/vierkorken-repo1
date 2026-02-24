@@ -5,6 +5,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { MainLayout } from '@/components/layout/MainLayout';
+import { ImageUploader } from '@/components/admin/ImageUploader';
+import { EditableText } from '@/components/admin/EditableText';
 
 interface NewsItem {
   id: string;
@@ -32,6 +34,9 @@ export default function NewsPage() {
   const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
   const [filterStatus, setFilterStatus] = useState<'ALL' | 'PUBLISHED' | 'DRAFT'>('ALL');
 
+  const [headerImage, setHeaderImage] = useState('/images/layout/wein_regal_nah.jpg');
+  const [isHeaderEditorOpen, setIsHeaderEditorOpen] = useState(false);
+
   // Check if user is admin
   useEffect(() => {
     if (session?.user?.email) {
@@ -48,7 +53,47 @@ export default function NewsPage() {
 
   useEffect(() => {
     fetchNews();
+    fetchSettings();
   }, [isAdmin]);
+
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch('/api/settings?keys=news_page_header_image');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.settings) {
+          const hImage = data.settings.find((s: any) => s.key === 'news_page_header_image');
+          if (hImage?.value) setHeaderImage(hImage.value);
+        }
+      }
+    } catch (e) {
+      console.error('Error fetching settings:', e);
+    }
+  };
+
+  const saveHeaderImage = async (url: string) => {
+    try {
+      await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'news_page_header_image', value: url }),
+      });
+      setHeaderImage(url);
+      setIsHeaderEditorOpen(false);
+    } catch (e) {
+      console.error('Error saving setting:', e);
+    }
+  };
+
+  useEffect(() => {
+    const handleEvent = (e: any) => {
+      if (e.detail?.pageKey === 'news') {
+        setIsHeaderEditorOpen(true);
+      }
+    };
+    document.addEventListener('openImageEditor', handleEvent);
+    return () => document.removeEventListener('openImageEditor', handleEvent);
+  }, []);
 
   async function fetchNews() {
     try {
@@ -68,61 +113,84 @@ export default function NewsPage() {
 
   return (
     <MainLayout>
-      {/* Hero Section */}
-      <section className="section-padding bg-gradient-to-br from-warmwhite via-rose-light/10 to-warmwhite">
-        <div className="container-custom text-center">
-          <div className="max-w-3xl mx-auto space-y-4">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent-burgundy/10 rounded-full border border-accent-burgundy/20">
-              <NewsIcon />
-              <span className="text-accent-burgundy font-medium text-sm">NEWS & AKTUELLES</span>
-            </div>
-
-            {/* Title with Admin Controls */}
-            <div className="flex flex-col items-center gap-4">
-              <h1 className="text-display font-serif font-light text-graphite-dark">
-                Neuigkeiten aus der Weinwelt
-              </h1>
-
-              {/* Admin Controls */}
-              {isAdmin && (
-                <div className="flex items-center gap-4 animate-fadeIn">
-                  {/* Filter Dropdown */}
-                  <div className="relative">
-                    <select
-                      value={filterStatus}
-                      onChange={(e) => setFilterStatus(e.target.value as any)}
-                      className="appearance-none bg-white pl-4 pr-10 py-2 rounded-full border border-accent-burgundy/30 text-accent-burgundy font-medium text-sm focus:outline-none focus:ring-2 focus:ring-accent-burgundy/20 cursor-pointer hover:bg-accent-burgundy/5 transition-colors"
-                    >
-                      <option value="ALL">Alle anzeigen</option>
-                      <option value="PUBLISHED">Veröffentlicht</option>
-                      <option value="DRAFT">Entwürfe</option>
-                    </select>
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-accent-burgundy">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
-                  </div>
-
-                  {/* Create Button */}
-                  <button
-                    onClick={() => setCreateModalOpen(true)}
-                    className="w-10 h-10 bg-white text-accent-burgundy rounded-full shadow-md border border-accent-burgundy/30 hover:bg-accent-burgundy/5 hover:scale-105 transition-all duration-300 flex items-center justify-center"
-                    aria-label="News erstellen"
-                    title="News erstellen"
-                  >
-                    <PlusIcon className="w-5 h-5" />
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <p className="text-body-lg text-graphite">
-              Bleiben Sie auf dem Laufenden über neue Weine, Events und alles rund um VIER KORKEN Weinboutique.
-            </p>
-          </div>
+      {/* Editable Hero Section */}
+      <div className="relative h-[400px] flex items-center justify-center overflow-hidden group border-b border-taupe-light">
+        <div className="absolute inset-0 bg-graphite-dark">
+          <Image
+            src={headerImage}
+            alt="News Background"
+            fill
+            className="object-cover opacity-40 transition-opacity duration-700"
+            priority
+          />
         </div>
-      </section>
+
+        {isAdmin && (
+          <button
+            onClick={() => setIsHeaderEditorOpen(true)}
+            className="absolute top-4 right-4 z-20 bg-white/90 hover:bg-white text-graphite rounded-full p-3 shadow-lg transition-all opacity-0 group-hover:opacity-100"
+            title="Header-Bild ändern"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          </button>
+        )}
+
+        <div className="container-custom relative z-10 text-center text-white text-shadow-sm px-4">
+          <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur-md rounded-full border border-white/20 mb-8 text-sm uppercase tracking-widest font-semibold shadow-soft">
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
+            <span>NEWS & AKTUELLES</span>
+          </div>
+
+          <EditableText
+            settingKey="news_page_header_title"
+            defaultValue="Neuigkeiten aus der Weinwelt"
+            isAdmin={isAdmin}
+            as="h1"
+            className="text-display font-serif font-light mb-6"
+          />
+
+          <EditableText
+            settingKey="news_page_header_subtitle"
+            defaultValue="Bleiben Sie auf dem Laufenden über neue Weine, Events und alles rund um Vier Korken Wein-Boutique."
+            isAdmin={isAdmin}
+            as="p"
+            className="text-body-lg text-white/90 max-w-2xl mx-auto mb-8"
+          />
+
+          {/* Admin Controls */}
+          {isAdmin && (
+            <div className="flex items-center justify-center gap-4 animate-fadeIn">
+              {/* Filter Dropdown */}
+              <div className="relative">
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value as any)}
+                  className="appearance-none bg-white text-graphite-dark pl-5 pr-12 py-3 rounded-full border-none shadow-md font-medium text-sm focus:outline-none focus:ring-2 focus:ring-wine/20 cursor-pointer hover:bg-warmwhite transition-colors"
+                >
+                  <option value="ALL">Alle anzeigen</option>
+                  <option value="PUBLISHED">Veröffentlicht</option>
+                  <option value="DRAFT">Entwürfe</option>
+                </select>
+                <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-graphite-dark">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Create Button */}
+              <button
+                onClick={() => setCreateModalOpen(true)}
+                className="w-12 h-12 bg-white text-wine rounded-full shadow-md border-none hover:bg-warmwhite hover:scale-105 transition-all duration-300 flex items-center justify-center"
+                aria-label="News erstellen"
+                title="News erstellen"
+              >
+                <PlusIcon className="w-6 h-6" />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* News Grid */}
       <section className="section-padding">
@@ -157,6 +225,19 @@ export default function NewsPage() {
           )}
         </div>
       </section>
+
+      {/* Header Image Editor Modal */}
+      {isHeaderEditorOpen && (
+        <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 lg:p-8 relative max-h-[90vh] overflow-y-auto shadow-2xl border border-taupe-light/30">
+            <button onClick={() => setIsHeaderEditorOpen(false)} className="absolute top-4 right-4 text-graphite/40 hover:text-graphite transition-colors">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <h2 className="text-h3 font-serif text-graphite-dark mb-6">Header-Bild ändern</h2>
+            <ImageUploader onUploadComplete={saveHeaderImage} />
+          </div>
+        </div>
+      )}
 
       {/* Create News Modal */}
       {createModalOpen && (

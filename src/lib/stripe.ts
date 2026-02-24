@@ -2,7 +2,7 @@ import Stripe from 'stripe';
 
 // Skip validation during build time
 if (!process.env.STRIPE_SECRET_KEY && !process.env.SKIP_ENV_VALIDATION) {
-  throw new Error('STRIPE_SECRET_KEY is not defined in environment variables');
+  console.warn('⚠️ STRIPE_SECRET_KEY is not defined in environment variables. Using placeholder for build.');
 }
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {

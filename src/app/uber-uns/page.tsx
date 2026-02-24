@@ -4,6 +4,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { ImageUploader } from '@/components/admin/ImageUploader';
+import { EditableText } from '@/components/admin/EditableText';
 import Image from 'next/image';
 
 interface AboutImage {
@@ -138,9 +139,13 @@ export default function UberUnsPage() {
       <div className="section-padding bg-gradient-to-br from-warmwhite via-rose-light to-warmwhite overflow-hidden">
         <div className="container-custom relative">
 
-          <h1 className="text-display font-serif font-light text-graphite-dark mb-12 text-center relative z-20">
-            Über uns
-          </h1>
+          <EditableText
+            settingKey="uber_uns_page_title"
+            defaultValue="Über uns"
+            isAdmin={isAdmin}
+            as="h1"
+            className="text-display font-serif font-light text-graphite-dark mb-12 text-center relative z-20"
+          />
 
           <div className="flex items-stretch justify-center gap-8 lg:gap-12 relative h-[800px] lg:h-[1000px] max-h-[80vh]">
 
@@ -150,17 +155,31 @@ export default function UberUnsPage() {
             {/* Center Content */}
             <div className="w-full max-w-2xl flex-1 z-20 flex flex-col gap-8 overflow-y-auto no-scrollbar pb-12 px-4 md:px-0">
               <section className="card p-8 shadow-strong/5 border-none bg-white/95 backdrop-blur-sm">
-                <h2 className="text-h3 font-serif text-graphite-dark mb-4">Unsere Geschichte</h2>
-                <p className="text-graphite leading-relaxed">
-                  Die VIER KORKEN Weinboutique ist mehr als nur ein Weinshop – wir sind eine Gemeinschaft von
-                  Weinliebhabern, die Qualität, Genuss und Kultur vereint. Seit unserer Gründung
-                  haben wir es uns zur Aufgabe gemacht, exquisite Weine aus aller Welt zugänglich
-                  zu machen und unsere Leidenschaft für edle Tropfen mit Ihnen zu teilen.
-                </p>
+                <EditableText
+                  settingKey="uber_uns_geschichte_title"
+                  defaultValue="Unsere Geschichte"
+                  isAdmin={isAdmin}
+                  as="h2"
+                  className="text-h3 font-serif text-graphite-dark mb-4"
+                />
+                <EditableText
+                  settingKey="uber_uns_geschichte_text"
+                  defaultValue="Die Vier Korken Wein-Boutique ist mehr als nur ein Weinshop – wir sind eine Gemeinschaft von Weinliebhabern, die Qualität, Genuss und Kultur vereint. Seit unserer Gründung haben wir es uns zur Aufgabe gemacht, exquisite Weine aus aller Welt zugänglich zu machen und unsere Leidenschaft für edle Tropfen mit Ihnen zu teilen."
+                  isAdmin={isAdmin}
+                  as="p"
+                  className="text-graphite leading-relaxed"
+                  multiline={true}
+                />
               </section>
 
               <section className="card p-8 bg-gradient-to-br from-accent-burgundy/5 to-rose-light/20 shadow-strong/5 border-none backdrop-blur-sm">
-                <h2 className="text-h3 font-serif text-graphite-dark mb-6">Unsere Mission</h2>
+                <EditableText
+                  settingKey="uber_uns_mission_title"
+                  defaultValue="Unsere Mission"
+                  isAdmin={isAdmin}
+                  as="h2"
+                  className="text-h3 font-serif text-graphite-dark mb-6"
+                />
                 <div className="grid md:grid-cols-3 gap-6">
                   <div className="text-center">
                     <div className="w-16 h-16 bg-accent-burgundy/10 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -168,8 +187,8 @@ export default function UberUnsPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v9m0 0l-4 8h8l-4-8zm0 0a5 5 0 01-5-5h10a5 5 0 01-5 5z" />
                       </svg>
                     </div>
-                    <h3 className="font-semibold text-graphite-dark mb-2">Qualität</h3>
-                    <p className="text-sm text-graphite">Handverlesene Weine von ausgewählten Weingütern</p>
+                    <EditableText settingKey="uber_uns_mission_1_title" defaultValue="Qualität" isAdmin={isAdmin} as="h3" className="font-semibold text-graphite-dark mb-2" />
+                    <EditableText settingKey="uber_uns_mission_1_text" defaultValue="Handverlesene Weine von ausgewählten Weingütern" isAdmin={isAdmin} as="p" className="text-sm text-graphite" multiline={true} />
                   </div>
                   <div className="text-center">
                     <div className="w-16 h-16 bg-accent-burgundy/10 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -177,8 +196,8 @@ export default function UberUnsPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                       </svg>
                     </div>
-                    <h3 className="font-semibold text-graphite-dark mb-2">Gemeinschaft</h3>
-                    <p className="text-sm text-graphite">Eine lebendige Community von Weinliebhabern</p>
+                    <EditableText settingKey="uber_uns_mission_2_title" defaultValue="Gemeinschaft" isAdmin={isAdmin} as="h3" className="font-semibold text-graphite-dark mb-2" />
+                    <EditableText settingKey="uber_uns_mission_2_text" defaultValue="Eine lebendige Community von Weinliebhabern" isAdmin={isAdmin} as="p" className="text-sm text-graphite" multiline={true} />
                   </div>
                   <div className="text-center">
                     <div className="w-16 h-16 bg-accent-burgundy/10 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -186,64 +205,69 @@ export default function UberUnsPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477-4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                       </svg>
                     </div>
-                    <h3 className="font-semibold text-graphite-dark mb-2">Wissen</h3>
-                    <p className="text-sm text-graphite">Weinwissen und Expertise für alle Levels</p>
+                    <EditableText settingKey="uber_uns_mission_3_title" defaultValue="Wissen" isAdmin={isAdmin} as="h3" className="font-semibold text-graphite-dark mb-2" />
+                    <EditableText settingKey="uber_uns_mission_3_text" defaultValue="Weinwissen und Expertise für alle Levels" isAdmin={isAdmin} as="p" className="text-sm text-graphite" multiline={true} />
                   </div>
                 </div>
               </section>
 
               <section className="card p-8 shadow-strong/5 border-none bg-white/95 backdrop-blur-sm">
-                <h2 className="text-h3 font-serif text-graphite-dark mb-4">Was uns auszeichnet</h2>
+                <EditableText settingKey="uber_uns_auszeichnung_title" defaultValue="Was uns auszeichnet" isAdmin={isAdmin} as="h2" className="text-h3 font-serif text-graphite-dark mb-4" />
                 <ul className="space-y-4">
                   <li className="flex items-start gap-3">
                     <svg className="w-6 h-6 text-accent-burgundy flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    <div>
-                      <h3 className="font-semibold text-graphite-dark">Kuratierte Auswahl</h3>
-                      <p className="text-graphite">Jeder Wein wird sorgfältig ausgewählt und probiert</p>
+                    <div className="w-full">
+                      <EditableText settingKey="uber_uns_list_1_title" defaultValue="Kuratierte Auswahl" isAdmin={isAdmin} as="h3" className="font-semibold text-graphite-dark" />
+                      <EditableText settingKey="uber_uns_list_1_text" defaultValue="Jeder Wein wird sorgfältig ausgewählt und probiert" isAdmin={isAdmin} as="p" className="text-graphite" multiline={true} />
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
                     <svg className="w-6 h-6 text-accent-burgundy flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    <div>
-                      <h3 className="font-semibold text-graphite-dark">Loyalty Club</h3>
-                      <p className="text-graphite">Sammeln Sie Punkte und profitieren Sie von exklusiven Vorteilen</p>
+                    <div className="w-full">
+                      <EditableText settingKey="uber_uns_list_2_title" defaultValue="Loyalty Club" isAdmin={isAdmin} as="h3" className="font-semibold text-graphite-dark" />
+                      <EditableText settingKey="uber_uns_list_2_text" defaultValue="Sammeln Sie Punkte und profitieren Sie von exklusiven Vorteilen" isAdmin={isAdmin} as="p" className="text-graphite" multiline={true} />
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
                     <svg className="w-6 h-6 text-accent-burgundy flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    <div>
-                      <h3 className="font-semibold text-graphite-dark">Events & Verkostungen</h3>
-                      <p className="text-graphite">Regelmäßige Weinverkostungen und exklusive Events</p>
+                    <div className="w-full">
+                      <EditableText settingKey="uber_uns_list_3_title" defaultValue="Events & Verkostungen" isAdmin={isAdmin} as="h3" className="font-semibold text-graphite-dark" />
+                      <EditableText settingKey="uber_uns_list_3_text" defaultValue="Regelmäßige Weinverkostungen und exklusive Events" isAdmin={isAdmin} as="p" className="text-graphite" multiline={true} />
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
                     <svg className="w-6 h-6 text-accent-burgundy flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    <div>
-                      <h3 className="font-semibold text-graphite-dark">Persönliche Beratung</h3>
-                      <p className="text-graphite">Unser Team berät Sie gerne bei der Weinauswahl</p>
+                    <div className="w-full">
+                      <EditableText settingKey="uber_uns_list_4_title" defaultValue="Persönliche Beratung" isAdmin={isAdmin} as="h3" className="font-semibold text-graphite-dark" />
+                      <EditableText settingKey="uber_uns_list_4_text" defaultValue="Unser Team berät Sie gerne bei der Weinauswahl" isAdmin={isAdmin} as="p" className="text-graphite" multiline={true} />
                     </div>
                   </li>
                 </ul>
               </section>
 
               <section className="card p-8 text-center shadow-strong/5 border-none bg-white/95 backdrop-blur-sm">
-                <h2 className="text-h3 font-serif text-graphite-dark mb-4">Besuchen Sie uns</h2>
+                <EditableText settingKey="uber_uns_besuch_title" defaultValue="Besuchen Sie uns" isAdmin={isAdmin} as="h2" className="text-h3 font-serif text-graphite-dark mb-4" />
                 <div className="max-w-md mx-auto">
-                  <p className="text-graphite mb-4">
-                    Erleben Sie die VIER KORKEN Weinboutique persönlich in unserem Laden in Seengen
-                  </p>
+                  <EditableText
+                    settingKey="uber_uns_besuch_text"
+                    defaultValue="Erleben Sie die Vier Korken Wein-Boutique persönlich in unserem Laden in Seengen"
+                    isAdmin={isAdmin}
+                    as="p"
+                    className="text-graphite mb-4"
+                    multiline={true}
+                  />
                   <div className="bg-rose-light/30 p-4 rounded-lg mb-4">
-                    <p className="font-semibold text-graphite-dark">VIER KORKEN Weinboutique</p>
-                    <p className="text-graphite">Steinbrunnengasse 3A</p>
-                    <p className="text-graphite">5707 Seengen</p>
+                    <EditableText settingKey="uber_uns_address_line1" defaultValue="Vier Korken Wein-Boutique" isAdmin={isAdmin} as="p" className="font-semibold text-graphite-dark" />
+                    <EditableText settingKey="uber_uns_address_line2" defaultValue="Steinbrunnengasse 3A" isAdmin={isAdmin} as="p" className="text-graphite" />
+                    <EditableText settingKey="uber_uns_address_line3" defaultValue="5707 Seengen" isAdmin={isAdmin} as="p" className="text-graphite" />
                   </div>
                   <a href="/kontakt" className="btn btn-primary shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all">
                     Kontakt aufnehmen

@@ -68,7 +68,7 @@ export async function generateInvoicePDFBuffer(order: OrderForPDF): Promise<Buff
   let y = height - 50; // Start from top
 
   // ===== COMPANY HEADER =====
-  page.drawText('VIER KORKEN Weinboutique', {
+  page.drawText('Vier Korken Wein-Boutique', {
     x: 50,
     y: y,
     size: 24,
@@ -352,7 +352,7 @@ export async function generateInvoicePDFBuffer(order: OrderForPDF): Promise<Buff
     color: gray,
   });
 
-  page.drawText('Vielen Dank für Ihren Einkauf bei VIER KORKEN Weinboutique!', {
+  page.drawText('Vielen Dank für Ihren Einkauf bei Vier Korken Wein-Boutique!', {
     x: 50,
     y: 65,
     size: 8,

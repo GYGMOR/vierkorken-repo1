@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
 
           if (coupon && session.metadata.recipientEmail) {
             // Parse internal note for sender info
-            let senderName = 'VIER KORKEN Weinboutique';
+            let senderName = 'Vier Korken Wein-Boutique';
             let recipientName = '';
             let giftMessage = '';
             const buyerEmail = session.customer_details?.email || session.client_reference_id;
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
             if (coupon.internalNote) {
               try {
                 const noteData = JSON.parse(coupon.internalNote);
-                senderName = noteData.senderName || 'VIER KORKEN Weinboutique';
+                senderName = noteData.senderName || 'Vier Korken Wein-Boutique';
                 recipientName = noteData.recipientName || '';
                 giftMessage = noteData.message || '';
               } catch (e) {
@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
                 await sendGiftCardEmail(buyerEmail, {
                   code: coupon.code,
                   amount: Number(coupon.value),
-                  senderName: 'VIER KORKEN Weinboutique',
+                  senderName: 'Vier Korken Wein-Boutique',
                   recipientName: senderName,
                   message: `Sie haben erfolgreich einen Geschenkgutschein im Wert von CHF ${Number(coupon.value).toFixed(2)} für ${session.metadata.recipientEmail} gekauft. Der Gutschein wurde an den Empfänger gesendet.`,
                 });
