@@ -60,7 +60,6 @@ export default function UberUnsPage() {
         body: JSON.stringify({ url, side: uploadSide, order: 0 })
       });
       fetchImages();
-      setUploadSide(null);
     } catch (e) {
       console.error(e);
     }
@@ -285,18 +284,43 @@ export default function UberUnsPage() {
 
       {uploadSide && (
         <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-strong p-8 max-w-md w-full relative">
+          <div className="bg-white rounded-xl shadow-strong p-6 sm:p-8 max-w-2xl w-full relative max-h-[90vh] flex flex-col">
             <button
-              className="absolute top-4 right-4 text-graphite hover:text-accent-burgundy transition-colors"
+              className="absolute top-4 right-4 text-graphite hover:text-accent-burgundy transition-colors z-10"
               onClick={() => setUploadSide(null)}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
-            <h2 className="text-h4 font-serif text-graphite-dark mb-6">Neues Bild hochladen ({uploadSide === 'left' ? 'Links' : 'Rechts'})</h2>
-            <ImageUploader
-              onUploadComplete={handleUpload}
-              maxSizeMB={5}
-            />
+            <h2 className="text-h3 font-serif text-graphite-dark mb-6">Bilder verwalten ({uploadSide === 'left' ? 'Links' : 'Rechts'})</h2>
+
+            <div className="flex-1 overflow-y-auto min-h-[150px] mb-6 border border-taupe-light/50 p-4 rounded-lg bg-warmwhite-light">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {(uploadSide === 'left' ? leftImages : rightImages).length === 0 ? (
+                  <p className="text-graphite col-span-full text-center py-8">Keine Bilder vorhanden.</p>
+                ) : (
+                  (uploadSide === 'left' ? leftImages : rightImages).map((img) => (
+                    <div key={img.id} className="relative aspect-[3/4] rounded-lg overflow-hidden group shadow-sm border border-taupe-light">
+                      <Image src={img.url} alt="Image" fill className="object-cover" />
+                      <button
+                        onClick={() => handleDelete(img.id)}
+                        className="absolute top-2 right-2 bg-red-600/90 hover:bg-red-700 text-white p-1.5 rounded-full z-10 shadow transition-all opacity-0 lg:group-hover:opacity-100"
+                        title="Löschen"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="border-t border-taupe-light pt-6">
+              <h3 className="text-h5 font-serif text-graphite-dark mb-4">Neues Bild hinzufügen</h3>
+              <ImageUploader
+                onUploadComplete={handleUpload}
+                maxSizeMB={5}
+              />
+            </div>
           </div>
         </div>
       )}

@@ -77,6 +77,13 @@ function CheckoutPageContent() {
   const [showSaveAddressDialog, setShowSaveAddressDialog] = useState(false);
   const [saveAddressAsDefault, setSaveAddressAsDefault] = useState(false);
 
+  // Loyalty Settings State
+  const [minOrderForGifts, setMinOrderForGifts] = useState(50);
+  const hasGiftInCart = items.some(item => item.price === 0 && item.winery === 'Loyalty Gift');
+  const cartSubtotalWithoutGifts = total; // `total` from CartContext already sums price * quantity, which is 0 for gifts
+
+  const isGiftThresholdMet = !hasGiftInCart || cartSubtotalWithoutGifts >= minOrderForGifts;
+
   const pointsToEarn = Math.floor(total * 1.2);
   // const cashbackAmount = (total * MOCK_USER.cashbackPercent) / 100;
 
@@ -101,11 +108,24 @@ function CheckoutPageContent() {
   const subtotalAfterDiscount = Math.max(0, subtotalBeforeDiscount - discountAmount);
   const finalTotal = subtotalAfterDiscount * 1.081; // inkl. MwSt
 
-  // Load saved addresses when user is logged in
   useEffect(() => {
     if (session?.user) {
       fetchSavedAddresses();
     }
+
+    // Fetch Loyalty Settings
+    fetch('/api/settings?keys=loyalty_gift_min_order')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.settings) {
+          const minOrder = data.settings.find((s: any) => s.key === 'loyalty_gift_min_order');
+          if (minOrder && minOrder.value) {
+            setMinOrderForGifts(Number(minOrder.value));
+          }
+        }
+      })
+      .catch(err => console.error('Failed to fetch loyalty settings:', err));
+
   }, [session]);
 
   // Check if user is already verified or returning from verification
@@ -302,6 +322,11 @@ function CheckoutPageContent() {
   const handleCheckout = async () => {
     if (items.length === 0) {
       alert('Ihr Warenkorb ist leer');
+      return;
+    }
+
+    if (!isGiftThresholdMet) {
+      alert(`Gratis-Geschenke sind erst ab einem regulären Bestellwert von CHF ${minOrderForGifts.toFixed(2)} einlösbar.`);
       return;
     }
 
@@ -1195,10 +1220,18 @@ function CheckoutPageContent() {
                   </CardContent>
                 </Card>
 
+                {/* Checkout Validation Message (Gift Min Order) */}
+                {hasGiftInCart && !isGiftThresholdMet && (
+                  <div className="mb-4 p-4 border rounded-lg bg-red-50 border-red-200 text-red-700 text-sm">
+                    <strong>Hinweis:</strong> Gratis-Geschenke sind erst ab einem regulären Bestellwert von CHF {minOrderForGifts.toFixed(2)} einlösbar.
+                    <br />Ihr aktueller Bestellwert liegt bei CHF {cartSubtotalWithoutGifts.toFixed(2)}. Bitte fügen Sie weitere Produkte hinzu oder entfernen Sie das Geschenk.
+                  </div>
+                )}
+
                 {/* Checkout Button */}
                 <Button
                   onClick={handleCheckout}
-                  disabled={isProcessing || items.length === 0}
+                  disabled={isProcessing || items.length === 0 || !isGiftThresholdMet}
                   className="w-full"
                   size="lg"
                 >
@@ -1231,8 +1264,8 @@ function CheckoutPageContent() {
                             <p className="text-xs text-graphite/60">{item.winery || item.type}</p>
                             <div className="flex items-center justify-between mt-1">
                               <span className="text-xs text-graphite/60">{item.quantity}x</span>
-                              <span className="text-body-sm font-medium text-graphite-dark">
-                                CHF {(item.price * item.quantity).toFixed(2)}
+                              <span className={`text-body-sm font-medium ${item.price === 0 ? 'text-accent-gold' : 'text-graphite-dark'}`}>
+                                {item.price === 0 ? 'Gratis' : `CHF ${(item.price * item.quantity).toFixed(2)}`}
                               </span>
                             </div>
                           </div>

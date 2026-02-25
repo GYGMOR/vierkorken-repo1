@@ -3,6 +3,7 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
 import { LOYALTY_LEVELS } from '@/lib/loyalty';
 import { GiftManagementSection } from '@/components/admin/loyalty/GiftManagementSection';
+import { GiftSettingsCard } from '@/components/admin/loyalty/GiftSettingsCard';
 
 export const dynamic = 'force-dynamic';
 
@@ -52,9 +53,12 @@ export default async function LoyaltyAdminPage() {
                         Treue-System & Geschenke
                     </h1>
                     <p className="mt-2 text-graphite">
-                        Verwalten Sie die Geschenke für jedes Loyalty-Level.
+                        Verwalten Sie die Bedingungen und Geschenke für jedes Loyalty-Level.
                     </p>
                 </div>
+
+                {/* Einstellungskarte für Minimum Betrag und Fristen */}
+                <GiftSettingsCard />
 
                 <div className="space-y-12">
                     {LOYALTY_LEVELS.map((levelConfig) => {

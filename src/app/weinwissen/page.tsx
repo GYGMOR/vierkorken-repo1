@@ -6,20 +6,39 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { BackButton } from '@/components/ui/BackButton';
 import { MainLayout } from '@/components/layout/MainLayout';
+import { EditableImage } from '@/components/admin/EditableImage';
+import { EditableText } from '@/components/admin/EditableText';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-options';
+import { prisma } from '@/lib/prisma';
 
-export default function WeinwissenPage() {
+export default async function WeinwissenPage() {
+    const session = await getServerSession(authOptions);
+    const user = session?.user;
+    let isAdmin = false;
+
+    if (user?.email) {
+        const dbUser = await prisma.user.findUnique({
+            where: { email: user.email },
+        });
+        if (dbUser && dbUser.role === 'ADMIN') {
+            isAdmin = true;
+        }
+    }
+
     return (
         <MainLayout>
             {/* Hero Section */}
             <div className="relative bg-gradient-to-br from-warmwhite via-rose-light to-accent-burgundy/10 border-b border-taupe-light overflow-hidden">
                 <div className="absolute inset-0 z-0">
-                    <Image
-                        src="/images/layout/weingläser.jpg"
+                    <EditableImage
+                        settingKey="weinwissen_page_header_image"
+                        defaultSrc="/images/layout/weingläser.jpg"
                         alt="Weinwissen Hintergrund"
                         fill
                         className="object-cover opacity-15"
-                        quality={90}
                         priority
+                        isAdmin={isAdmin}
                     />
                 </div>
 

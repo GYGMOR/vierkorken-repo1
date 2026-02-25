@@ -69,16 +69,18 @@ export function EditableText({
                         className="w-full p-3 text-graphite-dark text-base font-sans border border-taupe rounded bg-warmwhite-light focus:outline-none focus:ring-2 focus:ring-wine"
                     />
                 )}
-                <div className="flex gap-2 mt-3 justify-end">
+                <div className="flex flex-wrap gap-2 mt-4 justify-end sm:justify-start">
                     <button
+                        type="button"
                         onClick={() => { setDraftText(text); setIsEditing(false); }}
-                        className="px-4 py-2 text-sm text-graphite hover:text-graphite-dark font-medium"
+                        className="px-4 py-2 text-sm text-graphite hover:text-graphite-dark bg-warmwhite-light hover:bg-taupe/20 border border-taupe-light rounded font-medium transition-colors"
                     >
                         Abbrechen
                     </button>
                     <button
+                        type="button"
                         onClick={handleSave}
-                        className="px-4 py-2 text-sm bg-wine text-white rounded hover:bg-wine-dark font-medium transition-colors"
+                        className="px-6 py-2 text-sm bg-wine text-white rounded hover:bg-wine-dark font-medium transition-colors shadow-sm"
                     >
                         Speichern
                     </button>

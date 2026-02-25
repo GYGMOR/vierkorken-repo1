@@ -183,6 +183,38 @@ export async function getUnclaimedGifts(userId: string) {
     }
 }
 
+export async function getUnclaimedGiftsWithValidity(userId: string) {
+    try {
+        const baseResult = await getUnclaimedGifts(userId);
+        if ('error' in baseResult || !baseResult.giftsByLevel || baseResult.giftsByLevel.length === 0) {
+            return baseResult;
+        }
+
+        const validitySetting = await prisma.settings.findUnique({
+            where: { key: 'loyalty_gift_validity_days' }
+        });
+        const validityDays = validitySetting?.value ? Number(validitySetting.value) : 14;
+
+        // In a real app we'd track EXACTLY when the user reached the level. 
+        // For now, we'll approximate expiration relative to today or the user's last update.
+        // Or simply report the validity days for the frontend to display relative to a recent event. 
+        // For this requirement, we'll return an expiration date calculated from today (or user update time).
+        const user = await prisma.user.findUnique({ where: { id: userId }, select: { updatedAt: true } });
+        const baseDate = user?.updatedAt || new Date();
+        const expiresAt = new Date(baseDate.getTime() + validityDays * 24 * 60 * 60 * 1000);
+
+        return {
+            ...baseResult,
+            expiresAt: expiresAt.toISOString(),
+            validityDays
+        };
+
+    } catch (error) {
+        console.error('Failed to get unclaimed gifts with validity:', error);
+        return { error: 'Failed to fetch gifts' };
+    }
+}
+
 export async function claimGift(userId: string, level: number, giftId: string) {
     try {
         const user = await prisma.user.findUnique({

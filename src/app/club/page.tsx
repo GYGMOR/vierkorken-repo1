@@ -12,6 +12,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { EditableText } from '@/components/admin/EditableText';
+import { EditableImage } from '@/components/admin/EditableImage';
 
 export const dynamic = 'force-dynamic';
 
@@ -61,13 +62,14 @@ export default async function LoyaltyClubPage() {
       <div className="relative bg-gradient-to-br from-warmwhite via-rose-light to-accent-gold/10 border-b border-taupe-light overflow-hidden">
         {/* Hintergrundbild - transparent */}
         <div className="absolute inset-0 z-0">
-          <Image
-            src="/images/layout/weingläser.jpg"
+          <EditableImage
+            settingKey="club_page_header_image"
+            defaultSrc="/images/layout/weingläser.jpg"
             alt="Weingläser Hintergrund"
             fill
             className="object-cover opacity-15"
-            quality={90}
             priority
+            isAdmin={userData.isAdmin}
           />
         </div>
 

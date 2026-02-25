@@ -157,10 +157,21 @@ export default function DeinEventPage() {
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                 </button>
                             )}
-                            <h2 className="text-h2 font-serif text-graphite-dark mb-6">Ihre Location in Seengen</h2>
-                            <p className="text-graphite text-lg mb-6 leading-relaxed">
-                                Unsere stilvoll eingerichtete Weinboutique bietet das perfekte Ambiente für ungestörte Meetings, kreative Workshops oder exklusive Präsentationen. Umgeben von edlen Tropfen entsteht eine entspannte und produktive Atmosphäre.
-                            </p>
+                            <EditableText
+                                settingKey="dein_event_intro_title"
+                                defaultValue="Ihre Location in Seengen"
+                                isAdmin={isAdmin}
+                                as="h2"
+                                className="text-h2 font-serif text-graphite-dark mb-6"
+                            />
+                            <EditableText
+                                settingKey="dein_event_intro_text"
+                                defaultValue="Unsere stilvoll eingerichtete Weinboutique bietet das perfekte Ambiente für ungestörte Meetings, kreative Workshops oder exklusive Präsentationen. Umgeben von edlen Tropfen entsteht eine entspannte und produktive Atmosphäre."
+                                isAdmin={isAdmin}
+                                as="p"
+                                className="text-graphite text-lg mb-6 leading-relaxed"
+                                multiline={true}
+                            />
 
                             <div className="prose prose-stone max-w-none text-graphite" dangerouslySetInnerHTML={{ __html: content }} />
                         </div>

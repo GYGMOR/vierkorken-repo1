@@ -94,6 +94,21 @@ export async function POST(req: NextRequest) {
     // Calculate totals FIRST
     const subtotal = items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
 
+    // Check if there's a loyalty gift in the cart
+    const hasGiftInCart = items.some((item: any) => item.price === 0 && item.winery === 'Loyalty Gift');
+    if (hasGiftInCart) {
+      const minOrderSetting = await prisma.settings.findUnique({
+        where: { key: 'loyalty_gift_min_order' }
+      });
+      const minOrder = minOrderSetting?.value ? Number(minOrderSetting.value) : 50;
+      if (subtotal < minOrder) {
+        return NextResponse.json(
+          { error: `Gratis-Geschenke sind ab einem Bestellwert von CHF ${minOrder} einlösbar.` },
+          { status: 400 }
+        );
+      }
+    }
+
     // Calculate shipping cost based on delivery and shipping method
     // IMPORTANT: Based on subtotal BEFORE coupon discount
     let shippingCost = 0;

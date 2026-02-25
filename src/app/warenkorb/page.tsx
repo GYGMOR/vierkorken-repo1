@@ -135,12 +135,14 @@ export default function CartPage() {
                       </div>
 
                       <div className="text-left sm:text-right">
-                        <p className="font-serif text-lg md:text-xl lg:text-h4 text-graphite-dark">
-                          {formatPrice(item.price * item.quantity)}
+                        <p className={`font-serif text-lg md:text-xl lg:text-h4 ${item.price === 0 ? 'text-accent-gold' : 'text-graphite-dark'}`}>
+                          {item.price === 0 ? 'Gratis' : formatPrice(item.price * item.quantity)}
                         </p>
-                        <p className="text-xs md:text-body-sm text-graphite/60">
-                          {formatPrice(item.price)} / Flasche
-                        </p>
+                        {item.price > 0 && (
+                          <p className="text-xs md:text-body-sm text-graphite/60">
+                            {formatPrice(item.price)} / Flasche
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
