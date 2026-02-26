@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
+import { sendOrderConfirmationEmail, sendNewOrderNotificationToAdmin, sendGiftCardEmail } from '@/lib/email';
 
 // Force Node.js runtime (required for Prisma)
 export const runtime = 'nodejs';
@@ -631,7 +632,85 @@ export async function POST(req: NextRequest) {
         // We award 0 points for 0 CHF paid (unless loyalty policy says otherwise)
       }
 
-      const successUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/checkout/success?session_id=gift_card_${Date.now()}&order_id=${order.id}`;
+      // Process the zero-total checkout coupon logic
+      if (coupon) {
+        // 1. Increment usage
+        await prisma.coupon.update({
+          where: { id: coupon.id },
+          data: { currentUses: { increment: 1 } },
+        });
+
+        // 2. Handle partial gift card usage
+        if (coupon.type === 'GIFT_CARD' && Number(coupon.value) > Number(orderWithItems?.discountAmount)) {
+          const remainingBalance = Number(coupon.value) - Number(orderWithItems?.discountAmount);
+          console.log(`🎁 Gift card partially used. Generating new code for remaining CHF ${remainingBalance}`);
+
+          const newCode = `REST-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+          try {
+            await prisma.coupon.create({
+              data: {
+                code: newCode,
+                type: 'GIFT_CARD',
+                value: remainingBalance,
+                description: `Restguthaben von Gutschein ${coupon.code}`,
+                isActive: true,
+                validFrom: new Date(),
+                validUntil: coupon.validUntil,
+                maxUses: 1,
+                minOrderAmount: 0,
+              }
+            });
+
+            const recipientEmail = orderWithItems?.customerEmail;
+            if (recipientEmail && recipientEmail !== 'guest@vierkorken.ch') {
+              await sendGiftCardEmail(recipientEmail, {
+                code: newCode,
+                amount: remainingBalance,
+                senderName: 'Vier Korken System',
+                recipientName: orderWithItems?.customerFirstName || 'Lieber Kunde',
+                message: `Hier ist Ihr automatisches Restguthaben von Ihrem vorherigen Gutschein (${coupon.code}). Dieser neue Code kann bei Ihrem nächsten Einkauf eingelöst werden.`,
+              });
+              console.log(`✅ Remaining balance code (${newCode}) emailed to ${recipientEmail}`);
+            }
+          } catch (restError) {
+            console.error('❌ Failed to create/send Restguthaben:', restError);
+          }
+        }
+      }
+
+      // Send confirmation emails because webhook is bypassed
+      try {
+        if (orderWithItems) {
+          const orderData = {
+            orderNumber: orderWithItems.orderNumber,
+            customerFirstName: orderWithItems.customerFirstName,
+            customerLastName: orderWithItems.customerLastName,
+            customerEmail: orderWithItems.customerEmail,
+            createdAt: orderWithItems.createdAt,
+            items: orderWithItems.items,
+            tickets: [], // Will skip rendering tickets on 0 CHF for brevity as loyalty logic usually costs 0.
+            subtotal: orderWithItems.subtotal,
+            shippingCost: orderWithItems.shippingCost,
+            taxAmount: orderWithItems.taxAmount,
+            total: orderWithItems.total,
+            billingAddress: orderWithItems.billingAddress,
+            shippingAddress: orderWithItems.shippingAddress,
+            deliveryMethod: orderWithItems.deliveryMethod,
+            paymentMethod: orderWithItems.paymentMethod,
+            shippingMethod: orderWithItems.shippingMethod,
+          };
+
+          await sendOrderConfirmationEmail(orderWithItems.customerEmail, orderWithItems.id, orderData);
+          await sendNewOrderNotificationToAdmin(orderWithItems.id, orderData);
+          console.log('✅ Confirmation emails sent for 0 CHF order');
+        }
+      } catch (emailError) {
+        console.error('❌ Error sending 0 CHF emails:', emailError);
+      }
+
+      // Do not include session_id, causing /checkout/success to load via Barzahlung API strategy.
+      const successUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/checkout/success?order_id=${order.id}`;
       return NextResponse.json({ url: successUrl });
     }
 
