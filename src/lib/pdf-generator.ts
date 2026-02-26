@@ -58,7 +58,7 @@ interface Order {
   customerNote?: string;
 }
 
-export function generateInvoicePDF(order: Order): void {
+export async function generateInvoicePDF(order: Order): Promise<void> {
   const doc = new jsPDF();
 
   // Helper functions
@@ -96,28 +96,45 @@ export function generateInvoicePDF(order: Order): void {
   doc.text('Tel: 062 390 04 04', 20, 47);
   doc.text('info@vierkorken.ch', 20, 52);
   doc.text('www.vierkorken.ch', 20, 57);
+  doc.text('MWST NR.: CHE-471.048.672 MWST', 20, 62);
+
+  try {
+    const res = await fetch('/images/layout/logo_text.png');
+    if (res.ok) {
+      const blob = await res.blob();
+      const reader = new FileReader();
+      const base64data = await new Promise<string>((resolve) => {
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+      });
+      // Add image to top right corner
+      doc.addImage(base64data, 'PNG', 130, 20, 60, 24);
+    }
+  } catch (err) {
+    console.warn('Could not load logo in client PDF:', err);
+  }
 
   // Invoice Title
   doc.setFontSize(20);
   doc.setTextColor(primaryColor);
   doc.setFont('helvetica', 'bold');
-  doc.text('RECHNUNG', 20, 80);
+  doc.text('RECHNUNG', 20, 85);
 
   // Invoice Info
   doc.setFontSize(10);
   doc.setTextColor(grayColor);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Rechnungsnummer: ${order.orderNumber}`, 20, 90);
-  doc.text(`Datum: ${formatDate(order.date)}`, 20, 96);
+  doc.text(`Rechnungsnummer: ${order.orderNumber}`, 20, 95);
+  doc.text(`Datum: ${formatDate(order.date)}`, 20, 101);
 
-  // Billing Address
+  // Billing Address - Move it down to prevent squishing
   doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
-  doc.text('Rechnungsadresse:', 120, 80);
+  doc.text('Rechnungsadresse:', 120, 85);
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  let yPos = 88;
+  let yPos = 93;
 
   // Handle billing address safely (might be empty object)
   const billingAddress = order.billingAddress || {};
@@ -147,7 +164,8 @@ export function generateInvoicePDF(order: Order): void {
     doc.text(billingAddress.country, 120, yPos + 18);
   }
 
-  let currentY = 115;
+  // Shipping Address Y-Position adjustment to push the rest of the content down
+  let currentY = 135;
 
   // Shipping Address (if different from billing or if pickup)
   if (order.shippingAddress) {
@@ -201,9 +219,9 @@ export function generateInvoicePDF(order: Order): void {
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(grayColor);
     const paymentText = order.paymentMethod === 'cash' ? 'Zahlungsart: Barzahlung (bei Abholung)' :
-                       order.paymentMethod === 'card' ? 'Zahlungsart: Kreditkarte' :
-                       order.paymentMethod === 'twint' ? 'Zahlungsart: TWINT' :
-                       `Zahlungsart: ${order.paymentMethod}`;
+      order.paymentMethod === 'card' ? 'Zahlungsart: Kreditkarte' :
+        order.paymentMethod === 'twint' ? 'Zahlungsart: TWINT' :
+          `Zahlungsart: ${order.paymentMethod}`;
     doc.text(paymentText, 20, currentY);
     currentY += 8;
   }

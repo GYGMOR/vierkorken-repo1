@@ -451,27 +451,11 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
             deliveryMethod: order.deliveryMethod,
           };
 
-          await sendOrderConfirmationEmail(order.customerEmail, order.id, orderData);
-          console.log('✅ Order confirmation email sent successfully');
-
-          // Send admin notification
-          try {
-            console.log('📧 Sending admin notification for Stripe order:', order.orderNumber);
-            await sendNewOrderNotificationToAdmin(order.id, orderData);
-            console.log('✅ Admin notification sent successfully');
-          } catch (adminEmailError) {
-            console.error('❌ Failed to send admin notification:', adminEmailError);
-            // Continue - admin email is non-critical
-          }
-
-          // Check for event tickets and send ticket emails with QR codes
-          // Tickets are already included in the order from the update/create above
+          // Generate Ticket PDFs before sending the confirmation email
+          const ticketPDFsBufferList: Buffer[] = [];
           try {
             if (order.tickets && order.tickets.length > 0) {
               console.log(`🎫 Found ${order.tickets.length} event tickets for order`);
-
-              // Generate PDF for each ticket
-              const ticketPDFs = [];
               for (const ticket of order.tickets) {
                 try {
                   const pdfBuffer = await generateTicketPDFBuffer({
@@ -489,46 +473,32 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
                       duration: ticket.event.duration || undefined,
                     },
                   });
-
-                  const eventDate = new Intl.DateTimeFormat('de-CH', {
-                    weekday: 'long',
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  }).format(ticket.event.startDateTime);
-
-                  ticketPDFs.push({
-                    ticketNumber: ticket.ticketNumber,
-                    eventTitle: ticket.event.title,
-                    eventDate: eventDate,
-                    pdfBuffer: pdfBuffer,
-                  });
-
+                  ticketPDFsBufferList.push(pdfBuffer);
                   console.log(`✅ Generated PDF for ticket: ${ticket.ticketNumber}`);
                 } catch (pdfError: any) {
                   console.error(`❌ Failed to generate PDF for ticket ${ticket.ticketNumber}:`, pdfError.message);
                 }
               }
-
-              // Send tickets email if we have any PDFs
-              if (ticketPDFs.length > 0) {
-                await sendEventTicketsEmail(
-                  order.customerEmail,
-                  order.orderNumber,
-                  order.customerFirstName,
-                  ticketPDFs
-                );
-                console.log(`✅ Event tickets email sent with ${ticketPDFs.length} PDF attachments`);
-              }
             } else {
               console.log('ℹ️  No event tickets found for this order');
             }
-          } catch (ticketEmailError: any) {
-            console.error('❌ Failed to send event tickets email:', ticketEmailError.message);
-            // Continue - ticket email is non-critical
+          } catch (ticketError: any) {
+            console.error('❌ Failed to process event tickets:', ticketError.message);
           }
+
+          await sendOrderConfirmationEmail(order.customerEmail, order.id, orderData, ticketPDFsBufferList);
+          console.log('✅ Order confirmation email sent successfully with attached PDFs');
+
+          // Send admin notification
+          try {
+            console.log('📧 Sending admin notification for Stripe order:', order.orderNumber);
+            await sendNewOrderNotificationToAdmin(order.id, orderData);
+            console.log('✅ Admin notification sent successfully');
+          } catch (adminEmailError) {
+            console.error('❌ Failed to send admin notification:', adminEmailError);
+            // Continue - admin email is non-critical
+          }
+
         } catch (emailError) {
           console.error('❌ Failed to send order confirmation email:', emailError);
           // Continue with webhook processing even if email fails

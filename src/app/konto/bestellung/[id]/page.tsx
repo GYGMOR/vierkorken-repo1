@@ -114,7 +114,7 @@ export default function OrderDetailPage() {
     }
   }, [params.id]);
 
-  const handleDownloadInvoice = () => {
+  const handleDownloadInvoice = async () => {
     setIsGeneratingPdf(true);
     try {
       console.log('📄 Generating PDF for order:', order);
@@ -136,7 +136,7 @@ export default function OrderDetailPage() {
         }
       }
 
-      generateInvoicePDF(order);
+      await generateInvoicePDF(order);
       console.log('✅ PDF generated successfully');
     } catch (error: any) {
       console.error('❌ Error generating invoice:', error);
@@ -530,9 +530,9 @@ export default function OrderDetailPage() {
                         <span className="text-graphite">Zahlungsmethode</span>
                         <span className="text-graphite-dark font-medium">
                           {order.paymentMethod === 'cash' ? 'Barzahlung' :
-                           order.paymentMethod === 'card' ? 'Kreditkarte' :
-                           order.paymentMethod === 'twint' ? 'TWINT' :
-                           order.paymentMethod}
+                            order.paymentMethod === 'card' ? 'Kreditkarte' :
+                              order.paymentMethod === 'twint' ? 'TWINT' :
+                                order.paymentMethod}
                         </span>
                       </div>
                     )}

@@ -91,9 +91,29 @@ export async function generateInvoicePDFBuffer(order: OrderForPDF): Promise<Buff
 
   // Try to embed Logo in top right
   try {
-    const logoPath = path.join(process.cwd(), 'public', 'images', 'layout', 'logo_text.png');
-    if (fs.existsSync(logoPath)) {
-      const logoImageBytes = fs.readFileSync(logoPath);
+    let logoImageBytes;
+
+    // First try fetch (works best in serverless environments for public assets)
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    try {
+      const res = await fetch(`${baseUrl}/images/layout/logo_text.png`);
+      if (res.ok) {
+        const arrayBuffer = await res.arrayBuffer();
+        logoImageBytes = Buffer.from(arrayBuffer);
+      }
+    } catch (e) {
+      // Ignore fetch error, fallback to fs
+    }
+
+    // Fallback to local FS
+    if (!logoImageBytes) {
+      const logoPath = path.join(process.cwd(), 'public', 'images', 'layout', 'logo_text.png');
+      if (fs.existsSync(logoPath)) {
+        logoImageBytes = fs.readFileSync(logoPath);
+      }
+    }
+
+    if (logoImageBytes) {
       const logoImage = await pdfDoc.embedPng(logoImageBytes);
       // Determine scale to fit in a reasonable header space
       // Max width 150px, max height 60px
@@ -200,7 +220,7 @@ export async function generateInvoicePDFBuffer(order: OrderForPDF): Promise<Buff
   }
 
   // ===== ITEMS TABLE =====
-  y = height - 300;
+  y = height - 350;
 
   // Table header
   page.drawText('Artikel', { x: 50, y, size: 10, font: helveticaBold, color: black });

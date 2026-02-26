@@ -300,7 +300,12 @@ Sie können direkt auf diese E-Mail antworten, um dem Kunden zu antworten.
 /**
  * Send order confirmation email with PDF invoice attached (verwendet info@vierkorken.ch)
  */
-export async function sendOrderConfirmationEmail(to: string, orderId: string, orderDetails: any) {
+export async function sendOrderConfirmationEmail(
+  to: string,
+  orderId: string,
+  orderDetails: any,
+  ticketPDFs?: Buffer[]
+) {
   console.log('📧 [sendOrderConfirmationEmail] Starting...', {
     to,
     orderId,
@@ -554,14 +559,25 @@ Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
       `.trim();
 
   // Prepare attachments
-  const attachments = pdfBuffer
-    ? [
-      {
-        filename: `Rechnung_${orderDetails.orderNumber}.pdf`,
-        content: pdfBuffer,
-      },
-    ]
-    : undefined;
+  const attachments: { filename: string; content: Buffer }[] = [];
+
+  if (pdfBuffer) {
+    attachments.push({
+      filename: `Rechnung_${orderDetails.orderNumber}.pdf`,
+      content: pdfBuffer,
+    });
+  }
+
+  if (ticketPDFs && ticketPDFs.length > 0) {
+    ticketPDFs.forEach((pdf, index) => {
+      attachments.push({
+        filename: `EventTicket_${orderDetails.orderNumber}_${index + 1}.pdf`,
+        content: pdf,
+      });
+    });
+  }
+
+  const finalAttachments = attachments.length > 0 ? attachments : undefined;
 
   console.log('📧 About to send order confirmation email...');
   console.log('📧 Email details:', {
@@ -577,7 +593,7 @@ Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
       subject: `Bestellbestätigung - ${orderDetails.orderNumber}`,
       html,
       text,
-      attachments,
+      attachments: finalAttachments,
     });
     console.log('✅ Order confirmation email sent successfully via sendInfoMail');
     console.log('✅ Resend response:', result);
