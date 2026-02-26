@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, product });
     } catch (error: any) {
         console.error('Error creating divers product:', error);
-        return NextResponse.json({ success: false, error: 'Fehler beim Erstellen' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Fehler beim Erstellen', details: error?.message || String(error) }, { status: 500 });
     }
 }
 
@@ -88,7 +88,7 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json({ success: true, product });
     } catch (error: any) {
         console.error('Error updating divers product:', error);
-        return NextResponse.json({ success: false, error: 'Fehler beim Aktualisieren' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Fehler beim Aktualisieren', details: error?.message || String(error) }, { status: 500 });
     }
 }
 
