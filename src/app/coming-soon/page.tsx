@@ -101,7 +101,7 @@ export default function ComingSoonPage() {
           <div className="flex flex-col items-center gap-2">
             <div className="relative w-48 h-20 sm:w-56 sm:h-24">
               <Image
-                src="/images/layout/Wein Boutique_edited.png"
+                src="/images/layout/Wein Boutique_edited.png?v=2"
                 alt="Vier Korken Wein-Boutique"
                 fill
                 className="object-contain"
@@ -125,8 +125,8 @@ export default function ComingSoonPage() {
               {message && (
                 <div
                   className={`px-2 py-1.5 rounded text-xs text-center ${message.type === 'success'
-                      ? 'bg-green-900/80 border border-green-600/50 text-green-100'
-                      : 'bg-red-900/80 border border-red-600/50 text-red-100'
+                    ? 'bg-green-900/80 border border-green-600/50 text-green-100'
+                    : 'bg-red-900/80 border border-red-600/50 text-red-100'
                     }`}
                 >
                   {message.text}

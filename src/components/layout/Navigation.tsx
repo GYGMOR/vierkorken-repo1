@@ -67,7 +67,7 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
           {/* Logo */}
           <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
             <Image
-              src="/images/layout/Wein Boutique_edited.png"
+              src="/images/layout/Wein Boutique_edited.png?v=2"
               alt="VIER KORKEN Logo"
               width={120}
               height={40}
