@@ -299,7 +299,7 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
                 <Link href="/divers" className={`text-xl transition-colors ${pathname === '/divers' ? 'font-serif text-wine' : 'text-graphite'}`} onClick={() => setMobileMenuOpen(false)}>
                   Zubehör & Divers
                 </Link>
-                <Link href="/klub" className={`text-xl transition-colors ${pathname === '/klub' ? 'font-serif text-wine' : 'text-graphite'}`} onClick={() => setMobileMenuOpen(false)}>
+                <Link href="/club" className={`text-xl transition-colors ${pathname === '/club' ? 'font-serif text-wine' : 'text-graphite'}`} onClick={() => setMobileMenuOpen(false)}>
                   Treueprogramm
                 </Link>
                 <Link href="/kontakt" className={`text-xl transition-colors ${pathname === '/kontakt' ? 'font-serif text-wine' : 'text-graphite'}`} onClick={() => setMobileMenuOpen(false)}>
@@ -308,7 +308,7 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
                 <Link href="/dein-event" className={`text-xl transition-colors ${pathname === '/dein-event' ? 'font-serif text-wine' : 'text-graphite'}`} onClick={() => setMobileMenuOpen(false)}>
                   Dein Event
                 </Link>
-                <Link href="/news/categories/weinwissen" className={`text-xl transition-colors ${pathname === '/news/categories/weinwissen' ? 'font-serif text-wine' : 'text-graphite'}`} onClick={() => setMobileMenuOpen(false)}>
+                <Link href="/weinwissen" className={`text-xl transition-colors ${pathname === '/weinwissen' ? 'font-serif text-wine' : 'text-graphite'}`} onClick={() => setMobileMenuOpen(false)}>
                   Weinwissen
                 </Link>
               </div>

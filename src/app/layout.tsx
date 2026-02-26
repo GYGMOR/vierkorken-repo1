@@ -65,11 +65,10 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/favicon.png', type: 'image/png' },
-      { url: '/images/layout/Favicon/vierkorken-logo.png', type: 'image/png', sizes: '512x512' },
+      { url: '/images/layout/Wein Boutique_edited.png', type: 'image/png' },
     ],
-    shortcut: '/favicon.png',
-    apple: '/favicon.png',
+    shortcut: '/images/layout/Wein Boutique_edited.png',
+    apple: '/images/layout/Wein Boutique_edited.png',
   },
   manifest: '/site.webmanifest',
 };

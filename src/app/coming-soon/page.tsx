@@ -99,17 +99,9 @@ export default function ComingSoonPage() {
 
           {/* Logo Section */}
           <div className="flex flex-col items-center gap-2">
-            <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden border-2 border-[#c9a962]/50 shadow-lg bg-black/20 backdrop-blur-md">
+            <div className="relative w-48 h-20 sm:w-56 sm:h-24">
               <Image
-                src="/images/layout/logo_icon.png"
-                alt="Vier Korken Logo"
-                fill
-                className="object-cover p-1"
-              />
-            </div>
-            <div className="relative w-48 h-12 sm:w-56 sm:h-14">
-              <Image
-                src="/images/layout/logo_text.png"
+                src="/images/layout/Wein Boutique_edited.png"
                 alt="Vier Korken Wein-Boutique"
                 fill
                 className="object-contain"
@@ -132,11 +124,10 @@ export default function ComingSoonPage() {
             <form onSubmit={handleSubscribe} className="space-y-3">
               {message && (
                 <div
-                  className={`px-2 py-1.5 rounded text-xs text-center ${
-                    message.type === 'success'
+                  className={`px-2 py-1.5 rounded text-xs text-center ${message.type === 'success'
                       ? 'bg-green-900/80 border border-green-600/50 text-green-100'
                       : 'bg-red-900/80 border border-red-600/50 text-red-100'
-                  }`}
+                    }`}
                 >
                   {message.text}
                 </div>

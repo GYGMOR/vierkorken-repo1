@@ -131,14 +131,14 @@ export default function DeinEventPage() {
                             defaultValue="Dein Event"
                             isAdmin={isAdmin}
                             as="h1"
-                            className="text-display font-serif font-light mb-6"
+                            className="text-4xl md:text-5xl lg:text-display font-serif font-light mb-6 break-words"
                         />
                         <EditableText
                             settingKey="dein_event_page_header_subtitle"
                             defaultValue="Der ideale Raum für Ihre Ideen. Mieten Sie unsere inspirierende Weinboutique für Seminare, Meetings oder kleine Feiern."
                             isAdmin={isAdmin}
                             as="p"
-                            className="text-body-lg text-white/90"
+                            className="text-base md:text-lg lg:text-body-lg text-white/90"
                             multiline={true}
                         />
                     </div>
@@ -162,7 +162,7 @@ export default function DeinEventPage() {
                                 defaultValue="Ihre Location in Seengen"
                                 isAdmin={isAdmin}
                                 as="h2"
-                                className="text-h2 font-serif text-graphite-dark mb-6"
+                                className="text-2xl md:text-h2 font-serif text-graphite-dark mb-6 break-words"
                             />
                             <EditableText
                                 settingKey="dein_event_intro_text"
@@ -191,12 +191,12 @@ export default function DeinEventPage() {
                         </div>
                     </div>
 
-                    <div className="max-w-3xl mx-auto mt-24">
+                    <div className="max-w-3xl mx-auto mt-16 md:mt-24 w-full px-2 sm:px-0">
                         <div className="text-center mb-8">
-                            <h2 className="text-h2 font-serif text-graphite-dark">Mietanfrage senden</h2>
+                            <h2 className="text-2xl md:text-h2 font-serif text-graphite-dark">Mietanfrage senden</h2>
                             <p className="text-graphite mt-2">Bitte teilen Sie uns den geplanten Termin und Ihre Wünsche mit.</p>
                         </div>
-                        <div className="bg-white rounded-2xl shadow-medium overflow-hidden border border-taupe-light/30">
+                        <div className="bg-white rounded-2xl shadow-medium overflow-hidden border border-taupe-light/30 w-full mb-10">
                             <ContactForm />
                         </div>
                     </div>
