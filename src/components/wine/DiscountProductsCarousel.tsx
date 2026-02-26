@@ -48,14 +48,15 @@ export function DiscountProductsCarousel({ products }: DiscountProductsCarouselP
           width: 100%;
         }
 
+        .carousel-track {
           display: flex;
           gap: 1.5rem;
           padding: 1rem 0;
         }
 
         .animate-scroll {
-          /* Faster animation for "excitement" or same? User said "gleiche geschwindigkeit". */
-          animation: scroll ${Math.max(20, products.length * 4)}s linear infinite;
+          /* Deutlich langsameres Scrollen, damit User in Ruhe lesen können */
+          animation: scroll ${Math.max(40, products.length * 8)}s linear infinite;
           will-change: transform;
         }
 
