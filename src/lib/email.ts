@@ -231,7 +231,29 @@ export async function sendContactEmail(
   const adminEmail = process.env.ADMIN_EMAIL || 'info@vierkorken.ch';
 
   const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Neue Kontaktanfrage</title>
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background-color: #8B4513; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">Vier Korken Wein-Boutique</h1>
+          </div>
+
+          <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
+            <h2 style="color: #333; margin-top: 0;">Neue Kontaktanfrage</h2>
+            
+            <div style="background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <p style="margin: 5px 0;"><strong>Name:</strong> ${name}</p>
+              <p style="margin: 5px 0;"><strong>E-Mail:</strong> ${email}</p>
+              <p style="margin: 5px 0;"><strong>Betreff:</strong> ${subject}</p>
             </div>
+
+            <h3 style="color: #333; margin-top: 20px;">Nachricht:</h3>
+            <div style="background-color: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; white-space: pre-wrap;">${message}</div>
 
             <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107; margin: 20px 0;">
               <p style="margin: 0; color: #856404;">
