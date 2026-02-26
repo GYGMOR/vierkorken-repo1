@@ -52,7 +52,7 @@ export default function CartPage() {
               <Card key={item.id} className="p-4 md:p-6">
                 <div className="flex gap-3 md:gap-6">
                   {/* Image */}
-                  {item.slug && (
+                  {item.slug ? (
                     <Link
                       href={`/weine/${item.slug}`}
                       className="flex-shrink-0"
@@ -72,6 +72,23 @@ export default function CartPage() {
                         )}
                       </div>
                     </Link>
+                  ) : (
+                    <div className="flex-shrink-0">
+                      <div className="w-16 h-24 md:w-24 md:h-32 bg-gradient-to-br from-warmwhite to-sand-light rounded-lg relative overflow-hidden">
+                        {item.imageUrl ? (
+                          <Image
+                            src={item.imageUrl}
+                            alt={item.name}
+                            fill
+                            className="object-contain p-2"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <WineBottleIcon className="w-12 h-12 text-taupe" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   )}
 
                   {/* Details */}

@@ -39,6 +39,53 @@ export default function DiversPage() {
     // View state
     const [viewingProduct, setViewingProduct] = useState<DiversProduct | null>(null);
 
+    // Toast state
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState('');
+
+    // Rental Modal state
+    const [rentalProduct, setRentalProduct] = useState<DiversProduct | null>(null);
+    const [rentalForm, setRentalForm] = useState({ quantity: 1, name: '', email: '' });
+    const [isSubmittingRental, setIsSubmittingRental] = useState(false);
+
+    const openRentalModal = (product: DiversProduct) => {
+        setRentalProduct(product);
+        setRentalForm({ quantity: 1, name: '', email: '' });
+    };
+
+    const handleRentalSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!rentalProduct) return;
+
+        setIsSubmittingRental(true);
+        try {
+            const res = await fetch('/api/rentals', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    productTitle: rentalProduct.title,
+                    quantity: rentalForm.quantity,
+                    name: rentalForm.name,
+                    email: rentalForm.email
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setRentalProduct(null);
+                setToastMessage(`Ihre Mietanfrage für ${rentalProduct.title} wurde erfolgreich versendet.`);
+                setShowToast(true);
+                setTimeout(() => setShowToast(false), 5000);
+            } else {
+                alert('Fehler beim Senden der Anfrage. Bitte versuchen Sie es später erneut.');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Fehler beim Senden der Anfrage.');
+        } finally {
+            setIsSubmittingRental(false);
+        }
+    };
+
     // Form state
     const [formData, setFormData] = useState({
         title: '',
@@ -170,7 +217,9 @@ export default function DiversPage() {
             imageUrl: product.image || undefined,
             type: 'divers'
         });
-        alert(`${product.title} wurde zum Warenkorb hinzugefügt.`);
+        setToastMessage(`${product.title} wurde zum Warenkorb hinzugefügt.`);
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
     };
 
     if (loading) {
@@ -188,6 +237,16 @@ export default function DiversPage() {
 
     return (
         <MainLayout>
+            {/* Toast */}
+            {showToast && (
+                <div className="fixed top-20 right-4 z-50 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 max-w-md transition-opacity duration-300">
+                    <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>{toastMessage}</span>
+                </div>
+            )}
+
             {/* Editable Hero Section */}
             <div className="relative h-[400px] flex items-center justify-center overflow-hidden group border-b border-taupe-light">
                 <div className="absolute inset-0 bg-graphite-dark">
@@ -293,7 +352,7 @@ export default function DiversPage() {
                                     product={product}
                                     isAdmin={isAdmin}
                                     onEdit={() => openEditModal(product)}
-                                    onAddToCart={(e) => { e.stopPropagation(); addToCart(product); }}
+                                    onAddToCart={(e) => { e.stopPropagation(); openRentalModal(product); }}
                                     onClick={() => setViewingProduct(product)}
                                 />
                             ))}
@@ -526,18 +585,102 @@ export default function DiversPage() {
                             )}
 
                             <div className="mt-auto pt-8 w-full">
-                                <button
-                                    onClick={() => {
-                                        addToCart(viewingProduct);
-                                        setViewingProduct(null);
-                                    }}
-                                    className="btn btn-primary w-full py-4 text-lg flex items-center justify-center gap-3 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all"
-                                >
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-                                    In den Warenkorb
-                                </button>
+                                {viewingProduct.type === 'RENT' ? (
+                                    <button
+                                        onClick={() => {
+                                            openRentalModal(viewingProduct);
+                                            setViewingProduct(null);
+                                        }}
+                                        className="btn btn-primary w-full py-4 text-lg flex items-center justify-center gap-3 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all"
+                                    >
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                        Mietanfrage senden
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={() => {
+                                            addToCart(viewingProduct);
+                                            setViewingProduct(null);
+                                        }}
+                                        className="btn btn-primary w-full py-4 text-lg flex items-center justify-center gap-3 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all"
+                                    >
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                                        In den Warenkorb
+                                    </button>
+                                )}
                             </div>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Rental Product Form Modal */}
+            {rentalProduct && (
+                <div className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setRentalProduct(null)}>
+                    <div
+                        className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative p-6 md:p-8 shadow-2xl border border-taupe-light/30 animate-fade-in"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            onClick={() => setRentalProduct(null)}
+                            className="absolute z-20 top-4 right-4 bg-white/90 hover:bg-white text-graphite hover:text-wine p-2 rounded-full shadow-sm transition-colors"
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+
+                        <h2 className="text-h3 font-serif text-graphite-dark mb-4">Mietanfrage für {rentalProduct.title}</h2>
+                        <p className="text-graphite mb-6 text-sm">Bitte füllen Sie das Formular aus, um eine unverbindliche Mietanfrage für diesen Artikel zu stellen. Wir werden uns in Kürze bei Ihnen melden.</p>
+
+                        <form onSubmit={handleRentalSubmit} className="space-y-6">
+                            <div>
+                                <label className="block text-sm font-medium text-graphite-dark mb-1">Anzahl gewünschter Artikel ({Number(rentalProduct.price) > 0 ? `CHF ${Number(rentalProduct.price).toFixed(2)} / Stück` : 'Preis auf Anfrage'})</label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    required
+                                    className="w-full form-input"
+                                    value={rentalForm.quantity}
+                                    onChange={e => setRentalForm({ ...rentalForm, quantity: Math.max(1, parseInt(e.target.value) || 1) })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-graphite-dark mb-1">Ihr Name</label>
+                                <input
+                                    type="text"
+                                    required
+                                    className="w-full form-input"
+                                    value={rentalForm.name}
+                                    onChange={e => setRentalForm({ ...rentalForm, name: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-graphite-dark mb-1">Ihre E-Mail Adresse</label>
+                                <input
+                                    type="email"
+                                    required
+                                    className="w-full form-input"
+                                    value={rentalForm.email}
+                                    onChange={e => setRentalForm({ ...rentalForm, email: e.target.value })}
+                                />
+                            </div>
+
+                            <div className="flex gap-4 pt-4 border-t border-taupe-light mt-6">
+                                <button type="button" onClick={() => setRentalProduct(null)} className="btn btn-outline flex-1">Abbrechen</button>
+                                <button type="submit" disabled={isSubmittingRental} className="btn btn-primary flex-1 disabled:opacity-50 flex items-center justify-center gap-2">
+                                    {isSubmittingRental ? (
+                                        <>
+                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                            Wird gesendet...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                            Anfrage senden
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
@@ -595,13 +738,23 @@ function ProductCard({ product, isAdmin, onEdit, onAddToCart, onClick }: { produ
 
                 <div className="mt-auto pt-4 border-t border-taupe-light/50 flex items-center justify-between">
                     <div className="font-serif text-xl border-taupe text-wine-dark">CHF {Number(product.price).toFixed(2)}</div>
-                    <button
-                        onClick={onAddToCart}
-                        className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-warmwhite-light border border-taupe-light text-wine hover:bg-wine hover:text-white hover:border-transparent transition-all shadow-sm"
-                        title="In den Warenkorb"
-                    >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-                    </button>
+                    {product.type === 'RENT' ? (
+                        <button
+                            onClick={onAddToCart}
+                            className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-warmwhite-light border border-taupe-light text-wine hover:bg-wine hover:text-white hover:border-transparent transition-all shadow-sm"
+                            title="Mietanfrage"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        </button>
+                    ) : (
+                        <button
+                            onClick={onAddToCart}
+                            className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-warmwhite-light border border-taupe-light text-wine hover:bg-wine hover:text-white hover:border-transparent transition-all shadow-sm"
+                            title="In den Warenkorb"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

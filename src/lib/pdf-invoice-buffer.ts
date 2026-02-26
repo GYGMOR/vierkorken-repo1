@@ -1,4 +1,6 @@
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import fs from 'fs';
+import path from 'path';
 
 interface OrderItem {
   wineName: string;
@@ -84,7 +86,35 @@ export async function generateInvoicePDFBuffer(order: OrderForPDF): Promise<Buff
     'Tel: 062 390 04 04',
     'info@vierkorken.ch',
     'www.vierkorken.ch',
+    'MWST NR.: CHE-471.048.672 MWST'
   ];
+
+  // Try to embed Logo in top right
+  try {
+    const logoPath = path.join(process.cwd(), 'public', 'images', 'layout', 'logo_text.png');
+    if (fs.existsSync(logoPath)) {
+      const logoImageBytes = fs.readFileSync(logoPath);
+      const logoImage = await pdfDoc.embedPng(logoImageBytes);
+      // Determine scale to fit in a reasonable header space
+      // Max width 150px, max height 60px
+      const maxW = 150;
+      const maxH = 60;
+      let ratio = 1;
+      if (logoImage.width > maxW || logoImage.height > maxH) {
+        ratio = Math.min(maxW / logoImage.width, maxH / logoImage.height);
+      }
+      const logoDims = logoImage.scale(ratio);
+
+      page.drawImage(logoImage, {
+        x: width - logoDims.width - 50,
+        y: height - logoDims.height - 40,
+        width: logoDims.width,
+        height: logoDims.height,
+      });
+    }
+  } catch (err) {
+    console.warn("Could not load logo for PDF:", err);
+  }
 
   for (const line of companyInfo) {
     page.drawText(line, {

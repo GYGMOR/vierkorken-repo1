@@ -369,6 +369,33 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
 
         // Update user loyalty points if logged in
         if (user) {
+          // Link event tickets to user if missing (e.g., from guest checkout where they used the same email)
+          if (order && order.id) {
+            try {
+              await prisma.eventTicket.updateMany({
+                where: {
+                  orderId: order.id,
+                  userId: null,
+                },
+                data: {
+                  userId: user.id,
+                  // We can also assume status becomes ACTIVE upon payment, 
+                  // but we'll focus on just associating the ticket to the user.
+                },
+              });
+
+              // Also ensure the order itself is linked to the user
+              if (!order.userId) {
+                await prisma.order.update({
+                  where: { id: order.id },
+                  data: { userId: user.id }
+                });
+              }
+            } catch (ticketLinkError) {
+              console.error('Error linking tickets to user:', ticketLinkError);
+            }
+          }
+
           await prisma.user.update({
             where: { id: user.id },
             data: {

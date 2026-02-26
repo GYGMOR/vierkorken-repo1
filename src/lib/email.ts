@@ -600,16 +600,30 @@ Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
 export async function sendNewOrderNotificationToAdmin(orderId: string, orderDetails: any, overrideRecipient?: string) {
   const adminEmail = overrideRecipient || process.env.ADMIN_EMAIL || 'info@vierkorken.ch';
 
-  // Format items list for email
-  const itemsList = orderDetails.items
+  // Format items list for email (wines/products)
+  let itemsList = orderDetails.items
     .map(
       (item: any) =>
         `<tr>
-          <td style="padding: 8px; border-bottom: 1px solid #e0e0e0;">${item.quantity}x ${item.wineName}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #e0e0e0; text-align: right;">CHF ${Number(item.totalPrice).toFixed(2)}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #e0e0e0;">${item.quantity}x ${item.wineName || item.name || 'Produkt'}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #e0e0e0; text-align: right;">CHF ${Number(item.totalPrice || item.price * item.quantity).toFixed(2)}</td>
         </tr>`
     )
     .join('');
+
+  // Format tickets list for email
+  if (orderDetails.tickets && orderDetails.tickets.length > 0) {
+    const ticketsHtml = orderDetails.tickets
+      .map(
+        (ticket: any) =>
+          `<tr>
+          <td style="padding: 8px; border-bottom: 1px solid #e0e0e0;">1x Event-Ticket: ${ticket.event?.title || ticket.eventTitle || 'Event'} (${ticket.event?.date || ticket.eventDate ? new Date(ticket.event?.date || ticket.eventDate).toLocaleDateString('de-CH') : ''})</td>
+          <td style="padding: 8px; border-bottom: 1px solid #e0e0e0; text-align: right;">CHF ${Number(ticket.price).toFixed(2)}</td>
+        </tr>`
+      )
+      .join('');
+    itemsList += ticketsHtml;
+  }
 
   const formatPrice = (price: number) => `CHF ${Number(price).toFixed(2)}`;
 
