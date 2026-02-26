@@ -12,6 +12,7 @@ import { DailyTipManager } from '@/components/blog/DailyTipManager';
 import { BlogPostManager } from '@/components/blog/BlogPostManager';
 import { KnowledgeCategoryManager } from '@/components/blog/KnowledgeCategoryManager';
 import { CategoryIcons } from '@/components/blog/CategoryIcons';
+import { ImageUploader } from '@/components/admin/ImageUploader';
 
 // Start Types
 interface DailyTip {
@@ -61,6 +62,41 @@ export default function WeinwissenPage() {
   const [currentCategoryToEdit, setCurrentCategoryToEdit] = useState<KnowledgeCategory | null>(null);
 
   const [loading, setLoading] = useState(true);
+
+  const [headerImage, setHeaderImage] = useState('/images/layout/weingläser.jpg');
+  const [isHeaderEditorOpen, setIsHeaderEditorOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch('/api/settings?keys=blog_page_header_image');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.settings) {
+            const hImage = data.settings.find((s: any) => s.key === 'blog_page_header_image');
+            if (hImage?.value) setHeaderImage(hImage.value);
+          }
+        }
+      } catch (e) {
+        console.error('Error fetching settings:', e);
+      }
+    };
+    fetchSettings();
+  }, [isAdmin]);
+
+  const saveHeaderImage = async (url: string) => {
+    try {
+      await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'blog_page_header_image', value: url }),
+      });
+      setHeaderImage(url);
+      setIsHeaderEditorOpen(false);
+    } catch (e) {
+      console.error('Error saving setting:', e);
+    }
+  };
 
   // Delete Handlers
   const handleDeletePost = async (id: string) => {
@@ -137,17 +173,27 @@ export default function WeinwissenPage() {
   return (
     <MainLayout>
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-br from-warmwhite via-rose-light to-accent-burgundy/10 border-b border-taupe-light overflow-hidden">
+      <div className="relative bg-gradient-to-br from-warmwhite via-rose-light to-accent-burgundy/10 border-b border-taupe-light overflow-hidden group">
         <div className="absolute inset-0 z-0">
           <Image
-            src="/images/layout/weingläser.jpg"
+            src={headerImage}
             alt="Weinwissen Hintergrund"
             fill
-            className="object-cover opacity-15"
+            className="object-cover opacity-15 transition-opacity duration-700"
             quality={90}
             priority
           />
         </div>
+
+        {isAdmin && (
+          <button
+            onClick={() => setIsHeaderEditorOpen(true)}
+            className="absolute top-4 right-4 z-20 bg-white/90 hover:bg-white text-graphite rounded-full p-3 shadow-lg transition-all opacity-0 group-hover:opacity-100"
+            title="Header-Bild ändern"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          </button>
+        )}
 
         <div className="container-custom py-16 relative z-10">
           <div className="max-w-3xl mx-auto text-center space-y-6">
@@ -447,6 +493,19 @@ export default function WeinwissenPage() {
           onUpdate={fetchData}
           initialCategory={currentCategoryToEdit}
         />
+      )}
+
+      {/* Header Image Editor Modal */}
+      {isHeaderEditorOpen && (
+        <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 lg:p-8 relative max-h-[90vh] overflow-y-auto shadow-2xl border border-taupe-light/30">
+            <button onClick={() => setIsHeaderEditorOpen(false)} className="absolute top-4 right-4 text-graphite/40 hover:text-graphite transition-colors">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <h2 className="text-h3 font-serif text-graphite-dark mb-6">Header-Bild ändern</h2>
+            <ImageUploader onUploadComplete={saveHeaderImage} />
+          </div>
+        </div>
       )}
     </MainLayout>
   );

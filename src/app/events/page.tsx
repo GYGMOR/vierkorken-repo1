@@ -11,7 +11,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { useCart } from '@/contexts/CartContext';
 import { EventImageCarousel } from '@/components/events/EventImageCarousel';
 import { EditableText } from '@/components/admin/EditableText';
-import { EditableImage } from '@/components/admin/EditableImage';
+import { ImageUploader } from '@/components/admin/ImageUploader';
 
 // Mock data for events
 import { useSession } from 'next-auth/react';
@@ -84,6 +84,41 @@ export default function EventsPage() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState<any | null>(null);
+
+  const [headerImage, setHeaderImage] = useState('/images/layout/weingläser.jpg');
+  const [isHeaderEditorOpen, setIsHeaderEditorOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch('/api/settings?keys=events_page_header_image');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.settings) {
+            const hImage = data.settings.find((s: any) => s.key === 'events_page_header_image');
+            if (hImage?.value) setHeaderImage(hImage.value);
+          }
+        }
+      } catch (e) {
+        console.error('Error fetching settings:', e);
+      }
+    };
+    fetchSettings();
+  }, [isAdmin]);
+
+  const saveHeaderImage = async (url: string) => {
+    try {
+      await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'events_page_header_image', value: url }),
+      });
+      setHeaderImage(url);
+      setIsHeaderEditorOpen(false);
+    } catch (e) {
+      console.error('Error saving setting:', e);
+    }
+  };
 
   const fetchEvents = async () => {
     try {
@@ -227,19 +262,27 @@ export default function EventsPage() {
   return (
     <MainLayout>
       {/* Hero */}
-      <div className="relative bg-gradient-to-br from-warmwhite via-rose-light to-accent-burgundy/10 border-b border-taupe-light overflow-hidden">
+      <div className="relative bg-gradient-to-br from-warmwhite via-rose-light to-accent-burgundy/10 border-b border-taupe-light overflow-hidden group">
         {/* Hintergrundbild - transparent */}
         <div className="absolute inset-0 z-0">
-          <EditableImage
-            settingKey="events_page_header_image"
-            defaultSrc="/images/layout/weingläser.jpg"
-            isAdmin={isAdmin}
+          <Image
+            src={headerImage}
             alt="Weingläser Hintergrund"
-            className="object-cover opacity-15"
-            fill={true}
-            priority={true}
+            fill
+            className="object-cover opacity-15 transition-opacity duration-700"
+            priority
           />
         </div>
+
+        {isAdmin && (
+          <button
+            onClick={() => setIsHeaderEditorOpen(true)}
+            className="absolute top-4 right-4 z-20 bg-white/90 hover:bg-white text-graphite rounded-full p-3 shadow-lg transition-all opacity-0 group-hover:opacity-100"
+            title="Header-Bild ändern"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          </button>
+        )}
 
         {/* Content - über dem Bild */}
         <div className="container-custom py-16 relative z-10">
@@ -348,6 +391,19 @@ export default function EventsPage() {
           onClose={() => setShowEditModal(false)}
           onSave={handleSave}
         />
+      )}
+
+      {/* Header Image Editor Modal */}
+      {isHeaderEditorOpen && (
+        <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 lg:p-8 relative max-h-[90vh] overflow-y-auto shadow-2xl border border-taupe-light/30">
+            <button onClick={() => setIsHeaderEditorOpen(false)} className="absolute top-4 right-4 text-graphite/40 hover:text-graphite transition-colors">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <h2 className="text-h3 font-serif text-graphite-dark mb-6">Header-Bild ändern</h2>
+            <ImageUploader onUploadComplete={saveHeaderImage} />
+          </div>
+        </div>
       )}
     </MainLayout>
   );
