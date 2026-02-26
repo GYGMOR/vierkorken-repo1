@@ -289,21 +289,8 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Add discount as negative line item if applicable
-    if (discountAmount > 0 && coupon) {
-      lineItems.push({
-        price_data: {
-          currency: 'chf',
-          product_data: {
-            name: `Gutschein: ${coupon.code}`,
-            description: coupon.description || 'Rabatt angewendet',
-            images: [],
-          },
-          unit_amount: -Math.round(discountAmount * 100), // Negative amount
-        },
-        quantity: 1,
-      });
-    }
+    // Removed the negative line item for discount here, because Stripe doesn't allow line items with negative amounts.
+    // Instead we will use Stripe.coupons API directly below if discountAmount > 0.
 
     // Add tax (MwSt.) as a line item
     if (taxAmount > 0) {
@@ -603,7 +590,49 @@ export async function POST(req: NextRequest) {
     });
 
     console.log('📦 Order items:', orderWithItems?.items?.length || 0);
-    console.log('📦 Items details:', JSON.stringify(orderWithItems?.items || [], null, 2));
+
+    // ==========================================
+    // 100% DISCOUNT WITH GIFT CARD (0 CHF TOTAL)
+    // ==========================================
+    if (total === 0) {
+      console.log('🎁 Order total is 0 CHF (Fully covered by Gift Card/Coupon). Bypassing Stripe.');
+
+      // We directly mark the order as PAID and CONFIRMED
+      await prisma.order.update({
+        where: { id: order.id },
+        data: {
+          paymentStatus: 'PAID',
+          status: 'CONFIRMED',
+          paidAt: new Date(),
+          paymentMethod: 'gift_card', // Record that it was fully paid by gift card
+        },
+      });
+
+      // Update user loyalty points if logged in
+      if (user) {
+        // Link event tickets to user if missing 
+        try {
+          await prisma.eventTicket.updateMany({
+            where: { orderId: order.id, userId: null },
+            data: { userId: user.id },
+          });
+
+          if (!order.userId) {
+            await prisma.order.update({
+              where: { id: order.id },
+              data: { userId: user.id }
+            });
+          }
+        } catch (ticketLinkError) {
+          console.error('Error linking tickets to user:', ticketLinkError);
+        }
+
+        // We award 0 points for 0 CHF paid (unless loyalty policy says otherwise)
+      }
+
+      const successUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/checkout/success?session_id=gift_card_${Date.now()}&order_id=${order.id}`;
+      return NextResponse.json({ url: successUrl });
+    }
 
     // Determine payment method types based on selected payment method
     const paymentMethodTypes = paymentMethod === 'twint'
@@ -628,6 +657,29 @@ export async function POST(req: NextRequest) {
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/warenkorb`,
       payment_method_types: paymentMethodTypes,
     };
+
+    // ==========================================
+    // PARTIAL DISCOUNT HANDLING VIA STRIPE COUPON
+    // ==========================================
+    if (discountAmount > 0 && coupon) {
+      try {
+        console.log(`🎫 Creating dynamic Stripe Coupon for CHF ${discountAmount}`);
+        const stripeCoupon = await stripe.coupons.create({
+          amount_off: Math.round(discountAmount * 100),
+          currency: 'chf',
+          duration: 'once',
+          name: `Gutschein: ${coupon.code}`,
+        });
+
+        // Attach the coupon directly to the Stripe session
+        sessionConfig.discounts = [{ coupon: stripeCoupon.id }];
+        console.log(`✅ Dynamically attached Stripe Coupon: ${stripeCoupon.id}`);
+      } catch (stripeCouponError) {
+        console.error('❌ Failed to create dynamic Stripe Coupon:', stripeCouponError);
+        // Fallback: If creating the coupon fails, we don't block checkout but the user loses discount.
+        // In reality, this shouldn't fail unless network errors.
+      }
+    }
 
     // TWINT requires explicit CHF currency
     if (paymentMethod === 'twint') {
@@ -655,18 +707,7 @@ export async function POST(req: NextRequest) {
     });
     console.log('✅ Order updated with Stripe session ID');
 
-    // Increment coupon usage count
-    if (coupon) {
-      await prisma.coupon.update({
-        where: { id: coupon.id },
-        data: {
-          currentUses: {
-            increment: 1,
-          },
-        },
-      });
-      console.log('✅ Coupon usage incremented:', coupon.code);
-    }
+    // Coupon usage counter removed here - we only increment it in the Webhook upon actual payment success!
 
     console.log('🎉 ========== STRIPE CHECKOUT SESSION SUCCESS ==========');
     console.log('🔗 Checkout URL:', checkoutSession.url);

@@ -227,6 +227,7 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
             },
             include: {
               items: true,
+              coupon: true,
               tickets: {
                 include: {
                   event: true,
@@ -237,6 +238,58 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
 
           console.log('✅ Existing order updated:', order.orderNumber);
           console.log('🎫 Order has', order.tickets?.length || 0, 'tickets');
+
+          // Process the coupon now that payment is securely successful
+          if (order.coupon) {
+            console.log(`🎫 Processing successful coupon usage: ${order.coupon.code}`);
+
+            // 1. Increment usage
+            await prisma.coupon.update({
+              where: { id: order.coupon.id },
+              data: { currentUses: { increment: 1 } },
+            });
+
+            // 2. Handle partial gift card usage
+            if (order.coupon.type === 'GIFT_CARD' && Number(order.coupon.value) > Number(order.discountAmount)) {
+              const remainingBalance = Number(order.coupon.value) - Number(order.discountAmount);
+              console.log(`🎁 Gift card partially used. Generating new code for remaining CHF ${remainingBalance}`);
+
+              const newCode = `REST-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+              try {
+                // Generate a new coupon with the remainder
+                const newCoupon = await prisma.coupon.create({
+                  data: {
+                    code: newCode,
+                    type: 'GIFT_CARD',
+                    value: remainingBalance,
+                    description: `Restguthaben von Gutschein ${order.coupon.code}`,
+                    isActive: true,
+                    validFrom: new Date(),
+                    validUntil: order.coupon.validUntil,
+                    maxUses: 1,
+                    minOrderAmount: 0,
+                  }
+                });
+
+                // Email the new code directly to the customer
+                const recipientEmail = order.customerEmail;
+                if (recipientEmail && recipientEmail !== 'guest@vierkorken.ch') {
+                  // We re-use sendGiftCardEmail
+                  await sendGiftCardEmail(recipientEmail, {
+                    code: newCode,
+                    amount: remainingBalance,
+                    senderName: 'Vier Korken System',
+                    recipientName: order.customerFirstName || 'Lieber Kunde',
+                    message: `Hier ist Ihr automatisches Restguthaben von Ihrem vorherigen Gutschein (${order.coupon.code}). Dieser neue Code kann bei Ihrem nächsten Einkauf eingelöst werden.`,
+                  });
+                  console.log(`✅ Remaining balance code (${newCode}) emailed to ${recipientEmail}`);
+                }
+              } catch (restGuthabenError) {
+                console.error('❌ Failed to create/send Restguthaben:', restGuthabenError);
+              }
+            }
+          }
         } else {
           // Fallback: Create new order if no existing order (shouldn't happen normally)
           console.log('⚠️  No existing order found, creating new one...');
@@ -345,6 +398,7 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
             },
             include: {
               items: true,
+              coupon: true,
               tickets: {
                 include: {
                   event: true,
@@ -354,6 +408,10 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
           });
 
           console.log('✅ New order created:', order.orderNumber);
+
+          // Note: If no existing order was found (fallback path), it means we couldn't properly link it 
+          // to the DB coupon since we only parsed Stripe line items.
+          // This path is extremely rare. We only process loyalty and tickets below.
         }
 
         // Find user for loyalty points
@@ -572,6 +630,59 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
             });
 
             if (orderWithItems) {
+              // Process the coupon for TWINT/async now that payment is securely successful
+              if (orderWithItems.couponId) {
+                const coupon = await prisma.coupon.findUnique({ where: { id: orderWithItems.couponId } });
+
+                if (coupon) {
+                  console.log(`🎫 Processing successful coupon usage for TWINT: ${coupon.code}`);
+
+                  // 1. Increment usage
+                  await prisma.coupon.update({
+                    where: { id: coupon.id },
+                    data: { currentUses: { increment: 1 } },
+                  });
+
+                  // 2. Handle partial gift card usage
+                  if (coupon.type === 'GIFT_CARD' && Number(coupon.value) > Number(orderWithItems.discountAmount)) {
+                    const remainingBalance = Number(coupon.value) - Number(orderWithItems.discountAmount);
+                    console.log(`🎁 Gift card partially used. Generating new code for remaining CHF ${remainingBalance}`);
+
+                    const newCode = `REST-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+                    try {
+                      const newCoupon = await prisma.coupon.create({
+                        data: {
+                          code: newCode,
+                          type: 'GIFT_CARD',
+                          value: remainingBalance,
+                          description: `Restguthaben von Gutschein ${coupon.code}`,
+                          isActive: true,
+                          validFrom: new Date(),
+                          validUntil: coupon.validUntil,
+                          maxUses: 1,
+                          minOrderAmount: 0,
+                        }
+                      });
+
+                      const recipientEmail = orderWithItems.customerEmail;
+                      if (recipientEmail && recipientEmail !== 'guest@vierkorken.ch') {
+                        await sendGiftCardEmail(recipientEmail, {
+                          code: newCode,
+                          amount: remainingBalance,
+                          senderName: 'Vier Korken System',
+                          recipientName: orderWithItems.customerFirstName || 'Lieber Kunde',
+                          message: `Hier ist Ihr automatisches Restguthaben von Ihrem vorherigen Gutschein (${coupon.code}). Dieser neue Code kann bei Ihrem nächsten Einkauf eingelöst werden.`,
+                        });
+                        console.log(`✅ Remaining balance code (${newCode}) emailed to ${recipientEmail}`);
+                      }
+                    } catch (restError) {
+                      console.error('❌ Failed to create/send Restguthaben:', restError);
+                    }
+                  }
+                }
+              }
+
               const orderData = {
                 orderNumber: orderWithItems.orderNumber,
                 customerFirstName: orderWithItems.customerFirstName,
