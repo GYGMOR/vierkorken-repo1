@@ -103,7 +103,21 @@ function CheckoutPageContent() {
 
   const shippingCost = calculateShippingCost();
   const giftWrapCost = giftOptions.giftWrap ? 5.0 : 0;
-  const discountAmount = appliedCoupon?.discountAmount || 0;
+
+  // Dynamically calculate cap for gift cards, keep static for percentage
+  let discountAmount = 0;
+  if (appliedCoupon) {
+    if (appliedCoupon.type === 'GIFT_CARD' || appliedCoupon.type === 'FIXED_AMOUNT') {
+      discountAmount = appliedCoupon.value;
+      const grandTotalBeforeDiscount = total + shippingCost + giftWrapCost;
+      if (discountAmount > grandTotalBeforeDiscount) {
+        discountAmount = grandTotalBeforeDiscount;
+      }
+    } else {
+      discountAmount = appliedCoupon.discountAmount || 0;
+    }
+  }
+
   const subtotalBeforeDiscount = total + shippingCost + giftWrapCost;
   const subtotalAfterDiscount = Math.max(0, subtotalBeforeDiscount - discountAmount);
   const finalTotal = subtotalAfterDiscount * 1.081; // inkl. MwSt
@@ -158,12 +172,18 @@ function CheckoutPageContent() {
             setPaymentMethod(formData.paymentMethod);
             setGiftOptions(formData.giftOptions);
 
+            if (formData.appliedCoupon) {
+              setAppliedCoupon(formData.appliedCoupon);
+              setCouponCode(formData.couponCode || '');
+            }
+
             // Clean up sessionStorage
             sessionStorage.removeItem('checkoutFormData');
 
             // IMPORTANT: Proceed immediately with the RESTORED data (not state)
             // This avoids timing issues with React state updates
             console.log('🚀 Proceeding with checkout using restored data...');
+            // Inject restored discount onto formData so it executes with it accurately
             proceedWithCheckoutData(formData);
           } catch (error) {
             console.error('Error restoring form data:', error);
@@ -361,6 +381,11 @@ function CheckoutPageContent() {
       }
     }
 
+    // Validation complete. Now handle Verification & Checkout.
+    await handleVerificationFlow();
+  };
+
+  const handleVerificationFlow = async () => {
     // ⚠️ SCHWEIZER RICHTLINIEN: Identity Verification vor Payment
     // Check if user needs identity verification (18+ for alcohol)
     if (!isVerified) {
@@ -405,6 +430,8 @@ function CheckoutPageContent() {
           shippingMethod,
           paymentMethod,
           giftOptions,
+          appliedCoupon,
+          couponCode,
         };
         sessionStorage.setItem('checkoutFormData', JSON.stringify(formData));
         console.log('💾 Saved form data to session storage');
@@ -461,7 +488,7 @@ function CheckoutPageContent() {
               phone: formData.shippingData.phone,
             },
             giftOptions: formData.giftOptions,
-            couponCode: appliedCoupon?.code || null,
+            couponCode: formData.appliedCoupon?.code || null,
           }),
         });
 
@@ -486,7 +513,7 @@ function CheckoutPageContent() {
           shippingMethod: formData.deliveryMethod === 'shipping' ? formData.shippingMethod : null,
           paymentMethod: formData.paymentMethod,
           giftOptions: formData.giftOptions,
-          couponCode: appliedCoupon?.code || null,
+          couponCode: formData.appliedCoupon?.code || null,
         };
 
         // Add contact/shipping data
@@ -1173,7 +1200,7 @@ function CheckoutPageContent() {
                                 </p>
                               )}
                               <p className="text-sm font-semibold text-green-900 mt-1">
-                                Rabatt: CHF {appliedCoupon.discountAmount.toFixed(2)}
+                                Rabatt: CHF {discountAmount.toFixed(2)}
                               </p>
                             </div>
                             <Button
@@ -1328,7 +1355,7 @@ function CheckoutPageContent() {
                             Gutschein ({appliedCoupon.code})
                           </span>
                           <span className="text-green-600 font-medium">
-                            -CHF {appliedCoupon.discountAmount.toFixed(2)}
+                            -CHF {discountAmount.toFixed(2)}
                           </span>
                         </div>
                       )}
@@ -1380,7 +1407,7 @@ function CheckoutPageContent() {
                 variant="secondary"
                 onClick={async () => {
                   setShowSaveAddressDialog(false);
-                  await proceedWithCheckout();
+                  await handleVerificationFlow();
                 }}
                 className="flex-1"
               >
@@ -1389,7 +1416,7 @@ function CheckoutPageContent() {
               <Button
                 onClick={async () => {
                   await saveAddress();
-                  await proceedWithCheckout();
+                  await handleVerificationFlow();
                 }}
                 className="flex-1"
               >
