@@ -448,7 +448,9 @@ export async function POST(req: NextRequest) {
         deliveryMethod: deliveryMethod === 'pickup' ? 'PICKUP' : 'SHIPPING',
         shippingMethod: shippingMethod || 'standard',
         ...(coupon && {
-          couponId: coupon.id,
+          coupon: {
+            connect: { id: coupon.id }
+          },
           couponCode: coupon.code,
         }),
         customerNote: giftOptions?.giftMessage || null,

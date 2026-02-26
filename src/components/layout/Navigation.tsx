@@ -102,9 +102,6 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
 
               <div className="absolute right-0 top-full pt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                 <div className="bg-warmwhite rounded-lg shadow-strong border border-taupe-light overflow-hidden">
-                  <Link href="/geschenkgutscheine" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
-                    Geschenkgutscheine
-                  </Link>
                   <Link href="/divers" className="block px-4 py-3 text-sm text-graphite hover:bg-wood-lightest/30 transition-colors">
                     Divers
                   </Link>
