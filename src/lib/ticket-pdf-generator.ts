@@ -17,7 +17,7 @@ interface EventTicketData {
   };
 }
 
-export async function generateTicketPDF(ticket: EventTicketData): Promise<void> {
+export async function buildTicketDoc(ticket: EventTicketData): Promise<jsPDF> {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -229,6 +229,12 @@ export async function generateTicketPDF(ticket: EventTicketData): Promise<void> 
   doc.setFont('helvetica', 'bold');
   doc.text('TICKET', 105, 150, { align: 'center', angle: 45 });
 
+  // Return document instead of saving
+  return doc;
+}
+
+export async function generateTicketPDF(ticket: EventTicketData): Promise<void> {
+  const doc = await buildTicketDoc(ticket);
   // Save PDF
-  doc.save(`Vier Korken Wein-Boutique-Ticket-${ticket.ticketNumber}.pdf`);
+  doc.save(`Vier-Korken-Wein-Boutique-Ticket-${ticket.ticketNumber}.pdf`);
 }

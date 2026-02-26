@@ -58,7 +58,7 @@ interface Order {
   customerNote?: string;
 }
 
-export async function generateInvoicePDF(order: Order): Promise<void> {
+export async function buildInvoiceDoc(order: Order, logoBase64?: string): Promise<jsPDF> {
   const doc = new jsPDF();
 
   // Helper functions
@@ -98,20 +98,14 @@ export async function generateInvoicePDF(order: Order): Promise<void> {
   doc.text('www.vierkorken.ch', 20, 57);
   doc.text('MWST NR.: CHE-471.048.672 MWST', 20, 62);
 
-  try {
-    const res = await fetch('/images/layout/logo_text.png');
-    if (res.ok) {
-      const blob = await res.blob();
-      const reader = new FileReader();
-      const base64data = await new Promise<string>((resolve) => {
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.readAsDataURL(blob);
-      });
-      // Add image to top right corner
-      doc.addImage(base64data, 'PNG', 130, 20, 60, 24);
+  if (logoBase64) {
+    try {
+      // Add icon to top right corner, properly sized, not squashed.
+      // Icon is usually square or tall. 25x25 is safe.
+      doc.addImage(logoBase64, 'PNG', 165, 15, 25, 25);
+    } catch (err) {
+      console.warn('Could not add logo to PDF:', err);
     }
-  } catch (err) {
-    console.warn('Could not load logo in client PDF:', err);
   }
 
   // Invoice Title
@@ -400,5 +394,25 @@ export async function generateInvoicePDF(order: Order): Promise<void> {
   doc.text(footerText, 105, 270, { align: 'center' });
 
   // Save PDF
+  return doc;
+}
+
+export async function generateInvoicePDF(order: Order): Promise<void> {
+  let logoBase64: string | undefined;
+  try {
+    const res = await fetch('/images/layout/logo_icon.png');
+    if (res.ok) {
+      const blob = await res.blob();
+      const reader = new FileReader();
+      logoBase64 = await new Promise<string>((resolve) => {
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+      });
+    }
+  } catch (err) {
+    console.warn('Could not load logo in client PDF:', err);
+  }
+
+  const doc = await buildInvoiceDoc(order, logoBase64);
   doc.save(`Rechnung_${order.orderNumber}.pdf`);
 }

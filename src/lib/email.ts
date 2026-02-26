@@ -357,7 +357,7 @@ export async function sendOrderConfirmationEmail(
       customerLastName: orderDetails.customerLastName,
       billingAddress: orderDetails.billingAddress,
       items: orderDetails.items,
-      tickets: ticketsForPDF,
+      eventTickets: orderDetails.tickets, // Pass raw tickets so nested event property is intact
       subtotal: orderDetails.subtotal,
       shippingCost: orderDetails.shippingCost,
       taxAmount: orderDetails.taxAmount,
