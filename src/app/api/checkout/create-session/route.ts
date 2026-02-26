@@ -170,8 +170,9 @@ export async function POST(req: NextRequest) {
                     }
                   } else if (coupon.type === 'FIXED_AMOUNT' || coupon.type === 'GIFT_CARD') {
                     discountAmount = Number(coupon.value);
-                    if (discountAmount > subtotal) {
-                      discountAmount = subtotal;
+                    const grandTotalBeforeDiscount = subtotal + shippingCost + giftWrapCost;
+                    if (discountAmount > grandTotalBeforeDiscount) {
+                      discountAmount = grandTotalBeforeDiscount;
                     }
                   }
 

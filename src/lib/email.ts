@@ -687,11 +687,11 @@ export async function sendNewOrderNotificationToAdmin(orderId: string, orderDeta
                   </tr>
                   <tr>
                     <td style="padding: 8px 0; font-weight: 600;">Zahlungsmethode:</td>
-                    <td style="padding: 8px 0;">${orderDetails.paymentMethod === 'stripe' ? 'Kreditkarte (Stripe)' : orderDetails.paymentMethod === 'cash' ? 'Barzahlung bei Abholung' : orderDetails.paymentMethod}</td>
+                    <td style="padding: 8px 0;">${orderDetails.paymentMethod === 'stripe' ? 'Kreditkarte (Stripe)' : orderDetails.paymentMethod === 'twint' ? 'TWINT' : orderDetails.paymentMethod === 'gift_card' ? 'Gutschein (100% Deckung)' : orderDetails.paymentMethod === 'cash' ? 'Barzahlung bei Abholung' : orderDetails.paymentMethod || 'Unbekannt'}</td>
                   </tr>
                   <tr>
                     <td style="padding: 8px 0; font-weight: 600;">Liefermethode:</td>
-                    <td style="padding: 8px 0;">${orderDetails.deliveryMethod === 'SHIPPING' ? 'Versand' : 'Abholung im Geschäft'}</td>
+                    <td style="padding: 8px 0;">${orderDetails.deliveryMethod === 'SHIPPING' ? (orderDetails.shippingMethod === 'express' ? 'Versand (Express)' : 'Versand (Standard)') : 'Abholung im Geschäft'}</td>
                   </tr>
                   <tr>
                     <td style="padding: 8px 0; font-weight: 600;">Zeitpunkt:</td>

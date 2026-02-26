@@ -507,6 +507,8 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
             billingAddress: order.billingAddress,
             shippingAddress: order.shippingAddress,
             deliveryMethod: order.deliveryMethod,
+            paymentMethod: order.paymentMethod,
+            shippingMethod: order.shippingMethod,
           };
 
           // Generate Ticket PDFs before sending the confirmation email
@@ -698,6 +700,8 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
                 billingAddress: orderWithItems.billingAddress,
                 shippingAddress: orderWithItems.shippingAddress,
                 deliveryMethod: orderWithItems.deliveryMethod,
+                paymentMethod: orderWithItems.paymentMethod,
+                shippingMethod: orderWithItems.shippingMethod,
               };
 
               await sendOrderConfirmationEmail(orderWithItems.customerEmail, orderWithItems.id, orderData);

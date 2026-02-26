@@ -98,6 +98,7 @@ export async function GET(request: NextRequest) {
         // Add images if available (customImages is a JSON array)
         if (override.customImages && Array.isArray(override.customImages) && override.customImages.length > 0) {
           merged.images = override.customImages;
+          merged.imageUrl = override.customImages[0];
         }
 
         // Pass customData (Grapes, Nose, etc.)
