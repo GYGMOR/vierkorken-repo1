@@ -104,7 +104,7 @@ export default function DeinEventPage() {
 
     return (
         <MainLayout>
-            <div className="bg-gradient-to-b from-warmwhite to-white min-h-screen">
+            <div className="bg-gradient-to-b from-warmwhite to-white min-h-screen overflow-x-hidden w-full">
                 {/* Hero Section */}
                 <section className="relative h-[400px] flex items-center justify-center overflow-hidden group">
                     <div className="absolute inset-0 bg-graphite-dark">
@@ -177,7 +177,7 @@ export default function DeinEventPage() {
                         </div>
 
                         {/* Gallery Section */}
-                        <div className="relative group">
+                        <div className="relative group min-w-0">
                             {isAdmin && (
                                 <button
                                     onClick={() => setEditorOpen('gallery')}
