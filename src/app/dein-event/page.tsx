@@ -131,7 +131,7 @@ export default function DeinEventPage() {
                             defaultValue="Dein Event"
                             isAdmin={isAdmin}
                             as="h1"
-                            className="text-4xl md:text-5xl lg:text-display font-serif font-light mb-6 break-words"
+                            className="text-3xl sm:text-4xl md:text-5xl lg:text-display font-serif font-light mb-4 md:mb-6 break-words"
                         />
                         <EditableText
                             settingKey="dein_event_page_header_subtitle"
@@ -144,10 +144,10 @@ export default function DeinEventPage() {
                     </div>
                 </section>
 
-                <div className="container-custom py-16">
-                    <div className="grid md:grid-cols-2 gap-12 items-start mb-20 relative">
+                <div className="container-custom py-10 md:py-16 overflow-hidden md:overflow-visible">
+                    <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-start mb-16 md:mb-20 relative">
                         {/* Content Section */}
-                        <div className="relative group p-4 -ml-4 rounded-xl transition-colors hover:bg-warmwhite-dark/20">
+                        <div className="relative group p-0 md:p-4 md:-ml-4 rounded-xl transition-colors hover:bg-warmwhite-dark/20">
                             {isAdmin && (
                                 <button
                                     onClick={() => { setTempContent(content); setEditorOpen('content'); }}
@@ -191,7 +191,7 @@ export default function DeinEventPage() {
                         </div>
                     </div>
 
-                    <div className="max-w-3xl mx-auto mt-16 md:mt-24 w-full px-2 sm:px-0">
+                    <div className="max-w-3xl mx-auto mt-12 md:mt-24 w-full px-4 sm:px-0">
                         <div className="text-center mb-8">
                             <h2 className="text-2xl md:text-h2 font-serif text-graphite-dark">Mietanfrage senden</h2>
                             <p className="text-graphite mt-2">Bitte teilen Sie uns den geplanten Termin und Ihre Wünsche mit.</p>

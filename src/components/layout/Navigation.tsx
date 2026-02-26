@@ -305,7 +305,7 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
                 <Link href="/dein-event" className={`text-xl transition-colors ${pathname === '/dein-event' ? 'font-serif text-wine' : 'text-graphite'}`} onClick={() => setMobileMenuOpen(false)}>
                   Dein Event
                 </Link>
-                <Link href="/weinwissen" className={`text-xl transition-colors ${pathname === '/weinwissen' ? 'font-serif text-wine' : 'text-graphite'}`} onClick={() => setMobileMenuOpen(false)}>
+                <Link href="/blog" className={`text-xl transition-colors ${pathname === '/blog' ? 'font-serif text-wine' : 'text-graphite'}`} onClick={() => setMobileMenuOpen(false)}>
                   Weinwissen
                 </Link>
               </div>
