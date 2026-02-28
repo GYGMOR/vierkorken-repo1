@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ImageUploader } from '@/components/admin/ImageUploader';
 import { EditableText } from '@/components/admin/EditableText';
+import { ShareButton } from '@/components/ui/ShareButton';
 
 interface NewsItem {
   id: string;
@@ -375,14 +376,18 @@ function NewsCard({ news, isAdmin, onEdit }: { news: NewsItem; isAdmin: boolean;
           <p className="text-graphite/80 line-clamp-3">{news.excerpt}</p>
         )}
 
-        {/* Read More Link */}
-        <Link
-          href={`/news/${news.slug}`}
-          className="inline-flex items-center gap-2 text-accent-burgundy font-medium hover:gap-3 transition-all"
-        >
-          Weiterlesen
-          <ArrowRightIcon className="w-4 h-4" />
-        </Link>
+        {/* Read More Link & Share */}
+        <div className="flex items-center justify-between mt-auto">
+          <Link
+            href={`/news/${news.slug}`}
+            className="inline-flex items-center gap-2 text-accent-burgundy font-medium hover:gap-3 transition-all"
+          >
+            Weiterlesen
+            <ArrowRightIcon className="w-4 h-4" />
+          </Link>
+
+          <ShareButton url={`/news/${news.slug}`} title={news.title} />
+        </div>
       </div>
     </article>
   );

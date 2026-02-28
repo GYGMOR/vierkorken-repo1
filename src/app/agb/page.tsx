@@ -246,7 +246,19 @@ export default function AGBPage() {
             </section>
 
             <section>
-              <h2 className="text-xl md:text-2xl lg:text-h3 font-serif text-graphite-dark mb-3 md:mb-4">12. Online-Streitbeilegung</h2>
+              <h2 className="text-xl md:text-2xl lg:text-h3 font-serif text-graphite-dark mb-3 md:mb-4">12. Mietungen bei Divers</h2>
+              <p>
+                <strong>12.1 Miete von Gläsern und Material</strong><br />
+                Über die Webseite können Gläser und sonstiges Event-Material gemietet werden.
+              </p>
+              <p className="mt-2">
+                <strong>12.2 Beschädigungen und Bruch</strong><br />
+                Die gemieteten Gegenstände sind sorgfältig zu behandeln. Für jedes Glas, das kaputt oder defekt zurückgegeben wird, stellen wir pauschal CHF 9.00 pro Glas in Rechnung.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-xl md:text-2xl lg:text-h3 font-serif text-graphite-dark mb-3 md:mb-4">13. Online-Streitbeilegung</h2>
               <p>
                 Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:<br />
                 <a href="https://ec.europa.eu/consumers/odr" className="text-wine hover:underline" target="_blank" rel="noopener noreferrer">ec.europa.eu/consumers/odr</a>

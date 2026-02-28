@@ -7,6 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/contexts/CartContext';
 import { formatPrice } from '@/lib/utils';
+import { ShareButton } from '@/components/ui/ShareButton';
 
 interface Event {
   id: string;
@@ -340,8 +341,11 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
           {/* Details */}
           <div className="space-y-6">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent-burgundy/10 rounded-full border border-accent-burgundy/20 mb-3">
-                <span className="text-accent-burgundy font-medium text-sm">{event.type}</span>
+              <div className="flex justify-between items-start mb-3">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent-burgundy/10 rounded-full border border-accent-burgundy/20">
+                  <span className="text-accent-burgundy font-medium text-sm">{event.type}</span>
+                </div>
+                <ShareButton url={`/events/${event.slug}`} title={event.title} />
               </div>
               <h1 className="text-display font-serif font-light text-graphite-dark mb-2">
                 {event.title}
@@ -412,8 +416,8 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
                   <div className="w-full bg-taupe-light rounded-full h-2.5 overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${availableTickets <= 5 ? 'bg-red-600' :
-                          availableTickets <= 10 ? 'bg-orange-500' :
-                            'bg-green-500'
+                        availableTickets <= 10 ? 'bg-orange-500' :
+                          'bg-green-500'
                         }`}
                       style={{ width: `${(availableTickets / event.capacity) * 100}%` }}
                     />

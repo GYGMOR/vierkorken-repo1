@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { BackButton } from '@/components/ui/BackButton';
+import { ShareButton } from '@/components/ui/ShareButton';
 
 interface NewsItem {
   id: string;
@@ -120,11 +121,14 @@ export default function NewsDetailPage() {
               {news.title}
             </h1>
 
-            <div className="flex items-center gap-4 text-graphite/60 text-sm">
-              <div className="flex items-center gap-2">
-                <CalendarIcon className="w-4 h-4" />
-                <time>{formatDate(news.publishedAt || news.createdAt)}</time>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4 text-graphite/60 text-sm">
+                <div className="flex items-center gap-2">
+                  <CalendarIcon className="w-4 h-4" />
+                  <time>{formatDate(news.publishedAt || news.createdAt)}</time>
+                </div>
               </div>
+              <ShareButton url={`/news/${news.slug}`} title={news.title} />
             </div>
 
             {news.excerpt && (

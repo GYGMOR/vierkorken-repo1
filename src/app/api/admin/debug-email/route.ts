@@ -5,7 +5,8 @@ import {
     sendInfoMail,
     sendOrderConfirmationEmail,
     sendNewOrderNotificationToAdmin,
-    sendPasswordResetEmail
+    sendPasswordResetEmail,
+    sendLaunchNotificationEmail
 } from '@/lib/email';
 import { prisma } from '@/lib/prisma';
 
@@ -195,6 +196,11 @@ export async function POST(req: NextRequest) {
             case 'PASSWORD_RESET':
                 await sendPasswordResetEmail(email, 'https://vierkorken.ch/auth/reset-password?token=test-token', 'Max');
                 result = { success: true, message: 'Password reset sent' };
+                break;
+
+            case 'COMING_SOON':
+                await sendLaunchNotificationEmail(email);
+                result = { success: true, message: 'Coming Soon Notification sent to ' + email };
                 break;
 
             default:

@@ -23,11 +23,51 @@ export function SystemSettings() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [seasonMessage, setSeasonMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  const [categoriesLive, setCategoriesLive] = useState(true);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [categoriesMessage, setCategoriesMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
   useEffect(() => {
     fetchSettings();
+    fetchCategoriesSettings();
     fetchSubscriberCount();
     fetchSeason();
   }, []);
+
+  async function fetchCategoriesSettings() {
+    try {
+      const res = await fetch('/api/settings?keys=knowledge_categories_status');
+      const data = await res.json();
+      if (data.success && data.settings) {
+        const catSetting = data.settings.find((s: any) => s.key === 'knowledge_categories_status');
+        setCategoriesLive(catSetting?.value !== 'dev');
+      }
+    } catch (e) {
+      console.error('Error fetching categories setting:', e);
+    }
+  }
+
+  async function toggleCategoriesLive(live: boolean) {
+    setLoadingCategories(true);
+    setCategoriesMessage(null);
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'knowledge_categories_status', value: live ? 'live' : 'dev' }),
+      });
+      if (res.ok) {
+        setCategoriesLive(live);
+        setCategoriesMessage({ type: 'success', text: live ? 'Kategorien sind jetzt Live für alle Besucher.' : 'Kategorien sind jetzt im Dev-Modus (nur für Admins sichtbar).' });
+      } else {
+        setCategoriesMessage({ type: 'error', text: 'Fehler beim Speichern' });
+      }
+    } catch (e) {
+      setCategoriesMessage({ type: 'error', text: 'Verbindungsfehler' });
+    } finally {
+      setLoadingCategories(false);
+    }
+  }
 
   async function fetchSeason() {
     try {
@@ -175,8 +215,8 @@ export function SystemSettings() {
             {message && (
               <div
                 className={`p-4 rounded-lg text-sm ${message.type === 'success'
-                    ? 'bg-green-50 text-green-700 border border-green-200'
-                    : 'bg-red-50 text-red-700 border border-red-200'
+                  ? 'bg-green-50 text-green-700 border border-green-200'
+                  : 'bg-red-50 text-red-700 border border-red-200'
                   }`}
               >
                 {message.text}
@@ -230,8 +270,8 @@ export function SystemSettings() {
                   onClick={() => updateSeason(season.value)}
                   disabled={seasonLoading}
                   className={`p-4 rounded-lg border-2 transition-all duration-200 text-center ${currentSeason === season.value
-                      ? 'border-accent-burgundy bg-accent-burgundy/10 shadow-md'
-                      : 'border-taupe-light hover:border-accent-burgundy/50 hover:bg-warmwhite'
+                    ? 'border-accent-burgundy bg-accent-burgundy/10 shadow-md'
+                    : 'border-taupe-light hover:border-accent-burgundy/50 hover:bg-warmwhite'
                     } ${seasonLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                   <div className="text-3xl mb-2">{season.icon}</div>
@@ -252,8 +292,8 @@ export function SystemSettings() {
             {seasonMessage && (
               <div
                 className={`p-4 rounded-lg text-sm ${seasonMessage.type === 'success'
-                    ? 'bg-green-50 text-green-700 border border-green-200'
-                    : 'bg-red-50 text-red-700 border border-red-200'
+                  ? 'bg-green-50 text-green-700 border border-green-200'
+                  : 'bg-red-50 text-red-700 border border-red-200'
                   }`}
               >
                 {seasonMessage.text}
@@ -280,6 +320,38 @@ export function SystemSettings() {
                 </div>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Blog Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Wein Blog & Wissen</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex items-center justify-between p-4 bg-warmwhite rounded-lg">
+              <div className="flex-1">
+                <p className="font-medium text-graphite-dark text-lg">Kategorien Sichtbarkeit (Dev / Live)</p>
+                <p className="text-sm text-graphite mt-1">
+                  Aktivieren um Live zu schalten. Wenn deaktiviert (Dev), sehen nur Administratoren die Kategorien unter dem Tipp des Tages.
+                </p>
+              </div>
+              <Toggle
+                checked={categoriesLive}
+                onChange={toggleCategoriesLive}
+                disabled={loadingCategories}
+              />
+            </div>
+            {categoriesMessage && (
+              <div
+                className={`p-4 rounded-lg text-sm ${categoriesMessage.type === 'success'
+                  ? 'bg-green-50 text-green-700 border border-green-200'
+                  : 'bg-red-50 text-red-700 border border-red-200'
+                  }`}
+              >
+                {categoriesMessage.text}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -116,10 +116,19 @@ export async function POST(req: NextRequest) {
       status,
     } = body;
 
-    // Validate required fields
-    if (!slug || !title || !description || !eventType || !venue || !startDateTime || !endDateTime || !maxCapacity || !price) {
+    const isDraft = status === 'DRAFT';
+
+    // Validate required fields (stricter for PUBLISHED, looser for DRAFT)
+    if (!slug || !title || !eventType || !startDateTime || !endDateTime || !maxCapacity || !price) {
       return NextResponse.json(
-        { error: 'Pflichtfelder fehlen' },
+        { error: 'Pflichtfelder fehlen (Titel, Slug, Datum, Kapazität, Preis)' },
+        { status: 400 }
+      );
+    }
+
+    if (!isDraft && (!venue || !description)) {
+      return NextResponse.json(
+        { error: 'Für veröffentlichte Events müssen Veranstaltungsort und Beschreibung eingegeben werden.' },
         { status: 400 }
       );
     }
@@ -129,10 +138,10 @@ export async function POST(req: NextRequest) {
         slug,
         title,
         subtitle: subtitle || null,
-        description,
+        description: description || '',
         eventType,
-        venue,
-        venueAddress: venueAddress || {},
+        venue: venue || '',
+        venueAddress: venueAddress && Object.keys(venueAddress).length > 0 ? venueAddress : {},
         startDateTime: new Date(startDateTime),
         endDateTime: new Date(endDateTime),
         duration: duration || null,

@@ -103,12 +103,20 @@ export default function EmailTestPage() {
                             </Button>
 
                             <Button
+                                onClick={() => handleTest('COMING_SOON')}
+                                disabled={loading}
+                                variant="outline"
+                            >
+                                5. Coming Soon Notification
+                            </Button>
+
+                            <Button
                                 onClick={() => handleTest('NEWS')}
                                 disabled={loading}
                                 variant="outline"
                                 className="md:col-span-2 border-accent-burgundy text-accent-burgundy hover:bg-accent-burgundy hover:text-white"
                             >
-                                5. Newsletter Vorschau (Neuester Beitrag)
+                                6. Newsletter Vorschau (Neuester Beitrag)
                             </Button>
                         </div>
                     </CardContent>

@@ -1,27 +1,24 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 // Force Node.js runtime (required for Prisma)
-export const runtime = 'nodejs';
-
+export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
   try {
     const events = await prisma.event.findMany({
       where: {
-        status: 'PUBLISHED',
+        status: "PUBLISHED",
         startDateTime: {
           gte: new Date(), // Only future events
         },
       },
-      orderBy: {
-        startDateTime: 'asc',
-      },
+      orderBy: [{ sortOrder: "asc" }, { startDateTime: "asc" }],
     });
 
     return NextResponse.json({
       success: true,
-      events: events.map(event => ({
+      events: events.map((event) => ({
         id: event.id,
         slug: event.slug,
         title: event.title,
@@ -44,10 +41,10 @@ export async function GET(req: NextRequest) {
       })),
     });
   } catch (error: any) {
-    console.error('Error fetching events:', error);
+    console.error("Error fetching events:", error);
     return NextResponse.json(
-      { error: 'Fehler beim Laden der Events', details: error.message },
-      { status: 500 }
+      { error: "Fehler beim Laden der Events", details: error.message },
+      { status: 500 },
     );
   }
 }

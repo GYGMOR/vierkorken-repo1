@@ -66,15 +66,20 @@ export default function WeinwissenPage() {
   const [headerImage, setHeaderImage] = useState('/images/layout/weingläser.jpg');
   const [isHeaderEditorOpen, setIsHeaderEditorOpen] = useState(false);
 
+  const [categoriesLive, setCategoriesLive] = useState(true);
+
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch('/api/settings?keys=blog_page_header_image');
+        const res = await fetch('/api/settings?keys=blog_page_header_image,knowledge_categories_status');
         if (res.ok) {
           const data = await res.json();
           if (data.success && data.settings) {
             const hImage = data.settings.find((s: any) => s.key === 'blog_page_header_image');
             if (hImage?.value) setHeaderImage(hImage.value);
+
+            const catStatus = data.settings.find((s: any) => s.key === 'knowledge_categories_status');
+            if (catStatus) setCategoriesLive(catStatus.value !== 'dev');
           }
         }
       } catch (e) {
@@ -267,136 +272,138 @@ export default function WeinwissenPage() {
 
 
           {/* Weinwissen Kategorien (Dynamic) */}
-          <div className="relative group mb-12">
-            {isAdmin && (
-              <button
-                onClick={() => setShowCategoryManager(true)}
-                className="absolute top-0 right-0 bg-white p-2 rounded-full shadow-md z-20 text-graphite hover:text-accent-burgundy opacity-0 group-hover:opacity-100 transition-opacity translate-x-1/2 -translate-y-1/2"
-                title="Kategorien verwalten"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-              </button>
-            )}
+          {(categoriesLive || isAdmin) && (
+            <div className="relative group mb-12">
+              {isAdmin && (
+                <button
+                  onClick={() => setShowCategoryManager(true)}
+                  className="absolute top-0 right-0 bg-white p-2 rounded-full shadow-md z-20 text-graphite hover:text-accent-burgundy opacity-0 group-hover:opacity-100 transition-opacity translate-x-1/2 -translate-y-1/2"
+                  title="Kategorien verwalten"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                </button>
+              )}
 
-            <div className="grid md:grid-cols-2 gap-6">
-              {categories.length > 0 ? (
-                categories.map((cat) => {
-                  const IconComponent = CategoryIcons[cat.icon] || CategoryIcons.grape;
-                  return (
-                    <div key={cat.id} className="relative group/cat">
-                      <Card className="hover:shadow-strong transition-shadow cursor-pointer border-none shadow-md bg-white h-full flex flex-row overflow-hidden">
-                        {cat.image ? (
-                          <>
-                            <div className="w-1/3 min-w-[100px] relative bg-gray-100 flex-shrink-0">
-                              <Image
-                                src={cat.image}
-                                alt={cat.title}
-                                fill
-                                className="object-cover"
-                              />
-                            </div>
-                            <div className="flex-1 p-5 flex flex-col justify-center">
-                              <h3 className="font-semibold text-lg text-graphite-dark mb-2">{cat.title}</h3>
-                              <p className="text-sm text-graphite line-clamp-3">{cat.description}</p>
-                            </div>
-                          </>
-                        ) : (
-                          <div className="flex-1 w-full">
-                            <CardHeader>
-                              <div className="w-12 h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center mb-4">
-                                <IconComponent className="w-6 h-6 text-accent-burgundy" />
+              <div className="grid md:grid-cols-2 gap-6">
+                {categories.length > 0 ? (
+                  categories.map((cat) => {
+                    const IconComponent = CategoryIcons[cat.icon] || CategoryIcons.grape;
+                    return (
+                      <div key={cat.id} className="relative group/cat">
+                        <Card className="hover:shadow-strong transition-shadow cursor-pointer border-none shadow-md bg-white h-full flex flex-row overflow-hidden">
+                          {cat.image ? (
+                            <>
+                              <div className="w-1/3 min-w-[100px] relative bg-gray-100 flex-shrink-0">
+                                <Image
+                                  src={cat.image}
+                                  alt={cat.title}
+                                  fill
+                                  className="object-cover"
+                                />
                               </div>
-                              <CardTitle>{cat.title}</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                              <p className="text-sm text-graphite">{cat.description}</p>
-                            </CardContent>
+                              <div className="flex-1 p-5 flex flex-col justify-center">
+                                <h3 className="font-semibold text-lg text-graphite-dark mb-2">{cat.title}</h3>
+                                <p className="text-sm text-graphite line-clamp-3">{cat.description}</p>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="flex-1 w-full">
+                              <CardHeader>
+                                <div className="w-12 h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center mb-4">
+                                  <IconComponent className="w-6 h-6 text-accent-burgundy" />
+                                </div>
+                                <CardTitle>{cat.title}</CardTitle>
+                              </CardHeader>
+                              <CardContent>
+                                <p className="text-sm text-graphite">{cat.description}</p>
+                              </CardContent>
+                            </div>
+                          )}
+                        </Card>
+                        {isAdmin && (
+                          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover/cat:opacity-100 transition-opacity bg-white/80 rounded-lg p-1 shadow-sm">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setCurrentCategoryToEdit(cat);
+                                setShowCategoryManager(true);
+                              }}
+                              className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded"
+                              title="Bearbeiten"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteCategory(cat.id);
+                              }}
+                              className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded"
+                              title="Löschen"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>
                           </div>
                         )}
-                      </Card>
-                      {isAdmin && (
-                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover/cat:opacity-100 transition-opacity bg-white/80 rounded-lg p-1 shadow-sm">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setCurrentCategoryToEdit(cat);
-                              setShowCategoryManager(true);
-                            }}
-                            className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded"
-                            title="Bearbeiten"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteCategory(cat.id);
-                            }}
-                            className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded"
-                            title="Löschen"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                          </button>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <>
+                    {/* Fallback Static Content if DB is empty */}
+                    <Card className="hover:shadow-strong transition-shadow cursor-pointer border-none shadow-md bg-white">
+                      <CardHeader>
+                        <div className="w-12 h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center mb-4">
+                          <CategoryIcons.grape className="w-6 h-6 text-accent-burgundy" />
                         </div>
-                      )}
-                    </div>
-                  );
-                })
-              ) : (
-                <>
-                  {/* Fallback Static Content if DB is empty */}
-                  <Card className="hover:shadow-strong transition-shadow cursor-pointer border-none shadow-md bg-white">
-                    <CardHeader>
-                      <div className="w-12 h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center mb-4">
-                        <CategoryIcons.grape className="w-6 h-6 text-accent-burgundy" />
-                      </div>
-                      <CardTitle>Rebsorten</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-graphite">Lernen Sie die Unterschiede zwischen Rotwein, Weisswein, Rosé und Schaumwein kennen.</p>
-                    </CardContent>
-                  </Card>
-                  <Card className="hover:shadow-strong transition-shadow cursor-pointer border-none shadow-md bg-white">
-                    <CardHeader>
-                      <div className="w-12 h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center mb-4">
-                        <CategoryIcons.storage className="w-6 h-6 text-accent-burgundy" />
-                      </div>
-                      <CardTitle>Weinregionen</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-graphite">Entdecken Sie die bedeutendsten Weinregionen der Welt und ihre Besonderheiten.</p>
-                    </CardContent>
-                  </Card>
-                  <Card className="hover:shadow-strong transition-shadow cursor-pointer border-none shadow-md bg-white">
-                    <CardHeader>
-                      <div className="w-12 h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center mb-4">
-                        <CategoryIcons.nose className="w-6 h-6 text-accent-burgundy" />
-                      </div>
-                      <CardTitle>Verkostung</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-graphite">Die Kunst der Weinverkostung: Sehen, Riechen, Schmecken.</p>
-                    </CardContent>
-                  </Card>
-                  <Card className="hover:shadow-strong transition-shadow cursor-pointer border-none shadow-md bg-white">
-                    <CardHeader>
-                      <div className="w-12 h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center mb-4">
-                        <CategoryIcons.food className="w-6 h-6 text-accent-burgundy" />
-                      </div>
-                      <CardTitle>Food Pairing</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-graphite">Welcher Wein passt zu welchem Essen? Wir verraten es Ihnen.</p>
-                    </CardContent>
-                  </Card>
-                </>
-              )}
+                        <CardTitle>Rebsorten</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-graphite">Lernen Sie die Unterschiede zwischen Rotwein, Weisswein, Rosé und Schaumwein kennen.</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="hover:shadow-strong transition-shadow cursor-pointer border-none shadow-md bg-white">
+                      <CardHeader>
+                        <div className="w-12 h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center mb-4">
+                          <CategoryIcons.storage className="w-6 h-6 text-accent-burgundy" />
+                        </div>
+                        <CardTitle>Weinregionen</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-graphite">Entdecken Sie die bedeutendsten Weinregionen der Welt und ihre Besonderheiten.</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="hover:shadow-strong transition-shadow cursor-pointer border-none shadow-md bg-white">
+                      <CardHeader>
+                        <div className="w-12 h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center mb-4">
+                          <CategoryIcons.nose className="w-6 h-6 text-accent-burgundy" />
+                        </div>
+                        <CardTitle>Verkostung</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-graphite">Die Kunst der Weinverkostung: Sehen, Riechen, Schmecken.</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="hover:shadow-strong transition-shadow cursor-pointer border-none shadow-md bg-white">
+                      <CardHeader>
+                        <div className="w-12 h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center mb-4">
+                          <CategoryIcons.food className="w-6 h-6 text-accent-burgundy" />
+                        </div>
+                        <CardTitle>Food Pairing</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-graphite">Welcher Wein passt zu welchem Essen? Wir verraten es Ihnen.</p>
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Artikel */}
           <div className="flex justify-between items-end mb-6">
-            <h2 className="text-h3 font-serif text-graphite-dark">Beliebte Artikel</h2>
+            <h2 className="text-h3 font-serif text-graphite-dark">Wein Blog</h2>
             {isAdmin && (
               <Button onClick={() => setShowPostManager(true)} size="sm">
                 + Neuer Artikel
