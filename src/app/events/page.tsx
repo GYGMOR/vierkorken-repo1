@@ -242,9 +242,9 @@ export default function EventsPage() {
   return (
     <MainLayout>
       {/* Hero */}
-      <div className="relative bg-graphite-dark border-b border-taupe-light overflow-hidden group py-16 md:py-24 flex items-center justify-center">
+      <div className="relative h-[400px] flex items-center justify-center overflow-hidden group border-b border-taupe-light bg-graphite-dark">
         {/* Hintergrundbild - transparent */}
-        <div className="absolute inset-0 z-0 text-center flex items-center justify-center">
+        <div className="absolute inset-0 z-0">
           <Image
             src={headerImage}
             alt="Weingläser Hintergrund"
@@ -277,11 +277,11 @@ export default function EventsPage() {
         )}
 
         {/* Content - über dem Bild */}
-        <div className="container-custom py-16 relative z-10">
-          <div className="max-w-3xl mx-auto text-center space-y-6">
-            <BackButton href="/" className="mb-4" />
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent-burgundy/10 rounded-full border border-accent-burgundy/20 backdrop-blur-sm">
-              <span className="text-accent-burgundy font-medium text-sm">
+        <div className="container-custom relative z-10 text-center text-white px-4">
+          <div className="max-w-3xl mx-auto space-y-6">
+            <BackButton href="/" className="mb-4 text-white hover:text-white/80" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20">
+              <span className="text-white font-medium text-sm tracking-wider">
                 EVENTS
               </span>
             </div>
@@ -290,14 +290,14 @@ export default function EventsPage() {
               defaultValue="Exklusive Weinerlebnisse"
               isAdmin={isAdmin}
               as="h1"
-              className="text-display font-serif font-light text-graphite-dark"
+              className="text-display font-serif font-light text-white drop-shadow-md"
             />
             <EditableText
               settingKey="events_page_header_subtitle"
               defaultValue="Nehmen Sie an Verkostungen, Masterclasses und exklusiven Weindinners teil. Entdecken Sie neue Weine und treffen Sie Gleichgesinnte."
               isAdmin={isAdmin}
               as="p"
-              className="text-body-lg text-graphite"
+              className="text-body-lg text-white/90 drop-shadow-md"
               multiline={true}
             />
           </div>

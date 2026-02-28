@@ -153,7 +153,7 @@ export function EventCard({ event, isAdmin, onEdit }: { event: any; isAdmin?: bo
                     </button>
                 )}
 
-                <Card hover className="overflow-hidden h-full">
+                <Card hover className="h-full">
                     {/* Event Image */}
                     <div className="relative h-48 bg-gradient-to-br from-wood-light/40 to-wine/10 overflow-hidden">
                         {event.image && event.image !== '/events/default.jpg' ? (

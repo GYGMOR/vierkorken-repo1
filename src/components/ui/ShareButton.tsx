@@ -59,7 +59,7 @@ export function ShareButton({ url, title, className = '', align = 'right' }: Sha
     const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(getAbsoluteUrl())}`;
 
     return (
-        <div className={`relative ${className}`} ref={menuRef}>
+        <div className={`relative ${className} ${isOpen ? 'z-50' : 'z-auto'}`} ref={menuRef}>
             <button
                 onClick={(e) => {
                     e.preventDefault();
