@@ -76,6 +76,7 @@ export function EventEditModal({ event, onClose, onSave }: EventEditModalProps) 
         memberPrice: '',
         featuredImage: '',
         status: 'DRAFT',
+        includeTax: true,
     });
 
     useEffect(() => {
@@ -96,13 +97,15 @@ export function EventEditModal({ event, onClose, onSave }: EventEditModalProps) 
                 memberPrice: event.memberPrice?.toString() || '',
                 featuredImage: event.featuredImage || '',
                 status: event.status,
+                includeTax: event.includeTax ?? true,
             });
         }
     }, [event]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+        const { name, value, type } = e.target as HTMLInputElement;
+        const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
+        setFormData((prev) => ({ ...prev, [name]: val }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -378,7 +381,7 @@ export function EventEditModal({ event, onClose, onSave }: EventEditModalProps) 
                                 />
                             </div>
 
-                            <div>
+                            <div className="flex flex-col">
                                 <label className="block text-sm font-medium text-graphite mb-1">
                                     Mitglieder-Preis (CHF)
                                 </label>
@@ -392,6 +395,26 @@ export function EventEditModal({ event, onClose, onSave }: EventEditModalProps) 
                                     className="w-full px-3 py-2 border border-taupe-light rounded focus:outline-none focus:ring-2 focus:ring-burgundy"
                                 />
                             </div>
+                        </div>
+
+                        <div className="bg-taupe-light/10 p-4 rounded-lg border border-taupe-light/30">
+                            <label className="flex items-center gap-3 cursor-pointer group">
+                                <div className="relative">
+                                    <input
+                                        type="checkbox"
+                                        name="includeTax"
+                                        className="sr-only"
+                                        checked={formData.includeTax}
+                                        onChange={handleInputChange}
+                                    />
+                                    <div className={`block w-10 h-6 rounded-full transition-colors ${formData.includeTax ? 'bg-accent-gold' : 'bg-gray-300'}`}></div>
+                                    <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${formData.includeTax ? 'translate-x-4' : ''}`}></div>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium text-graphite-dark group-hover:text-accent-gold transition-colors">MwSt (8.1%) berechnen</span>
+                                    <span className="text-xs text-graphite/60">Falls deaktiviert, wird für dieses Event im Checkout keine MwSt aufgeschlagen.</span>
+                                </div>
+                            </label>
                         </div>
 
                         {/* Featured Image - Uses Admin ImageUploader */}

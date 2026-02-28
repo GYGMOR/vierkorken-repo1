@@ -470,7 +470,7 @@ function NewsCard({
   };
 
   return (
-    <article className="card overflow-hidden group hover:shadow-strong transition-all duration-300 border-2 border-taupe-light relative">
+    <article className="card group hover:shadow-strong transition-all duration-300 border-2 border-taupe-light relative">
       {/* Admin Actions */}
       {isAdmin && (
         <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
@@ -959,8 +959,8 @@ function CreateNewsModal({
                   type="button"
                   onClick={() => setImageMode("upload")}
                   className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${imageMode === "upload"
-                      ? "bg-wine text-warmwhite shadow-sm"
-                      : "text-graphite hover:text-wine"
+                    ? "bg-wine text-warmwhite shadow-sm"
+                    : "text-graphite hover:text-wine"
                     }`}
                 >
                   Von Gerät hochladen
@@ -969,8 +969,8 @@ function CreateNewsModal({
                   type="button"
                   onClick={() => setImageMode("url")}
                   className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${imageMode === "url"
-                      ? "bg-wine text-warmwhite shadow-sm"
-                      : "text-graphite hover:text-wine"
+                    ? "bg-wine text-warmwhite shadow-sm"
+                    : "text-graphite hover:text-wine"
                     }`}
                 >
                   URL eingeben
@@ -1381,8 +1381,8 @@ function EditNewsModal({
                   type="button"
                   onClick={() => setImageMode("upload")}
                   className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${imageMode === "upload"
-                      ? "bg-wine text-warmwhite shadow-sm"
-                      : "text-graphite hover:text-wine"
+                    ? "bg-wine text-warmwhite shadow-sm"
+                    : "text-graphite hover:text-wine"
                     }`}
                 >
                   Von Gerät hochladen
@@ -1391,8 +1391,8 @@ function EditNewsModal({
                   type="button"
                   onClick={() => setImageMode("url")}
                   className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${imageMode === "url"
-                      ? "bg-wine text-warmwhite shadow-sm"
-                      : "text-graphite hover:text-wine"
+                    ? "bg-wine text-warmwhite shadow-sm"
+                    : "text-graphite hover:text-wine"
                     }`}
                 >
                   URL eingeben

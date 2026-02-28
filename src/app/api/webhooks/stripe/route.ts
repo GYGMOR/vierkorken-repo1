@@ -374,7 +374,7 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
               taxAmount: taxAmount,
               discountAmount: 0,
               total: total,
-              pointsEarned: calculatePointsFromAmount(total),
+              pointsEarned: await calculatePointsFromAmount(total, prisma),
               pointsUsed: 0,
               cashbackAmount: 0,
               paymentMethod: 'stripe',
@@ -458,7 +458,7 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
             where: { id: user.id },
             data: {
               loyaltyPoints: {
-                increment: calculatePointsFromAmount(total),
+                increment: await calculatePointsFromAmount(total, prisma),
               },
               totalSpent: {
                 increment: total,
@@ -470,11 +470,11 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
           await prisma.loyaltyTransaction.create({
             data: {
               userId: user.id,
-              points: calculatePointsFromAmount(total),
+              points: await calculatePointsFromAmount(total, prisma),
               reason: 'Purchase',
               referenceId: order.id,
               balanceBefore: user.loyaltyPoints,
-              balanceAfter: user.loyaltyPoints + calculatePointsFromAmount(total),
+              balanceAfter: user.loyaltyPoints + await calculatePointsFromAmount(total, prisma),
             },
           });
 

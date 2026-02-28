@@ -70,10 +70,19 @@ export const LOYALTY_LEVELS: LoyaltyLevel[] = [
 
 /**
  * Calculate loyalty points from purchase amount
- * 1 CHF = 1 point
+ * 1 CHF = X points (fetched from DB, default 1.0)
  */
-export function calculatePointsFromAmount(amount: number): number {
-  return Math.floor(amount * 1.0);
+export async function calculatePointsFromAmount(amount: number, prisma: any): Promise<number> {
+  try {
+    const rule = await prisma.loyaltyProgramRule.findUnique({
+      where: { identifier: 'purchase' }
+    });
+    const pointsRatio = rule ? parseFloat(rule.points) : 1.0;
+    return Math.floor(amount * pointsRatio);
+  } catch (error) {
+    console.error('Error calculating points from amount:', error);
+    return Math.floor(amount * 1.0); // Fallback
+  }
 }
 
 /**

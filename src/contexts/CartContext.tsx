@@ -8,13 +8,14 @@ export interface CartItem {
   price: number;
   quantity: number;
   imageUrl?: string;
-  type: 'wine' | 'event' | 'divers';
+  type: 'wine' | 'event' | 'divers' | 'giftcard' | 'geschenkgutschein';
   slug?: string;
   winery?: string;
   vintage?: number;
   eventDate?: string;
   maxCapacity?: number;
   currentCapacity?: number;
+  includeTax?: boolean;
 }
 
 interface CartContextType {

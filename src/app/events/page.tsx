@@ -242,14 +242,14 @@ export default function EventsPage() {
   return (
     <MainLayout>
       {/* Hero */}
-      <div className="relative bg-gradient-to-br from-warmwhite via-rose-light to-accent-burgundy/10 border-b border-taupe-light overflow-hidden group">
+      <div className="relative bg-graphite-dark border-b border-taupe-light overflow-hidden group py-16 md:py-24 flex items-center justify-center">
         {/* Hintergrundbild - transparent */}
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-0 text-center flex items-center justify-center">
           <Image
             src={headerImage}
             alt="Weingläser Hintergrund"
             fill
-            className="object-cover opacity-15 transition-opacity duration-700"
+            className="object-cover opacity-40 transition-opacity duration-700"
             priority
           />
         </div>

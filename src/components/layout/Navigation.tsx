@@ -69,9 +69,9 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
             <Image
               src="/images/layout/Wein Boutique_edited.png"
               alt="VIER KORKEN Logo"
-              width={150}
-              height={40}
-              className="h-10 w-auto mix-blend-multiply"
+              width={180}
+              height={56}
+              className="h-14 w-auto"
               priority
             />
           </Link>

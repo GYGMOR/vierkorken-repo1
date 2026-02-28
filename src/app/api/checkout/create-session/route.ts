@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth-options';
 import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
 import { sendOrderConfirmationEmail, sendNewOrderNotificationToAdmin, sendGiftCardEmail } from '@/lib/email';
+import { calculatePointsFromAmount } from '@/lib/loyalty';
 
 // Force Node.js runtime (required for Prisma)
 export const runtime = 'nodejs';
@@ -202,20 +203,27 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Calculate sum of gift cards to exclude from tax
+    // Calculate taxable vs non-taxable subtotals
+    // Taxable items are those that have includeTax: true (like wines)
+    // Non-taxable items are Events (requested to remove) or Divers (if not checked)
+    const nonTaxableItemsSubtotal = items
+      .filter((item: any) => item.includeTax === false)
+      .reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
+
+    // Gift cards are always non-taxable
     const giftCardSubtotal = items
       .filter((item: any) => item.type === 'giftcard' || item.type === 'geschenkgutschein')
       .reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
 
     const subtotalAfterDiscount = Math.max(0, subtotal + shippingCost + giftWrapCost - discountAmount);
 
-    // Tax is only computed on the taxable amount (excluding gift cards)
-    // We assume the discount applies evenly, or we just subtract giftCardSubtotal from the taxable base.
-    // Ensure we don't tax less than 0.
-    const taxableAmount = Math.max(0, subtotalAfterDiscount - giftCardSubtotal);
-    const taxAmount = taxableAmount * 0.081;
+    // Tax calculation (Inclusive): Tax is a component of the gross price
+    // Standard Swiss rate: 8.1%
+    const totalNonTaxable = nonTaxableItemsSubtotal + giftCardSubtotal;
+    const taxableGrossAmount = Math.max(0, subtotalAfterDiscount - totalNonTaxable);
+    const taxAmount = taxableGrossAmount - (taxableGrossAmount / 1.081);
 
-    const total = subtotalAfterDiscount + taxAmount;
+    const total = subtotalAfterDiscount; // Total remains the same as inclusive subtotal
 
     // Build line items for Stripe
     const lineItems = items.map((item: any) => {
@@ -294,21 +302,9 @@ export async function POST(req: NextRequest) {
     // Removed the negative line item for discount here, because Stripe doesn't allow line items with negative amounts.
     // Instead we will use Stripe.coupons API directly below if discountAmount > 0.
 
-    // Add tax (MwSt.) as a line item
-    if (taxAmount > 0) {
-      lineItems.push({
-        price_data: {
-          currency: 'chf',
-          product_data: {
-            name: 'Mehrwertsteuer (8.1%)',
-            description: 'Gesetzliche Schweizer MwSt.',
-            images: [],
-          },
-          unit_amount: Math.round(taxAmount * 100),
-        },
-        quantity: 1,
-      });
-    }
+    // Tax (MwSt.) is already included in line items. 
+    // We don't add a separate line item for inclusive tax in Stripe, 
+    // but we record the taxAmount in the database order record.
 
     console.log('💳 Stripe line items:', JSON.stringify(lineItems, null, 2));
     console.log('💰 Total calculation: Subtotal CHF', subtotal, '+ Shipping CHF', shippingCost, '+ Gift Wrap CHF', giftWrapCost, '- Discount CHF', discountAmount, '+ Tax CHF', taxAmount, '= Total CHF', total);
@@ -428,7 +424,7 @@ export async function POST(req: NextRequest) {
         taxAmount: taxAmount,
         discountAmount: discountAmount,
         total: total,
-        pointsEarned: Math.floor(total * 1.2),
+        pointsEarned: await calculatePointsFromAmount(total, prisma),
         pointsUsed: 0,
         cashbackAmount: 0,
         paymentMethod: paymentMethod || 'card',

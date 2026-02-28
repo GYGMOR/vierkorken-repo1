@@ -28,6 +28,7 @@ interface Event {
   image: string;
   description: string;
   minLoyaltyLevel: number | null;
+  includeTax: boolean;
 }
 
 // Address interface for the booking modal
@@ -95,6 +96,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
               image: data.event.featuredImage || '/events/default.jpg',
               description: data.event.description,
               minLoyaltyLevel: data.event.minLoyaltyLevel,
+              includeTax: data.event.includeTax ?? true,
             };
             setEvent(transformedEvent);
             console.log('✅ Loaded event from database:', transformedEvent.title, 'Capacity:', transformedEvent.booked, '/', transformedEvent.capacity);
@@ -144,7 +146,10 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
   }, [slug, isLoggedIn, session]);
 
   const handleBookTickets = () => {
-    if (!isLoggedIn) {
+    // Check if event requires a specific loyalty level (which requires login)
+    if (event && event.minLoyaltyLevel && event.minLoyaltyLevel > 1 && !isLoggedIn) {
+      // Store current URL to redirect back after login
+      sessionStorage.setItem('redirectAfterLogin', `/events/${event.slug}`);
       router.push('/login');
       return;
     }
@@ -174,6 +179,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
         eventDate: `${event.date} ${event.time}`,
         maxCapacity: event.capacity,
         currentCapacity: event.booked,
+        includeTax: event.includeTax
       });
     }
 
@@ -373,6 +379,154 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
           </div>
         </div>
       </div>
+
+      {/* Booking Modal */}
+      {showBookingModal && (
+        <div className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4 backdrop-blur-md" onClick={() => setShowBookingModal(false)}>
+          <div
+            className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative p-6 md:p-8 shadow-2xl border border-taupe-light/30 animate-in fade-in zoom-in duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowBookingModal(false)}
+              className="absolute top-4 right-4 text-graphite/40 hover:text-wine p-2 transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <h2 className="text-h3 font-serif text-graphite-dark mb-2">Tickets reservieren</h2>
+            <p className="text-graphite/60 mb-8">{event.title}</p>
+
+            <div className="space-y-8">
+              {/* Ticket Count */}
+              <div className="flex items-center justify-between p-4 bg-warmwhite-light rounded-xl border border-taupe-light/30">
+                <div>
+                  <p className="font-semibold text-graphite-dark">Anzahl Tickets</p>
+                  <p className="text-sm text-graphite/60">Maximal {availableTickets} verfügbar</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => setTicketCount(Math.max(1, ticketCount - 1))}
+                    className="w-10 h-10 rounded-full border border-taupe-light flex items-center justify-center hover:bg-white transition-colors"
+                  >
+                    -
+                  </button>
+                  <span className="text-xl font-serif min-w-[1.5rem] text-center">{ticketCount}</span>
+                  <button
+                    onClick={() => setTicketCount(Math.min(availableTickets, ticketCount + 1))}
+                    className="w-10 h-10 rounded-full border border-taupe-light flex items-center justify-center hover:bg-white transition-colors"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              {/* Address Selection */}
+              <div className="space-y-4">
+                <h3 className="font-serif text-xl text-graphite-dark">Versand- & Kontaktadresse</h3>
+
+                <div className="grid gap-3">
+                  {addresses.map(addr => (
+                    <label
+                      key={addr.id}
+                      className={`flex items-start gap-4 p-4 rounded-xl border transition-all cursor-pointer ${selectedAddress === addr.id ? 'border-accent-burgundy bg-accent-burgundy/5' : 'border-taupe-light/50 bg-white hover:border-taupe-light'
+                        }`}
+                    >
+                      <input
+                        type="radio"
+                        name="address"
+                        className="mt-1 accent-accent-burgundy"
+                        checked={selectedAddress === addr.id}
+                        onChange={() => setSelectedAddress(addr.id)}
+                      />
+                      <div className="flex-1 text-sm">
+                        <p className="font-semibold text-graphite-dark">{addr.label}</p>
+                        <p className="text-graphite/70">{addr.firstName} {addr.lastName}</p>
+                        <p className="text-graphite/70">{addr.street}, {addr.postalCode} {addr.city}</p>
+                      </div>
+                    </label>
+                  ))}
+
+                  <label
+                    className={`flex items-start gap-4 p-4 rounded-xl border transition-all cursor-pointer ${selectedAddress === 'new' ? 'border-accent-burgundy bg-accent-burgundy/5' : 'border-taupe-light/50 bg-white hover:border-taupe-light'
+                      }`}
+                  >
+                    <input
+                      type="radio"
+                      name="address"
+                      className="mt-1 accent-accent-burgundy"
+                      checked={selectedAddress === 'new'}
+                      onChange={() => setSelectedAddress('new')}
+                    />
+                    <div className="flex-1 text-sm">
+                      <p className="font-semibold text-graphite-dark">Neue Adresse verwenden</p>
+                    </div>
+                  </label>
+                </div>
+
+                {selectedAddress === 'new' && (
+                  <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300 pt-4">
+                    <input
+                      placeholder="Vorname"
+                      className="form-input col-span-1"
+                      value={newAddress.firstName}
+                      onChange={e => setNewAddress({ ...newAddress, firstName: e.target.value })}
+                    />
+                    <input
+                      placeholder="Nachname"
+                      className="form-input col-span-1"
+                      value={newAddress.lastName}
+                      onChange={e => setNewAddress({ ...newAddress, lastName: e.target.value })}
+                    />
+                    <input
+                      placeholder="Strasse / Nr."
+                      className="form-input col-span-2"
+                      value={newAddress.street}
+                      onChange={e => setNewAddress({ ...newAddress, street: e.target.value })}
+                    />
+                    <input
+                      placeholder="PLZ"
+                      className="form-input col-span-1"
+                      value={newAddress.postalCode}
+                      onChange={e => setNewAddress({ ...newAddress, postalCode: e.target.value })}
+                    />
+                    <input
+                      placeholder="Ort"
+                      className="form-input col-span-1"
+                      value={newAddress.city}
+                      onChange={e => setNewAddress({ ...newAddress, city: e.target.value })}
+                    />
+                    <input
+                      placeholder="Telefon"
+                      className="form-input col-span-2"
+                      value={newAddress.phone}
+                      onChange={e => setNewAddress({ ...newAddress, phone: e.target.value })}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-6 border-t border-taupe-light/30">
+                <div className="flex justify-between items-center mb-6">
+                  <span className="text-graphite/60 italic">Gesamtbetrag (wird in den Warenkorb gelegt)</span>
+                  <span className="text-2xl font-serif text-wine">
+                    {formatPrice((event.memberPrice || event.price) * ticketCount)}
+                  </span>
+                </div>
+
+                <button
+                  onClick={handleConfirmBooking}
+                  className="w-full btn btn-primary py-4 text-lg shadow-lg hover:shadow-xl transition-all"
+                >
+                  Tickets in den Warenkorb
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </MainLayout>
   );
 }

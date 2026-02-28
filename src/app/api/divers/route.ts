@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { title, description, price, image, gallery, type, isActive } = body;
+        const { title, description, price, image, gallery, type, isActive, includeTax } = body;
 
         if (!title || price === undefined) {
             return NextResponse.json({ error: 'Titel und Preis sind erforderlich' }, { status: 400 });
@@ -47,7 +47,8 @@ export async function POST(req: NextRequest) {
                 image,
                 gallery: gallery || [],
                 type: type || 'SELL',
-                isActive: isActive ?? true
+                isActive: isActive ?? true,
+                includeTax: includeTax ?? false
             }
         });
 
@@ -66,7 +67,7 @@ export async function PUT(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { id, title, description, price, image, gallery, type, isActive } = body;
+        const { id, title, description, price, image, gallery, type, isActive, includeTax } = body;
 
         if (!id) {
             return NextResponse.json({ error: 'ID ist erforderlich' }, { status: 400 });
@@ -81,7 +82,8 @@ export async function PUT(req: NextRequest) {
                 ...(image !== undefined && { image }),
                 ...(gallery !== undefined && { gallery }),
                 ...(type !== undefined && { type }),
-                ...(isActive !== undefined && { isActive })
+                ...(isActive !== undefined && { isActive }),
+                ...(includeTax !== undefined && { includeTax })
             }
         });
 

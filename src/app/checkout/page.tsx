@@ -84,7 +84,7 @@ function CheckoutPageContent() {
 
   const isGiftThresholdMet = !hasGiftInCart || cartSubtotalWithoutGifts >= minOrderForGifts;
 
-  const pointsToEarn = Math.floor(total * 1.2);
+  const [pointsRatio, setPointsRatio] = useState(1.0);
   // const cashbackAmount = (total * MOCK_USER.cashbackPercent) / 100;
 
   // Calculate shipping cost based on method and order amount (BEFORE coupon discount)
@@ -120,7 +120,24 @@ function CheckoutPageContent() {
 
   const subtotalBeforeDiscount = total + shippingCost + giftWrapCost;
   const subtotalAfterDiscount = Math.max(0, subtotalBeforeDiscount - discountAmount);
-  const finalTotal = subtotalAfterDiscount * 1.081; // inkl. MwSt
+
+  // Calculate taxable vs non-taxable subtotals for UI display
+  const nonTaxableItemsSubtotal = items
+    .filter((item) => item.includeTax === false)
+    .reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
+
+  // Gift cards are always non-taxable
+  const giftCardSubtotal = items
+    .filter((item) => item.type === 'giftcard' || item.type === 'geschenkgutschein')
+    .reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
+
+  // Tax calculation (Inclusive): Tax is a component of the gross price
+  // Standard Swiss rate: 8.1%
+  const totalNonTaxable = nonTaxableItemsSubtotal + giftCardSubtotal;
+  const taxableGrossAmount = Math.max(0, subtotalAfterDiscount - totalNonTaxable);
+  const taxAmount = taxableGrossAmount - (taxableGrossAmount / 1.081);
+
+  const finalTotal = subtotalAfterDiscount; // Total remains the same as inclusive subtotal
 
   useEffect(() => {
     if (session?.user) {
@@ -139,6 +156,19 @@ function CheckoutPageContent() {
         }
       })
       .catch(err => console.error('Failed to fetch loyalty settings:', err));
+
+    // Fetch Loyalty Rules
+    fetch('/api/loyalty/rules')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          const purchaseRule = data.rules.find((r: any) => r.identifier === 'purchase');
+          if (purchaseRule && !isNaN(parseFloat(purchaseRule.points))) {
+            setPointsRatio(parseFloat(purchaseRule.points));
+          }
+        }
+      })
+      .catch(err => console.error('Error fetching loyalty rules:', err));
 
   }, [session]);
 
@@ -1322,7 +1352,7 @@ function CheckoutPageContent() {
                         <div className="flex items-center justify-between">
                           <span className="text-graphite/70">Sie erhalten:</span>
                           <span className="font-semibold text-accent-burgundy">
-                            +{pointsToEarn} Punkte
+                            +{Math.floor(finalTotal * pointsRatio)} Punkte
                           </span>
                         </div>
                         {/* Cashback removed */}
@@ -1362,7 +1392,7 @@ function CheckoutPageContent() {
                       <div className="flex items-center justify-between text-body-sm">
                         <span className="text-graphite/70">MwSt. (8.1%)</span>
                         <span className="text-graphite">
-                          CHF {(subtotalAfterDiscount * 0.081).toFixed(2)}
+                          CHF {taxAmount.toFixed(2)}
                         </span>
                       </div>
                     </div>

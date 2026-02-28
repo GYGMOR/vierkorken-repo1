@@ -6,9 +6,25 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/contexts/CartContext';
+import { useState, useEffect } from 'react';
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, clearCart, total: subtotal } = useCart();
+  const [pointsRatio, setPointsRatio] = useState(1.0);
+
+  useEffect(() => {
+    fetch('/api/loyalty/rules')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          const purchaseRule = data.rules.find((r: any) => r.identifier === 'purchase');
+          if (purchaseRule && !isNaN(parseFloat(purchaseRule.points))) {
+            setPointsRatio(parseFloat(purchaseRule.points));
+          }
+        }
+      })
+      .catch(err => console.error('Error fetching loyalty rules:', err));
+  }, []);
 
   const handleCheckout = () => {
     // Redirect to checkout page instead of directly to Stripe
@@ -299,7 +315,7 @@ export default function CartPage() {
                   </span>
                 </div>
                 <p className="text-xs md:text-body-sm text-graphite/80">
-                  Sie erhalten <span className="font-semibold">{Math.floor(total * 1.2)}</span> Punkte
+                  Sie erhalten <span className="font-semibold">{Math.floor(total * pointsRatio)}</span> Punkte
                   für diese Bestellung!
                 </p>
               </div>

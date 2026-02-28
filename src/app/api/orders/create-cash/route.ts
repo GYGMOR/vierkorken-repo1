@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
 import { sendOrderConfirmationEmail, sendNewOrderNotificationToAdmin, sendEventTicketsEmail } from '@/lib/email';
 import { generateTicketPDFBuffer } from '@/lib/ticket-pdf-buffer';
+import { calculatePointsFromAmount } from '@/lib/loyalty';
 
 // Force Node.js runtime (required for Prisma)
 export const runtime = 'nodejs';
@@ -130,9 +131,26 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Calculate taxable vs non-taxable subtotals
+    // Taxable items are those that have includeTax: true (like wines)
+    const nonTaxableItemsSubtotal = items
+      .filter((item: any) => item.includeTax === false)
+      .reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
+
+    // Gift cards are always non-taxable
+    const giftCardSubtotal = items
+      .filter((item: any) => item.type === 'giftcard' || item.type === 'geschenkgutschein')
+      .reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
+
     const subtotalAfterDiscount = Math.max(0, subtotal + shippingCost + giftWrapCost - discountAmount);
-    const taxAmount = subtotalAfterDiscount * 0.081;
-    const total = subtotalAfterDiscount + taxAmount;
+
+    // Tax calculation (Inclusive): Tax is a component of the gross price
+    // Standard Swiss rate: 8.1%
+    const totalNonTaxable = nonTaxableItemsSubtotal + giftCardSubtotal;
+    const taxableGrossAmount = Math.max(0, subtotalAfterDiscount - totalNonTaxable);
+    const taxAmount = taxableGrossAmount - (taxableGrossAmount / 1.081);
+
+    const total = subtotalAfterDiscount; // Total remains the same as inclusive subtotal
 
     // Generate order number
     const orderNumber = `VK-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
@@ -238,6 +256,9 @@ export async function POST(req: NextRequest) {
         taxAmount,
         discountAmount,
         total,
+        pointsEarned: await calculatePointsFromAmount(total, prisma),
+        pointsUsed: 0,
+        cashbackAmount: 0,
 
         // Payment
         paymentMethod: 'cash',

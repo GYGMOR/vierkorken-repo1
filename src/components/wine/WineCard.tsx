@@ -103,6 +103,7 @@ export function WineCard({
         slug,
         winery,
         vintage,
+        includeTax: true,
       });
     }
 

@@ -129,6 +129,7 @@ export function EventCard({ event, isAdmin, onEdit }: { event: any; isAdmin?: bo
                 imageUrl: event.image,
                 maxCapacity: event.capacity,
                 currentCapacity: event.booked,
+                includeTax: event.includeTax
             });
         }
 
@@ -159,7 +160,7 @@ export function EventCard({ event, isAdmin, onEdit }: { event: any; isAdmin?: bo
                             <img
                                 src={event.image}
                                 alt={event.title}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-contain p-2"
                                 onError={(e) => {
                                     console.error('❌ Image failed to load:', event.image);
                                     e.currentTarget.style.display = 'none';
