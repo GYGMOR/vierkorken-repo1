@@ -175,9 +175,16 @@ export function EventCard({ event, isAdmin, onEdit }: { event: any; isAdmin?: bo
 
                     <CardHeader>
                         <div className="flex items-start justify-between mb-2">
-                            <Badge variant="secondary" className="text-xs">
-                                {event.type}
-                            </Badge>
+                            <div className="flex flex-wrap gap-2">
+                                <Badge variant="secondary" className="text-xs">
+                                    {event.type}
+                                </Badge>
+                                {event.status === 'DRAFT' && (
+                                    <Badge variant="secondary" className="bg-gray-500 hover:bg-gray-600 text-xs text-white">
+                                        ENTWURF
+                                    </Badge>
+                                )}
+                            </div>
                             {event.minLoyaltyLevel && event.minLoyaltyLevel > 1 && (
                                 <Badge variant="gold" className="text-xs">
                                     Level {event.minLoyaltyLevel}+

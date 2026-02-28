@@ -573,6 +573,7 @@ function NewsCard({
         {/* Date */}
         <div className="flex items-center gap-2 text-sm text-graphite/60">
           <CalendarIcon className="w-4 h-4" />
+          <span>erstellt: </span>
           <time>{formatDate(news.publishedAt || news.createdAt)}</time>
         </div>
 
@@ -957,22 +958,20 @@ function CreateNewsModal({
                 <button
                   type="button"
                   onClick={() => setImageMode("upload")}
-                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                    imageMode === "upload"
+                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${imageMode === "upload"
                       ? "bg-wine text-warmwhite shadow-sm"
                       : "text-graphite hover:text-wine"
-                  }`}
+                    }`}
                 >
                   Von Gerät hochladen
                 </button>
                 <button
                   type="button"
                   onClick={() => setImageMode("url")}
-                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                    imageMode === "url"
+                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${imageMode === "url"
                       ? "bg-wine text-warmwhite shadow-sm"
                       : "text-graphite hover:text-wine"
-                  }`}
+                    }`}
                 >
                   URL eingeben
                 </button>
@@ -1381,22 +1380,20 @@ function EditNewsModal({
                 <button
                   type="button"
                   onClick={() => setImageMode("upload")}
-                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                    imageMode === "upload"
+                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${imageMode === "upload"
                       ? "bg-wine text-warmwhite shadow-sm"
                       : "text-graphite hover:text-wine"
-                  }`}
+                    }`}
                 >
                   Von Gerät hochladen
                 </button>
                 <button
                   type="button"
                   onClick={() => setImageMode("url")}
-                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                    imageMode === "url"
+                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${imageMode === "url"
                       ? "bg-wine text-warmwhite shadow-sm"
                       : "text-graphite hover:text-wine"
-                  }`}
+                    }`}
                 >
                   URL eingeben
                 </button>

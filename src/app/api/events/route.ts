@@ -6,14 +6,21 @@ export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
   try {
-    const events = await prisma.event.findMany({
-      where: {
-        status: "PUBLISHED",
+    const { searchParams } = new URL(req.url);
+    const includeUnpublished = searchParams.get('includeUnpublished') === 'true';
+
+    const where = includeUnpublished
+      ? {}
+      : {
+        status: "PUBLISHED" as const,
         startDateTime: {
           gte: new Date(), // Only future events
         },
-      },
-      orderBy: [{ sortOrder: "asc" }, { startDateTime: "asc" }],
+      };
+
+    const events = await prisma.event.findMany({
+      where,
+      orderBy: [{ startDateTime: "asc" }],
     });
 
     return NextResponse.json({
@@ -38,6 +45,7 @@ export async function GET(req: NextRequest) {
         featuredImage: event.featuredImage,
         minLoyaltyLevel: event.minLoyaltyLevel,
         isPrivate: event.isPrivate,
+        status: event.status,
       })),
     });
   } catch (error: any) {

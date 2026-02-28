@@ -17,22 +17,6 @@ import { ShareButton } from "@/components/ui/ShareButton";
 import { useSession } from "next-auth/react";
 import { EventEditModal } from "@/components/events/EventEditModal";
 import { EventCard } from "@/components/events/EventCard";
-import { SortableEventCard } from "@/components/events/SortableEventCard";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  rectSortingStrategy,
-} from "@dnd-kit/sortable";
 
 export default function EventsPage() {
   const [events, setEvents] = useState<any[]>([]);
@@ -86,7 +70,8 @@ export default function EventsPage() {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/events", {
+      const url = isAdmin ? "/api/events?includeUnpublished=true" : "/api/events";
+      const response = await fetch(url, {
         cache: "no-store", // Always fetch fresh data
         headers: {
           "Cache-Control": "no-cache",
@@ -116,6 +101,7 @@ export default function EventsPage() {
             image: event.featuredImage || "/events/default.jpg",
             description: event.description,
             minLoyaltyLevel: event.minLoyaltyLevel,
+            status: event.status,
           }));
           setEvents(transformedEvents);
           console.log(
@@ -149,10 +135,10 @@ export default function EventsPage() {
     }
   };
 
-  // Load events on mount
+  // Load events on mount and when admin status changes
   useEffect(() => {
     fetchEvents();
-  }, []);
+  }, [isAdmin]);
 
   // Reload events when page becomes visible (user returns from detail page)
   useEffect(() => {
@@ -182,59 +168,6 @@ export default function EventsPage() {
         .catch(() => setIsAdmin(false));
     }
   }, [session]);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8, // Require 8px movement before drag starts so clicks still work
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
-
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (over && active.id !== over.id) {
-      setEvents((items) => {
-        const oldIndex = items.findIndex((i) => i.id === active.id);
-        const newIndex = items.findIndex((i) => i.id === over.id);
-        const newItems = arrayMove(items, oldIndex, newIndex);
-
-        // Save the new order to the backend in the background
-        if (isAdmin) {
-          saveNewOrder(newItems);
-        }
-
-        return newItems;
-      });
-    }
-  };
-
-  const saveNewOrder = async (orderedItems: any[]) => {
-    try {
-      const orderPayload = orderedItems.map((item, index) => ({
-        id: item.id,
-        sortOrder: index,
-      }));
-
-      const res = await fetch("/api/admin/events/reorder", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ events: orderPayload }),
-      });
-
-      if (!res.ok) {
-        console.error("Failed to save new event order");
-      }
-    } catch (e) {
-      console.error("Error saving order:", e);
-    }
-  };
 
   const handleEdit = (event: any, e: React.MouseEvent) => {
     e.preventDefault(); // Prevent link navigation
@@ -401,37 +334,14 @@ export default function EventsPage() {
               </div>
             )}
 
-            {isAdmin ? (
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-              >
-                <SortableContext
-                  items={events.map((e) => e.id)}
-                  strategy={rectSortingStrategy}
-                >
-                  {events.map((event) => (
-                    <SortableEventCard
-                      key={event.id}
-                      id={event.id}
-                      event={event}
-                      isAdmin={isAdmin}
-                      onEdit={(e) => handleEdit(event, e)}
-                    />
-                  ))}
-                </SortableContext>
-              </DndContext>
-            ) : (
-              events.map((event) => (
-                <EventCard
-                  key={event.id}
-                  event={event}
-                  isAdmin={isAdmin}
-                  onEdit={(e) => handleEdit(event, e)}
-                />
-              ))
-            )}
+            {events.map((event) => (
+              <EventCard
+                key={event.id}
+                event={event}
+                isAdmin={isAdmin}
+                onEdit={(e) => handleEdit(event, e)}
+              />
+            ))}
           </div>
         )}
 
