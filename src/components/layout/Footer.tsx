@@ -85,7 +85,7 @@ export function Footer({ className }: FooterProps) {
                 </Link>
               </li>
               <li>
-                <Link href="/mieten" className="hover:text-warmwhite transition-colors">
+                <Link href="/divers" className="hover:text-warmwhite transition-colors">
                   Mieten
                 </Link>
               </li>

@@ -21,6 +21,7 @@ import { EventCard } from "@/components/events/EventCard";
 export default function EventsPage() {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loyaltyRules, setLoyaltyRules] = useState<any[]>([]);
 
   // Admin state
   const { data: session } = useSession();
@@ -139,6 +140,24 @@ export default function EventsPage() {
   useEffect(() => {
     fetchEvents();
   }, [isAdmin]);
+
+  // Load loyalty rules on mount
+  useEffect(() => {
+    const fetchLoyaltyRules = async () => {
+      try {
+        const res = await fetch("/api/loyalty/rules");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            setLoyaltyRules(data.rules || []);
+          }
+        }
+      } catch (e) {
+        console.error("Error fetching loyalty rules:", e);
+      }
+    };
+    fetchLoyaltyRules();
+  }, []);
 
   // Reload events when page becomes visible (user returns from detail page)
   useEffect(() => {
@@ -370,7 +389,7 @@ export default function EventsPage() {
                 <BenefitCard
                   icon={<PointsIcon />}
                   title="Punkte sammeln"
-                  description="+150 Loyalty Punkte pro Event"
+                  description={`${loyaltyRules.find(r => r.identifier === 'event')?.points || '+150'} Loyalty Punkte pro Event`}
                 />
               </div>
               <Link href="/club">

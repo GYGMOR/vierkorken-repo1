@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-options';
 
 // Force Node.js runtime (required for Prisma)
 export const runtime = 'nodejs';
@@ -24,12 +26,17 @@ export async function GET(
       );
     }
 
-    // Check if event is published or in the future
+    // Check if event is published or user is admin
     if (event.status !== 'PUBLISHED') {
-      return NextResponse.json(
-        { error: 'Event ist nicht verfügbar' },
-        { status: 404 }
-      );
+      const session = await getServerSession(authOptions);
+      const isAdmin = session?.user?.role === 'ADMIN';
+
+      if (!isAdmin) {
+        return NextResponse.json(
+          { error: 'Event ist nicht verfügbar' },
+          { status: 404 }
+        );
+      }
     }
 
     return NextResponse.json({
