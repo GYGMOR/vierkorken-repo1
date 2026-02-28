@@ -1142,8 +1142,9 @@ export async function sendNewsNotificationEmail(
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #FAF8F5;">
           <!-- Hero Image or Standard Header -->
           ${news.featuredImage ? `
-          <div style="width: 100%; height: 250px; background-image: url('${news.featuredImage}'); background-size: cover; background-position: center; border-radius: 12px 12px 0 0; position: relative;">
-             <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.7)); border-radius: 12px 12px 0 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 30px; box-sizing: border-box;">
+          <div style="width: 100%; border-radius: 12px 12px 0 0; position: relative; overflow: hidden; background-color: #8B4155;">
+             <img src="${news.featuredImage}" alt="${news.title}" style="width: 100%; max-height: 400px; display: block; object-fit: cover;" />
+             <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.8)); padding: 30px; box-sizing: border-box;">
                 <span style="background-color: #C9A961; color: #fff; padding: 6px 14px; border-radius: 4px; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; display: inline-block; margin-bottom: 15px; align-self: flex-start;">Neuigkeiten</span>
                 <h1 style="color: #fff; margin: 0; font-size: 32px; font-weight: 300; letter-spacing: 1px; font-family: Georgia, serif; text-shadow: 0 2px 10px rgba(0,0,0,0.3); line-height: 1.2;">${news.title}</h1>
              </div>
@@ -1938,8 +1939,9 @@ export async function sendEventNotificationEmail(to: string, event: any) {
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 0;">
           <!-- Header Image -->
           ${event.featuredImage ? `
-          <div style="width: 100%; height: 250px; background-image: url('${event.featuredImage}'); background-size: cover; background-position: center; border-radius: 8px 8px 0 0;">
-             <div style="width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7)); display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; box-sizing: border-box;">
+          <div style="width: 100%; border-radius: 8px 8px 0 0; position: relative; overflow: hidden; background-color: #8B4513;">
+             <img src="${event.featuredImage}" alt="${event.title}" style="width: 100%; max-height: 400px; display: block; object-fit: cover;" />
+             <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.8)); padding: 20px; box-sizing: border-box;">
                 <span style="background-color: #D4AF37; color: #fff; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; align-self: flex-start; margin-bottom: 10px; text-transform: uppercase;">Neues Event</span>
                 <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">${event.title}</h1>
              </div>

@@ -19,15 +19,16 @@ export async function GET(request: NextRequest) {
     const where = includeUnpublished
       ? {}
       : {
-          status: PostStatus.PUBLISHED,
-          publishedAt: {
-            lte: new Date(),
-          },
-        };
+        status: PostStatus.PUBLISHED,
+        publishedAt: {
+          lte: new Date(),
+        },
+      };
 
     const news = await prisma.news.findMany({
       where,
       orderBy: [
+        { sortOrder: 'asc' },
         { isPinned: 'desc' },
         { publishedAt: 'desc' },
       ],

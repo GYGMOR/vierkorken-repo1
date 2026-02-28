@@ -1,13 +1,29 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { useSession } from 'next-auth/react';
-import { MainLayout } from '@/components/layout/MainLayout';
-import { ImageUploader } from '@/components/admin/ImageUploader';
-import { EditableText } from '@/components/admin/EditableText';
-import { ShareButton } from '@/components/ui/ShareButton';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { useSession } from "next-auth/react";
+import { MainLayout } from "@/components/layout/MainLayout";
+import { ImageUploader } from "@/components/admin/ImageUploader";
+import { EditableText } from "@/components/admin/EditableText";
+import { ShareButton } from "@/components/ui/ShareButton";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface NewsItem {
   id: string;
@@ -17,7 +33,7 @@ interface NewsItem {
   content: string;
   featuredImage?: string;
   publishedAt?: string;
-  status?: 'DRAFT' | 'PUBLISHED';
+  status?: "DRAFT" | "PUBLISHED";
   isPinned: boolean;
   createdAt: string;
   updatedAt: string;
@@ -33,18 +49,22 @@ export default function NewsPage() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
-  const [filterStatus, setFilterStatus] = useState<'ALL' | 'PUBLISHED' | 'DRAFT'>('ALL');
+  const [filterStatus, setFilterStatus] = useState<
+    "ALL" | "PUBLISHED" | "DRAFT"
+  >("ALL");
 
-  const [headerImage, setHeaderImage] = useState('/images/layout/wein_regal_nah.jpg');
+  const [headerImage, setHeaderImage] = useState(
+    "/images/layout/wein_regal_nah.jpg",
+  );
   const [isHeaderEditorOpen, setIsHeaderEditorOpen] = useState(false);
 
   // Check if user is admin
   useEffect(() => {
     if (session?.user?.email) {
-      fetch('/api/user/profile')
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.user.role === 'ADMIN') {
+      fetch("/api/user/profile")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.user.role === "ADMIN") {
             setIsAdmin(true);
           }
         })
@@ -59,46 +79,86 @@ export default function NewsPage() {
 
   const fetchSettings = async () => {
     try {
-      const res = await fetch('/api/settings?keys=news_page_header_image');
+      const res = await fetch("/api/settings?keys=news_page_header_image");
       if (res.ok) {
         const data = await res.json();
         if (data.success && data.settings) {
-          const hImage = data.settings.find((s: any) => s.key === 'news_page_header_image');
+          const hImage = data.settings.find(
+            (s: any) => s.key === "news_page_header_image",
+          );
           if (hImage?.value) setHeaderImage(hImage.value);
         }
       }
     } catch (e) {
-      console.error('Error fetching settings:', e);
+      console.error("Error fetching settings:", e);
     }
   };
 
   const saveHeaderImage = async (url: string) => {
     try {
-      await fetch('/api/settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: 'news_page_header_image', value: url }),
+      await fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: "news_page_header_image", value: url }),
       });
       setHeaderImage(url);
       setIsHeaderEditorOpen(false);
     } catch (e) {
-      console.error('Error saving setting:', e);
+      console.error("Error saving setting:", e);
     }
   };
 
   useEffect(() => {
     const handleEvent = (e: any) => {
-      if (e.detail?.pageKey === 'news') {
+      if (e.detail?.pageKey === "news") {
         setIsHeaderEditorOpen(true);
       }
     };
-    document.addEventListener('openImageEditor', handleEvent);
-    return () => document.removeEventListener('openImageEditor', handleEvent);
+    document.addEventListener("openImageEditor", handleEvent);
+    return () => document.removeEventListener("openImageEditor", handleEvent);
   }, []);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const handleDragEnd = async (event: any) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = news.findIndex((n) => n.id === active.id);
+      const newIndex = news.findIndex((n) => n.id === over.id);
+
+      const newOrderedNews = arrayMove(news, oldIndex, newIndex);
+      setNews(newOrderedNews);
+
+      const itemsToUpdate = newOrderedNews.map((n, index) => ({
+        id: n.id,
+        sortOrder: index,
+      }));
+
+      try {
+        await fetch("/api/admin/news/reorder", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ items: itemsToUpdate }),
+        });
+      } catch (err) {
+        console.error("Error saving new news order", err);
+      }
+    }
+  };
 
   async function fetchNews() {
     try {
-      const url = isAdmin ? '/api/news?includeUnpublished=true' : '/api/news';
+      const url = isAdmin ? "/api/news?includeUnpublished=true" : "/api/news";
       const res = await fetch(url);
       const data = await res.json();
 
@@ -106,7 +166,7 @@ export default function NewsPage() {
         setNews(data.data);
       }
     } catch (error) {
-      console.error('Error fetching news:', error);
+      console.error("Error fetching news:", error);
     } finally {
       setLoading(false);
     }
@@ -132,13 +192,37 @@ export default function NewsPage() {
             className="absolute top-4 right-4 z-20 bg-white/90 hover:bg-white text-graphite rounded-full p-3 shadow-lg transition-all opacity-0 group-hover:opacity-100"
             title="Header-Bild ändern"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
           </button>
         )}
 
         <div className="container-custom relative z-10 text-center text-white text-shadow-sm px-4">
           <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur-md rounded-full border border-white/20 mb-8 text-sm uppercase tracking-widest font-semibold shadow-soft">
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
+            <svg
+              className="w-4 h-4 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
+              />
+            </svg>
             <span>NEWS & AKTUELLES</span>
           </div>
 
@@ -147,7 +231,7 @@ export default function NewsPage() {
             defaultValue="Neuigkeiten aus der Weinwelt"
             isAdmin={isAdmin}
             as="h1"
-            className="text-display font-serif font-light mb-6"
+            className="text-display font-serif font-light mb-6 text-white text-shadow-sm"
           />
 
           <EditableText
@@ -155,7 +239,7 @@ export default function NewsPage() {
             defaultValue="Bleiben Sie auf dem Laufenden über neue Weine, Events und alles rund um Vier Korken Wein-Boutique."
             isAdmin={isAdmin}
             as="p"
-            className="text-body-lg text-white/90 max-w-2xl mx-auto mb-8"
+            className="text-body-lg text-white/90 max-w-2xl mx-auto mb-8 text-white text-shadow-sm"
           />
 
           {/* Admin Controls */}
@@ -173,8 +257,18 @@ export default function NewsPage() {
                   <option value="DRAFT">Entwürfe</option>
                 </select>
                 <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-graphite-dark">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </div>
               </div>
@@ -202,13 +296,50 @@ export default function NewsPage() {
             </div>
           ) : news.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-graphite/60 text-lg">Aktuell keine News verfügbar.</p>
+              <p className="text-graphite/60 text-lg">
+                Aktuell keine News verfügbar.
+              </p>
             </div>
+          ) : isAdmin ? (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={news
+                  .filter((item) => {
+                    if (filterStatus === "ALL") return true;
+                    return item.status === filterStatus;
+                  })
+                  .map((n) => n.id)}
+                strategy={rectSortingStrategy}
+              >
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {news
+                    .filter((item) => {
+                      if (filterStatus === "ALL") return true;
+                      return item.status === filterStatus;
+                    })
+                    .map((item) => (
+                      <SortableNewsCard
+                        key={item.id}
+                        news={item}
+                        isAdmin={isAdmin}
+                        onEdit={(newsItem) => {
+                          setSelectedNews(newsItem);
+                          setEditModalOpen(true);
+                        }}
+                      />
+                    ))}
+                </div>
+              </SortableContext>
+            </DndContext>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {news
-                .filter(item => {
-                  if (filterStatus === 'ALL') return true;
+                .filter((item) => {
+                  if (filterStatus === "ALL") return true;
                   return item.status === filterStatus;
                 })
                 .map((item) => (
@@ -231,10 +362,27 @@ export default function NewsPage() {
       {isHeaderEditorOpen && (
         <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-lg p-6 lg:p-8 relative max-h-[90vh] overflow-y-auto shadow-2xl border border-taupe-light/30">
-            <button onClick={() => setIsHeaderEditorOpen(false)} className="absolute top-4 right-4 text-graphite/40 hover:text-graphite transition-colors">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            <button
+              onClick={() => setIsHeaderEditorOpen(false)}
+              className="absolute top-4 right-4 text-graphite/40 hover:text-graphite transition-colors"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
             </button>
-            <h2 className="text-h3 font-serif text-graphite-dark mb-6">Header-Bild ändern</h2>
+            <h2 className="text-h3 font-serif text-graphite-dark mb-6">
+              Header-Bild ändern
+            </h2>
             <ImageUploader onUploadComplete={saveHeaderImage} />
           </div>
         </div>
@@ -270,33 +418,97 @@ export default function NewsPage() {
   );
 }
 
+function SortableNewsCard(props: {
+  news: NewsItem;
+  isAdmin: boolean;
+  onEdit: (news: NewsItem) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: props.news.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : 1,
+    opacity: isDragging ? 0.8 : 1,
+    position: "relative" as const,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <NewsCard {...props} dragHandleProps={{ ...attributes, ...listeners }} />
+    </div>
+  );
+}
+
 // News Card Component
-function NewsCard({ news, isAdmin, onEdit }: { news: NewsItem; isAdmin: boolean; onEdit: (news: NewsItem) => void }) {
+function NewsCard({
+  news,
+  isAdmin,
+  onEdit,
+  dragHandleProps,
+}: {
+  news: NewsItem;
+  isAdmin: boolean;
+  onEdit: (news: NewsItem) => void;
+  dragHandleProps?: Record<string, any>;
+}) {
   const formatDate = (dateString?: string) => {
-    if (!dateString) return '';
+    if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toLocaleDateString('de-CH', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
+    return date.toLocaleDateString("de-CH", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
     });
   };
 
   return (
     <article className="card overflow-hidden group hover:shadow-strong transition-all duration-300 border-2 border-taupe-light relative">
-      {/* Admin Edit Button */}
+      {/* Admin Actions */}
       {isAdmin && (
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            onEdit(news);
-          }}
-          className="absolute top-4 left-4 z-10 w-10 h-10 bg-warmwhite/95 hover:bg-accent-burgundy text-graphite-dark hover:text-warmwhite rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center group/edit"
-          aria-label="News bearbeiten"
-          title="News bearbeiten"
-        >
-          <EditIcon className="w-5 h-5" />
-        </button>
+        <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              onEdit(news);
+            }}
+            className="w-10 h-10 bg-warmwhite/95 hover:bg-accent-burgundy text-graphite-dark hover:text-warmwhite rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center group/edit"
+            aria-label="News bearbeiten"
+            title="News bearbeiten"
+          >
+            <EditIcon className="w-5 h-5" />
+          </button>
+
+          {dragHandleProps && (
+            <div
+              {...dragHandleProps}
+              className="w-10 h-10 bg-warmwhite/95 hover:bg-gray-200 text-graphite-dark rounded-lg shadow-md transition-all duration-300 flex items-center justify-center cursor-grab active:cursor-grabbing"
+              aria-label="Drag to reorder"
+              title="Verschieben"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Featured Image */}
@@ -312,7 +524,7 @@ function NewsCard({ news, isAdmin, onEdit }: { news: NewsItem; isAdmin: boolean;
             {/* Badges */}
             <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
               {/* Event Badge */}
-              {news.type === 'EVENT' && (
+              {news.type === "EVENT" && (
                 <div className="bg-gradient-to-r from-accent-gold to-yellow-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md tracking-wider">
                   EVENT
                 </div>
@@ -322,7 +534,7 @@ function NewsCard({ news, isAdmin, onEdit }: { news: NewsItem; isAdmin: boolean;
                   WICHTIG
                 </div>
               )}
-              {news.status === 'DRAFT' && (
+              {news.status === "DRAFT" && (
                 <div className="bg-gray-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-sm">
                   ENTWURF
                 </div>
@@ -336,7 +548,7 @@ function NewsCard({ news, isAdmin, onEdit }: { news: NewsItem; isAdmin: boolean;
             {/* Badges */}
             <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
               {/* Event Badge */}
-              {news.type === 'EVENT' && (
+              {news.type === "EVENT" && (
                 <div className="bg-gradient-to-r from-accent-gold to-yellow-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md tracking-wider">
                   EVENT
                 </div>
@@ -346,7 +558,7 @@ function NewsCard({ news, isAdmin, onEdit }: { news: NewsItem; isAdmin: boolean;
                   WICHTIG
                 </div>
               )}
-              {news.status === 'DRAFT' && (
+              {news.status === "DRAFT" && (
                 <div className="bg-gray-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-sm">
                   ENTWURF
                 </div>
@@ -396,64 +608,130 @@ function NewsCard({ news, isAdmin, onEdit }: { news: NewsItem; isAdmin: boolean;
 // Icons
 function NewsIcon({ className }: { className?: string }) {
   return (
-    <svg className={className || "w-5 h-5"} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+    <svg
+      className={className || "w-5 h-5"}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={1.5}
+        d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
+      />
     </svg>
   );
 }
 
 function CalendarIcon({ className }: { className?: string }) {
   return (
-    <svg className={className || "w-5 h-5"} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    <svg
+      className={className || "w-5 h-5"}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={1.5}
+        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+      />
     </svg>
   );
 }
 
 function ArrowRightIcon({ className }: { className?: string }) {
   return (
-    <svg className={className || "w-5 h-5"} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+    <svg
+      className={className || "w-5 h-5"}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={1.5}
+        d="M13 7l5 5m0 0l-5 5m5-5H6"
+      />
     </svg>
   );
 }
 
 function PlusIcon({ className }: { className?: string }) {
   return (
-    <svg className={className || "w-6 h-6"} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+    <svg
+      className={className || "w-6 h-6"}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2.5}
+        d="M12 4v16m8-8H4"
+      />
     </svg>
   );
 }
 
 function EditIcon({ className }: { className?: string }) {
   return (
-    <svg className={className || "w-5 h-5"} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+    <svg
+      className={className || "w-5 h-5"}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+      />
     </svg>
   );
 }
 
 function TrashIcon({ className }: { className?: string }) {
   return (
-    <svg className={className || "w-5 h-5"} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+    <svg
+      className={className || "w-5 h-5"}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+      />
     </svg>
   );
 }
 
 // Create News Modal
-function CreateNewsModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
-  const [title, setTitle] = useState('');
-  const [excerpt, setExcerpt] = useState('');
-  const [content, setContent] = useState('');
-  const [featuredImage, setFeaturedImage] = useState('');
+function CreateNewsModal({
+  onClose,
+  onSuccess,
+}: {
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [title, setTitle] = useState("");
+  const [excerpt, setExcerpt] = useState("");
+  const [content, setContent] = useState("");
+  const [featuredImage, setFeaturedImage] = useState("");
   const [isPinned, setIsPinned] = useState(false);
-  const [status, setStatus] = useState<'DRAFT' | 'PUBLISHED'>('DRAFT');
+  const [status, setStatus] = useState<"DRAFT" | "PUBLISHED">("DRAFT");
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [imagePreview, setImagePreview] = useState('');
-  const [imageMode, setImageMode] = useState<'upload' | 'url'>('upload'); // New: Track which mode is active
+  const [imagePreview, setImagePreview] = useState("");
+  const [imageMode, setImageMode] = useState<"upload" | "url">("upload"); // New: Track which mode is active
 
   // Handle image upload
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -463,10 +741,10 @@ function CreateNewsModal({ onClose, onSuccess }: { onClose: () => void; onSucces
     setUploading(true);
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append("file", file);
 
-      const res = await fetch('/api/upload', {
-        method: 'POST',
+      const res = await fetch("/api/upload", {
+        method: "POST",
         body: formData,
       });
 
@@ -476,8 +754,8 @@ function CreateNewsModal({ onClose, onSuccess }: { onClose: () => void; onSucces
         setImagePreview(data.url);
       }
     } catch (error) {
-      console.error('Error uploading image:', error);
-      alert('Fehler beim Hochladen des Bildes');
+      console.error("Error uploading image:", error);
+      alert("Fehler beim Hochladen des Bildes");
     } finally {
       setUploading(false);
     }
@@ -496,11 +774,11 @@ function CreateNewsModal({ onClose, onSuccess }: { onClose: () => void; onSucces
 
     // Convert each paragraph, replacing single line breaks with <br>
     const formatted = paragraphs
-      .map(p => {
-        const withBreaks = p.replace(/\n/g, '<br>');
+      .map((p) => {
+        const withBreaks = p.replace(/\n/g, "<br>");
         return `<p>${withBreaks}</p>`;
       })
-      .join('');
+      .join("");
 
     return formatted;
   };
@@ -510,7 +788,7 @@ function CreateNewsModal({ onClose, onSuccess }: { onClose: () => void; onSucces
     e.preventDefault();
 
     if (!title || !content) {
-      alert('Bitte Titel und Inhalt ausfüllen');
+      alert("Bitte Titel und Inhalt ausfüllen");
       return;
     }
 
@@ -519,10 +797,10 @@ function CreateNewsModal({ onClose, onSuccess }: { onClose: () => void; onSucces
       // Format content to preserve line breaks
       const formattedContent = formatContentForSave(content);
 
-      const res = await fetch('/api/news', {
-        method: 'POST',
+      const res = await fetch("/api/news", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           title,
@@ -531,20 +809,20 @@ function CreateNewsModal({ onClose, onSuccess }: { onClose: () => void; onSucces
           featuredImage,
           isPinned,
           status,
-          publishedAt: status === 'PUBLISHED' ? new Date().toISOString() : null,
+          publishedAt: status === "PUBLISHED" ? new Date().toISOString() : null,
         }),
       });
 
       const data = await res.json();
       if (data.success) {
-        alert('News erfolgreich erstellt!');
+        alert("News erfolgreich erstellt!");
         onSuccess();
       } else {
-        alert('Fehler beim Erstellen der News');
+        alert("Fehler beim Erstellen der News");
       }
     } catch (error) {
-      console.error('Error creating news:', error);
-      alert('Fehler beim Erstellen der News');
+      console.error("Error creating news:", error);
+      alert("Fehler beim Erstellen der News");
     } finally {
       setSubmitting(false);
     }
@@ -556,16 +834,30 @@ function CreateNewsModal({ onClose, onSuccess }: { onClose: () => void; onSucces
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-taupe-light">
           <div>
-            <h2 className="text-h3 font-serif font-light text-wine-dark">Neue News erstellen</h2>
-            <p className="text-sm text-graphite/60 mt-1">Erstelle eine neue Meldung für die News-Seite</p>
+            <h2 className="text-h3 font-serif font-light text-wine-dark">
+              Neue News erstellen
+            </h2>
+            <p className="text-sm text-graphite/60 mt-1">
+              Erstelle eine neue Meldung für die News-Seite
+            </p>
           </div>
           <button
             onClick={onClose}
             className="text-graphite hover:text-wine transition-colors"
             aria-label="Schließen"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -615,7 +907,8 @@ function CreateNewsModal({ onClose, onSuccess }: { onClose: () => void; onSucces
               required
             />
             <p className="text-xs text-graphite/60 mt-2">
-              💡 Tipp: Drücke Enter für Zeilenumbrüche - die Formatierung wird automatisch gespeichert!
+              💡 Tipp: Drücke Enter für Zeilenumbrüche - die Formatierung wird
+              automatisch gespeichert!
             </p>
           </div>
 
@@ -637,13 +930,23 @@ function CreateNewsModal({ onClose, onSuccess }: { onClose: () => void; onSucces
                   <button
                     type="button"
                     onClick={() => {
-                      setFeaturedImage('');
-                      setImagePreview('');
+                      setFeaturedImage("");
+                      setImagePreview("");
                     }}
                     className="absolute top-2 right-2 bg-accent-burgundy text-warmwhite p-2 rounded-full hover:bg-wine transition-colors"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -653,38 +956,54 @@ function CreateNewsModal({ onClose, onSuccess }: { onClose: () => void; onSucces
               <div className="flex gap-2 p-1 bg-warmwhite-light rounded-lg">
                 <button
                   type="button"
-                  onClick={() => setImageMode('upload')}
-                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${imageMode === 'upload'
-                    ? 'bg-wine text-warmwhite shadow-sm'
-                    : 'text-graphite hover:text-wine'
-                    }`}
+                  onClick={() => setImageMode("upload")}
+                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                    imageMode === "upload"
+                      ? "bg-wine text-warmwhite shadow-sm"
+                      : "text-graphite hover:text-wine"
+                  }`}
                 >
                   Von Gerät hochladen
                 </button>
                 <button
                   type="button"
-                  onClick={() => setImageMode('url')}
-                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${imageMode === 'url'
-                    ? 'bg-wine text-warmwhite shadow-sm'
-                    : 'text-graphite hover:text-wine'
-                    }`}
+                  onClick={() => setImageMode("url")}
+                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                    imageMode === "url"
+                      ? "bg-wine text-warmwhite shadow-sm"
+                      : "text-graphite hover:text-wine"
+                  }`}
                 >
                   URL eingeben
                 </button>
               </div>
 
               {/* Upload Option */}
-              {imageMode === 'upload' && (
+              {imageMode === "upload" && (
                 <div>
                   <label className="cursor-pointer block">
                     <div className="border-2 border-dashed border-taupe-light rounded-lg p-8 text-center hover:border-wine hover:bg-wine/5 transition-all">
-                      <svg className="w-12 h-12 mx-auto text-graphite/40 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      <svg
+                        className="w-12 h-12 mx-auto text-graphite/40 mb-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                        />
                       </svg>
                       <p className="text-sm font-medium text-graphite-dark mb-1">
-                        {uploading ? 'Wird hochgeladen...' : 'Klicke hier oder ziehe ein Bild hinein'}
+                        {uploading
+                          ? "Wird hochgeladen..."
+                          : "Klicke hier oder ziehe ein Bild hinein"}
                       </p>
-                      <p className="text-xs text-graphite/60">PNG, JPG bis 5MB</p>
+                      <p className="text-xs text-graphite/60">
+                        PNG, JPG bis 5MB
+                      </p>
                     </div>
                     <input
                       type="file"
@@ -698,7 +1017,7 @@ function CreateNewsModal({ onClose, onSuccess }: { onClose: () => void; onSucces
               )}
 
               {/* URL Option */}
-              {imageMode === 'url' && (
+              {imageMode === "url" && (
                 <div>
                   <input
                     type="text"
@@ -708,7 +1027,8 @@ function CreateNewsModal({ onClose, onSuccess }: { onClose: () => void; onSucces
                     className="w-full px-4 py-3 border-2 border-taupe-light rounded-lg focus:outline-none focus:border-wine transition-colors"
                   />
                   <p className="text-xs text-graphite/60 mt-2">
-                    💡 Tipp: Gib den Pfad zum Bild ein (z.B. /images/news/...) oder eine vollständige URL
+                    💡 Tipp: Gib den Pfad zum Bild ein (z.B. /images/news/...)
+                    oder eine vollständige URL
                   </p>
                 </div>
               )}
@@ -736,10 +1056,14 @@ function CreateNewsModal({ onClose, onSuccess }: { onClose: () => void; onSucces
 
             {/* Status */}
             <div className="flex items-center gap-3">
-              <label className="text-sm font-medium text-graphite-dark">Status:</label>
+              <label className="text-sm font-medium text-graphite-dark">
+                Status:
+              </label>
               <select
                 value={status}
-                onChange={(e) => setStatus(e.target.value as 'DRAFT' | 'PUBLISHED')}
+                onChange={(e) =>
+                  setStatus(e.target.value as "DRAFT" | "PUBLISHED")
+                }
                 className="px-4 py-2 border-2 border-taupe-light rounded-lg focus:outline-none focus:border-wine transition-colors"
               >
                 <option value="DRAFT">Entwurf</option>
@@ -762,7 +1086,7 @@ function CreateNewsModal({ onClose, onSuccess }: { onClose: () => void; onSucces
               disabled={submitting}
               className="btn btn-primary"
             >
-              {submitting ? 'Wird erstellt...' : 'News erstellen'}
+              {submitting ? "Wird erstellt..." : "News erstellen"}
             </button>
           </div>
         </form>
@@ -772,28 +1096,36 @@ function CreateNewsModal({ onClose, onSuccess }: { onClose: () => void; onSucces
 }
 
 // Edit News Modal
-function EditNewsModal({ news, onClose, onSuccess }: { news: NewsItem; onClose: () => void; onSuccess: () => void }) {
+function EditNewsModal({
+  news,
+  onClose,
+  onSuccess,
+}: {
+  news: NewsItem;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
   // Convert HTML back to plain text for editing
   const htmlToPlainText = (html: string) => {
     return html
-      .replace(/<\/p><p>/g, '\n\n')  // Convert paragraph breaks to double newlines
-      .replace(/<p>/g, '')            // Remove opening <p> tags
-      .replace(/<\/p>/g, '')          // Remove closing </p> tags
-      .replace(/<br\s*\/?>/gi, '\n')  // Convert <br> to newlines
-      .replace(/<[^>]+>/g, '');       // Remove any other HTML tags
+      .replace(/<\/p><p>/g, "\n\n") // Convert paragraph breaks to double newlines
+      .replace(/<p>/g, "") // Remove opening <p> tags
+      .replace(/<\/p>/g, "") // Remove closing </p> tags
+      .replace(/<br\s*\/?>/gi, "\n") // Convert <br> to newlines
+      .replace(/<[^>]+>/g, ""); // Remove any other HTML tags
   };
 
   const [title, setTitle] = useState(news.title);
-  const [excerpt, setExcerpt] = useState(news.excerpt || '');
+  const [excerpt, setExcerpt] = useState(news.excerpt || "");
   const [content, setContent] = useState(htmlToPlainText(news.content));
-  const [featuredImage, setFeaturedImage] = useState(news.featuredImage || '');
+  const [featuredImage, setFeaturedImage] = useState(news.featuredImage || "");
   const [isPinned, setIsPinned] = useState(news.isPinned);
-  const [status, setStatus] = useState<'DRAFT' | 'PUBLISHED'>('PUBLISHED');
+  const [status, setStatus] = useState<"DRAFT" | "PUBLISHED">("PUBLISHED");
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [imagePreview, setImagePreview] = useState(news.featuredImage || '');
-  const [imageMode, setImageMode] = useState<'upload' | 'url'>('url');
+  const [imagePreview, setImagePreview] = useState(news.featuredImage || "");
+  const [imageMode, setImageMode] = useState<"upload" | "url">("url");
 
   // Handle image upload
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -803,10 +1135,10 @@ function EditNewsModal({ news, onClose, onSuccess }: { news: NewsItem; onClose: 
     setUploading(true);
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append("file", file);
 
-      const res = await fetch('/api/upload', {
-        method: 'POST',
+      const res = await fetch("/api/upload", {
+        method: "POST",
         body: formData,
       });
 
@@ -816,8 +1148,8 @@ function EditNewsModal({ news, onClose, onSuccess }: { news: NewsItem; onClose: 
         setImagePreview(data.url);
       }
     } catch (error) {
-      console.error('Error uploading image:', error);
-      alert('Fehler beim Hochladen des Bildes');
+      console.error("Error uploading image:", error);
+      alert("Fehler beim Hochladen des Bildes");
     } finally {
       setUploading(false);
     }
@@ -836,11 +1168,11 @@ function EditNewsModal({ news, onClose, onSuccess }: { news: NewsItem; onClose: 
 
     // Convert each paragraph, replacing single line breaks with <br>
     const formatted = paragraphs
-      .map(p => {
-        const withBreaks = p.replace(/\n/g, '<br>');
+      .map((p) => {
+        const withBreaks = p.replace(/\n/g, "<br>");
         return `<p>${withBreaks}</p>`;
       })
-      .join('');
+      .join("");
 
     return formatted;
   };
@@ -850,7 +1182,7 @@ function EditNewsModal({ news, onClose, onSuccess }: { news: NewsItem; onClose: 
     e.preventDefault();
 
     if (!title || !content) {
-      alert('Bitte Titel und Inhalt ausfüllen');
+      alert("Bitte Titel und Inhalt ausfüllen");
       return;
     }
 
@@ -860,9 +1192,9 @@ function EditNewsModal({ news, onClose, onSuccess }: { news: NewsItem; onClose: 
       const formattedContent = formatContentForSave(content);
 
       const res = await fetch(`/api/news/${news.slug}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           title,
@@ -876,14 +1208,14 @@ function EditNewsModal({ news, onClose, onSuccess }: { news: NewsItem; onClose: 
 
       const data = await res.json();
       if (data.success) {
-        alert('News erfolgreich aktualisiert!');
+        alert("News erfolgreich aktualisiert!");
         onSuccess();
       } else {
-        alert('Fehler beim Aktualisieren der News');
+        alert("Fehler beim Aktualisieren der News");
       }
     } catch (error) {
-      console.error('Error updating news:', error);
-      alert('Fehler beim Aktualisieren der News');
+      console.error("Error updating news:", error);
+      alert("Fehler beim Aktualisieren der News");
     } finally {
       setSubmitting(false);
     }
@@ -891,26 +1223,30 @@ function EditNewsModal({ news, onClose, onSuccess }: { news: NewsItem; onClose: 
 
   // Handle delete
   const handleDelete = async () => {
-    if (!confirm('Möchtest du diese News wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) {
+    if (
+      !confirm(
+        "Möchtest du diese News wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+      )
+    ) {
       return;
     }
 
     setDeleting(true);
     try {
       const res = await fetch(`/api/news/${news.slug}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       const data = await res.json();
       if (data.success) {
-        alert('News erfolgreich gelöscht!');
+        alert("News erfolgreich gelöscht!");
         onSuccess();
       } else {
-        alert('Fehler beim Löschen der News');
+        alert("Fehler beim Löschen der News");
       }
     } catch (error) {
-      console.error('Error deleting news:', error);
-      alert('Fehler beim Löschen der News');
+      console.error("Error deleting news:", error);
+      alert("Fehler beim Löschen der News");
     } finally {
       setDeleting(false);
     }
@@ -922,16 +1258,30 @@ function EditNewsModal({ news, onClose, onSuccess }: { news: NewsItem; onClose: 
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-taupe-light">
           <div>
-            <h2 className="text-h3 font-serif font-light text-wine-dark">News bearbeiten</h2>
-            <p className="text-sm text-graphite/60 mt-1">Bearbeite die bestehende News</p>
+            <h2 className="text-h3 font-serif font-light text-wine-dark">
+              News bearbeiten
+            </h2>
+            <p className="text-sm text-graphite/60 mt-1">
+              Bearbeite die bestehende News
+            </p>
           </div>
           <button
             onClick={onClose}
             className="text-graphite hover:text-wine transition-colors"
             aria-label="Schließen"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -981,7 +1331,8 @@ function EditNewsModal({ news, onClose, onSuccess }: { news: NewsItem; onClose: 
               required
             />
             <p className="text-xs text-graphite/60 mt-2">
-              💡 Tipp: Drücke Enter für Zeilenumbrüche - die Formatierung wird automatisch gespeichert!
+              💡 Tipp: Drücke Enter für Zeilenumbrüche - die Formatierung wird
+              automatisch gespeichert!
             </p>
           </div>
 
@@ -1003,13 +1354,23 @@ function EditNewsModal({ news, onClose, onSuccess }: { news: NewsItem; onClose: 
                   <button
                     type="button"
                     onClick={() => {
-                      setFeaturedImage('');
-                      setImagePreview('');
+                      setFeaturedImage("");
+                      setImagePreview("");
                     }}
                     className="absolute top-2 right-2 bg-accent-burgundy text-warmwhite p-2 rounded-full hover:bg-wine transition-colors"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -1019,38 +1380,54 @@ function EditNewsModal({ news, onClose, onSuccess }: { news: NewsItem; onClose: 
               <div className="flex gap-2 p-1 bg-warmwhite-light rounded-lg">
                 <button
                   type="button"
-                  onClick={() => setImageMode('upload')}
-                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${imageMode === 'upload'
-                    ? 'bg-wine text-warmwhite shadow-sm'
-                    : 'text-graphite hover:text-wine'
-                    }`}
+                  onClick={() => setImageMode("upload")}
+                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                    imageMode === "upload"
+                      ? "bg-wine text-warmwhite shadow-sm"
+                      : "text-graphite hover:text-wine"
+                  }`}
                 >
                   Von Gerät hochladen
                 </button>
                 <button
                   type="button"
-                  onClick={() => setImageMode('url')}
-                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${imageMode === 'url'
-                    ? 'bg-wine text-warmwhite shadow-sm'
-                    : 'text-graphite hover:text-wine'
-                    }`}
+                  onClick={() => setImageMode("url")}
+                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                    imageMode === "url"
+                      ? "bg-wine text-warmwhite shadow-sm"
+                      : "text-graphite hover:text-wine"
+                  }`}
                 >
                   URL eingeben
                 </button>
               </div>
 
               {/* Upload Option */}
-              {imageMode === 'upload' && (
+              {imageMode === "upload" && (
                 <div>
                   <label className="cursor-pointer block">
                     <div className="border-2 border-dashed border-taupe-light rounded-lg p-8 text-center hover:border-wine hover:bg-wine/5 transition-all">
-                      <svg className="w-12 h-12 mx-auto text-graphite/40 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      <svg
+                        className="w-12 h-12 mx-auto text-graphite/40 mb-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                        />
                       </svg>
                       <p className="text-sm font-medium text-graphite-dark mb-1">
-                        {uploading ? 'Wird hochgeladen...' : 'Klicke hier oder ziehe ein Bild hinein'}
+                        {uploading
+                          ? "Wird hochgeladen..."
+                          : "Klicke hier oder ziehe ein Bild hinein"}
                       </p>
-                      <p className="text-xs text-graphite/60">PNG, JPG bis 5MB</p>
+                      <p className="text-xs text-graphite/60">
+                        PNG, JPG bis 5MB
+                      </p>
                     </div>
                     <input
                       type="file"
@@ -1064,7 +1441,7 @@ function EditNewsModal({ news, onClose, onSuccess }: { news: NewsItem; onClose: 
               )}
 
               {/* URL Option */}
-              {imageMode === 'url' && (
+              {imageMode === "url" && (
                 <div>
                   <input
                     type="text"
@@ -1074,7 +1451,8 @@ function EditNewsModal({ news, onClose, onSuccess }: { news: NewsItem; onClose: 
                     className="w-full px-4 py-3 border-2 border-taupe-light rounded-lg focus:outline-none focus:border-wine transition-colors"
                   />
                   <p className="text-xs text-graphite/60 mt-2">
-                    💡 Tipp: Gib den Pfad zum Bild ein (z.B. /images/news/...) oder eine vollständige URL
+                    💡 Tipp: Gib den Pfad zum Bild ein (z.B. /images/news/...)
+                    oder eine vollständige URL
                   </p>
                 </div>
               )}
@@ -1102,10 +1480,14 @@ function EditNewsModal({ news, onClose, onSuccess }: { news: NewsItem; onClose: 
 
             {/* Status */}
             <div className="flex items-center gap-3">
-              <label className="text-sm font-medium text-graphite-dark">Status:</label>
+              <label className="text-sm font-medium text-graphite-dark">
+                Status:
+              </label>
               <select
                 value={status}
-                onChange={(e) => setStatus(e.target.value as 'DRAFT' | 'PUBLISHED')}
+                onChange={(e) =>
+                  setStatus(e.target.value as "DRAFT" | "PUBLISHED")
+                }
                 className="px-4 py-2 border-2 border-taupe-light rounded-lg focus:outline-none focus:border-wine transition-colors"
               >
                 <option value="DRAFT">Entwurf</option>
@@ -1146,7 +1528,7 @@ function EditNewsModal({ news, onClose, onSuccess }: { news: NewsItem; onClose: 
                 disabled={submitting}
                 className="btn btn-primary"
               >
-                {submitting ? 'Wird gespeichert...' : 'Änderungen speichern'}
+                {submitting ? "Wird gespeichert..." : "Änderungen speichern"}
               </button>
             </div>
           </div>

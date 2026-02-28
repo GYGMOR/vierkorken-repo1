@@ -275,14 +275,14 @@ export default function DiversPage() {
                         defaultValue="Divers"
                         isAdmin={isAdmin}
                         as="h1"
-                        className="text-display font-serif font-light mb-6"
+                        className="text-display font-serif font-light mb-6 text-white text-shadow-sm"
                     />
                     <EditableText
                         settingKey="divers_page_header_subtitle"
                         defaultValue="Entdecken Sie unser ausgewähltes Sortiment an exklusivem Weinzubehör, edlen Gläsern und Mietartikeln für Ihren perfekten Anlass."
                         isAdmin={isAdmin}
                         as="p"
-                        className="text-body-lg text-white/90 max-w-2xl mx-auto"
+                        className="text-body-lg text-white/90 max-w-2xl mx-auto text-shadow-sm"
                         multiline={true}
                     />
                 </div>
