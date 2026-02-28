@@ -250,16 +250,13 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
         {/* Main Content Area */}
         <div className="container-custom py-8 lg:py-16">
           <div className="grid lg:grid-cols-12 gap-12 items-start">
-            {/* Left: Image & Gallery Preview */}
+            {/* Left: Image Container */}
             <div className="lg:col-span-7 space-y-6">
-              <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-elegant bg-taupe-light/20 border border-taupe-light/30 group">
-                <Image
+              <div className="relative rounded-2xl overflow-hidden shadow-elegant bg-taupe-light/20 border border-taupe-light/30 group flex justify-center items-center bg-white/50">
+                <img
                   src={event.image || '/events/default.jpg'}
                   alt={event.title}
-                  fill
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
-                  priority
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 50vw"
+                  className="w-full h-auto max-h-[70vh] object-contain transition-transform duration-700 group-hover:scale-105"
                 />
               </div>
             </div>
