@@ -52,8 +52,7 @@ export async function POST(req: NextRequest) {
 
     // Calculate prices
     const giftCardAmount = parseFloat(amount);
-    const taxAmount = giftCardAmount * 0.081; // 8.1% MwSt
-    const total = giftCardAmount + taxAmount;
+    const total = giftCardAmount;
 
     // Create coupon in database (inactive until payment is confirmed)
     const coupon = await prisma.coupon.create({

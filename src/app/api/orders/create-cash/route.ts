@@ -133,22 +133,24 @@ export async function POST(req: NextRequest) {
 
     // Calculate taxable vs non-taxable subtotals
     // Taxable items are those that have includeTax: true (like wines)
-    const nonTaxableItemsSubtotal = items
-      .filter((item: any) => item.includeTax === false)
-      .reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
-
-    // Gift cards are always non-taxable
-    const giftCardSubtotal = items
-      .filter((item: any) => item.type === 'giftcard' || item.type === 'geschenkgutschein')
+    // Gift cards and anything with "Gutschein" in the name are always non-taxable
+    const totalNonTaxable = items
+      .filter((item: any) =>
+        item.includeTax === false ||
+        item.type === 'giftcard' ||
+        item.type === 'geschenkgutschein' ||
+        (item.name && item.name.toLowerCase().includes('gutschein'))
+      )
       .reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
 
     const subtotalAfterDiscount = Math.max(0, subtotal + shippingCost + giftWrapCost - discountAmount);
 
     // Tax calculation (Inclusive): Tax is a component of the gross price
     // Standard Swiss rate: 8.1%
-    const totalNonTaxable = nonTaxableItemsSubtotal + giftCardSubtotal;
     const taxableGrossAmount = Math.max(0, subtotalAfterDiscount - totalNonTaxable);
-    const taxAmount = taxableGrossAmount - (taxableGrossAmount / 1.081);
+    const taxAmount = (taxableGrossAmount > 0)
+      ? taxableGrossAmount - (taxableGrossAmount / 1.081)
+      : 0;
 
     const total = subtotalAfterDiscount; // Total remains the same as inclusive subtotal
 

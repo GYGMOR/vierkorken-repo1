@@ -66,7 +66,7 @@ export async function GET(
         requiresApproval: event.requiresApproval,
         followUpOffer: event.followUpOffer,
         followUpDuration: event.followUpDuration,
-        includeTax: event.includeTax,
+        includeTax: (event as any).includeTax,
       },
     });
   } catch (error: any) {

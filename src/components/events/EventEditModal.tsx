@@ -33,6 +33,7 @@ export interface Event {
     publishedAt: string | null;
     createdAt: string;
     updatedAt: string;
+    includeTax: boolean;
 }
 
 const EVENT_TYPES = [
