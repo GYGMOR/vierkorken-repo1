@@ -138,14 +138,8 @@ function CheckoutPageContent() {
 
   const giftCardSubtotal = 0; // Already included above
 
-  // Tax calculation (Inclusive): Tax is a component of the gross price
-  // Standard Swiss rate: 8.1%
-  const totalNonTaxable = nonTaxableItemsSubtotal + giftCardSubtotal;
-  const hasTaxableItems = items.some(item => !['event', 'divers', 'giftcard', 'geschenkgutschein'].includes(item.type));
-
-  // Only calculate tax if there are taxable items in the cart (so shipping isn't taxed alone)
-  const taxableGrossAmount = hasTaxableItems ? Math.max(0, subtotalAfterDiscount - totalNonTaxable) : 0;
-  const taxAmount = taxableGrossAmount - (taxableGrossAmount / 1.081);
+  // Tax calculation logic removed as all items act as inclusive entirely
+  const taxAmount = 0;
 
   const finalTotal = subtotalAfterDiscount; // Total remains the same as inclusive subtotal
 

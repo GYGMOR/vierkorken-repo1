@@ -273,7 +273,7 @@ export function WineCard({
                   <span className="text-h4 text-red-700 font-bold font-serif">
                     {formatPrice(finalPrice)}
                   </span>
-                  <span className="text-xs text-graphite/60 font-normal">Exkl. MwSt</span>
+                  <span className="text-xs text-graphite/60 font-normal">Inkl. MwSt</span>
                 </div>
                 <span className="text-sm text-graphite/60 line-through">
                   {formatPrice(price)}
@@ -284,7 +284,7 @@ export function WineCard({
                 <p className="font-serif text-h4 text-wine-dark">
                   {formatPrice(price)}
                 </p>
-                <span className="text-xs text-graphite/60">Exkl. MwSt</span>
+                <span className="text-xs text-graphite/60">Inkl. MwSt</span>
               </div>
             )}
           </div>

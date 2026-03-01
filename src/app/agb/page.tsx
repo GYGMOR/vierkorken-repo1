@@ -61,7 +61,7 @@ export default function AGBPage() {
               <h2 className="text-xl md:text-2xl lg:text-h3 font-serif text-graphite-dark mb-3 md:mb-4">4. Preise, Versandkosten und Zahlungsbedingungen</h2>
               <p>
                 <strong>4.1 Preise</strong><br />
-                Alle angegebenen Preise für Weine verstehen sich in Schweizer Franken (CHF) exklusive der gesetzlichen Schweizer Mehrwertsteuer. Bei Divers-Produkten und Events ist die gesetzliche Schweizer Mehrwertsteuer (8.1%) bereits im Preis inbegriffen.<br />
+                Alle angegebenen Preise verstehen sich in Schweizer Franken (CHF) und beinhalten die gesetzliche Schweizer Mehrwertsteuer (8.1%).<br />
                 Zusätzlich können Versandkosten anfallen, die separat ausgewiesen werden.
               </p>
               <p className="mt-2">
