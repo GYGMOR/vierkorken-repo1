@@ -216,9 +216,11 @@ function CheckoutPageContent() {
 
             // IMPORTANT: Proceed immediately with the RESTORED data (not state)
             // This avoids timing issues with React state updates
-            console.log('🚀 Proceeding with checkout using restored data...');
+            console.log('🚀 Setting flag to proceed with checkout using restored data...');
             // Inject restored discount onto formData so it executes with it accurately
-            proceedWithCheckoutData(formData);
+            sessionStorage.setItem('checkoutDataRestored', 'true');
+            // proceedWithCheckoutData is removed from here because it causes dependency cycle issues. 
+            // We use the new useEffect above instead.
           } catch (error) {
             console.error('Error restoring form data:', error);
           }
@@ -248,6 +250,27 @@ function CheckoutPageContent() {
 
     checkVerificationStatus();
   }, [session, searchParams]);
+
+  // Handle proceeding with checkout after data restore
+  useEffect(() => {
+    if (isVerified && shippingData.firstName && shippingData.email) {
+      // Check if we just restored data from verification and need to proceed
+      const verified = searchParams.get('verified');
+      const hasRestoredData = sessionStorage.getItem('checkoutDataRestored') === 'true';
+
+      if (verified === 'true' && hasRestoredData) {
+        console.log('🔄 Triggering checkout after data restore...');
+        sessionStorage.removeItem('checkoutDataRestored'); // Clear flag
+
+        // Remove the 'verified' param from URL to prevent infinite loops
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+
+        // Trigger checkout using current state
+        proceedWithCheckout();
+      }
+    }
+  }, [isVerified, shippingData, searchParams]);
 
   const fetchSavedAddresses = async () => {
     try {
@@ -481,119 +504,6 @@ function CheckoutPageContent() {
     } catch (error: any) {
       console.error('❌ Identity verification error:', error);
       alert('Fehler bei der Identitätsprüfung:\n\n' + error.message);
-      setIsProcessing(false);
-    }
-  };
-
-  // Helper function to proceed with checkout using explicit data (used after verification)
-  const proceedWithCheckoutData = async (formData: any) => {
-    setIsProcessing(true);
-
-    try {
-      console.log('🚀 proceedWithCheckoutData called with:', {
-        deliveryMethod: formData.deliveryMethod,
-        paymentMethod: formData.paymentMethod,
-        email: formData.shippingData?.email,
-        firstName: formData.shippingData?.firstName,
-      });
-
-      // Use items from formData if available, to avoid empty cart issues on fast restore
-      const orderItems = formData.items && formData.items.length > 0 ? formData.items : items;
-
-      // Barzahlung bei Abholung
-      if (formData.paymentMethod === 'cash' && formData.deliveryMethod === 'pickup') {
-        console.log('💰 Creating cash order for pickup (with restored data)...');
-        console.log('📦 Items:', orderItems);
-        console.log('👤 Contact Data:', {
-          firstName: formData.shippingData.firstName,
-          lastName: formData.shippingData.lastName,
-          email: formData.shippingData.email,
-          phone: formData.shippingData.phone
-        });
-
-        const response = await fetch('/api/orders/create-cash', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            items: orderItems,
-            deliveryMethod: formData.deliveryMethod,
-            shippingMethod: null,
-            paymentMethod: 'cash',
-            shippingData: {
-              firstName: formData.shippingData.firstName,
-              lastName: formData.shippingData.lastName,
-              email: formData.shippingData.email,
-              phone: formData.shippingData.phone,
-            },
-            giftOptions: formData.giftOptions,
-            couponCode: formData.appliedCoupon?.code || null,
-          }),
-        });
-
-        const data = await response.json();
-        console.log('💰 Cash order response:', data);
-
-        if (data.success) {
-          console.log('✅ Cash order created successfully!');
-          router.push(`/checkout/success?orderId=${data.orderId}`);
-        } else {
-          console.error('❌ Cash order failed:', data.error);
-          throw new Error(data.error || 'Fehler beim Erstellen der Bestellung');
-        }
-      }
-      // Stripe Payment (Karte/Twint)
-      else {
-        console.log('💳 Creating Stripe checkout session (with restored data)...');
-
-        const checkoutData: any = {
-          items: orderItems,
-          deliveryMethod: formData.deliveryMethod,
-          shippingMethod: formData.deliveryMethod === 'shipping' ? formData.shippingMethod : null,
-          paymentMethod: formData.paymentMethod,
-          giftOptions: formData.giftOptions,
-          couponCode: formData.appliedCoupon?.code || null,
-        };
-
-        // Add contact/shipping data
-        if (formData.deliveryMethod === 'pickup') {
-          checkoutData.shippingData = {
-            firstName: formData.shippingData.firstName,
-            lastName: formData.shippingData.lastName,
-            email: formData.shippingData.email,
-            phone: formData.shippingData.phone,
-          };
-        } else {
-          checkoutData.shippingData = formData.shippingData;
-        }
-
-        if (!formData.billingIsSame) {
-          checkoutData.billingData = formData.billingData;
-        }
-
-        const response = await fetch('/api/checkout/create-session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(checkoutData),
-        });
-
-        const data = await response.json();
-        console.log('💳 Stripe response:', data);
-
-        if (data.error) {
-          console.error('❌ Stripe error:', data.error);
-          throw new Error(data.error);
-        }
-
-        if (data.url) {
-          console.log('✅ Redirecting to Stripe Checkout:', data.url);
-          window.location.href = data.url;
-        } else {
-          throw new Error('Keine Checkout-URL erhalten');
-        }
-      }
-    } catch (error: any) {
-      console.error('❌ Checkout error:', error);
-      alert('Fehler beim Checkout:\n\n' + error.message);
       setIsProcessing(false);
     }
   };
