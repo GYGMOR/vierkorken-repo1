@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     const body = await req.json();
 
-    const { items, deliveryMethod, shippingMethod, paymentMethod, shippingData, giftOptions, couponCode } = body;
+    const { items, deliveryMethod, shippingMethod, paymentMethod, shippingData, billingData, giftOptions, couponCode } = body;
 
     console.log('💰 Cash order request:', { deliveryMethod, shippingMethod, couponCode });
 
@@ -157,22 +157,30 @@ export async function POST(req: NextRequest) {
     // Generate order number
     const orderNumber = `VK-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
-    // Get customer data (handle empty strings properly)
-    const customerEmail = (shippingData?.email && shippingData.email.trim() !== '')
-      ? shippingData.email
-      : (session?.user?.email || 'gast@vierkorken.ch');
+    // Get customer data (prioritize billingData as it is the primary contact info in our new UI)
+    const customerEmail = (billingData?.email && billingData.email.trim() !== '')
+      ? billingData.email.trim()
+      : (shippingData?.email && shippingData.email.trim() !== ''
+        ? shippingData.email.trim()
+        : (session?.user?.email || 'gast@vierkorken.ch'));
 
-    const customerFirstName = (shippingData?.firstName && shippingData.firstName.trim() !== '')
-      ? shippingData.firstName
-      : (session?.user?.firstName || 'Gast');
+    const customerFirstName = (billingData?.firstName && billingData.firstName.trim() !== '')
+      ? billingData.firstName.trim()
+      : (shippingData?.firstName && shippingData.firstName.trim() !== ''
+        ? shippingData.firstName.trim()
+        : (session?.user?.firstName || 'Gast'));
 
-    const customerLastName = (shippingData?.lastName && shippingData.lastName.trim() !== '')
-      ? shippingData.lastName
-      : (session?.user?.lastName || 'Kunde');
+    const customerLastName = (billingData?.lastName && billingData.lastName.trim() !== '')
+      ? billingData.lastName.trim()
+      : (shippingData?.lastName && shippingData.lastName.trim() !== ''
+        ? shippingData.lastName.trim()
+        : (session?.user?.lastName || 'Kunde'));
 
-    const customerPhone = (shippingData?.phone && shippingData.phone.trim() !== '')
-      ? shippingData.phone
-      : null;
+    const customerPhone = (billingData?.phone && billingData.phone.trim() !== '')
+      ? billingData.phone.trim()
+      : (shippingData?.phone && shippingData.phone.trim() !== ''
+        ? shippingData.phone.trim()
+        : null);
 
     console.log('👤 Customer data for order:', {
       email: customerEmail,

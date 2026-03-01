@@ -361,22 +361,30 @@ export async function POST(req: NextRequest) {
     // Generate order number
     const orderNumber = `VK-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
 
-    // Get customer data (handle empty strings properly)
-    const customerEmail = (shippingData?.email && shippingData.email.trim() !== '')
-      ? shippingData.email.trim()
-      : (user?.email || 'FEHLER_KEINE_EMAIL');
+    // Get customer data (prioritize billingData as it is the primary contact info in our new UI)
+    const customerEmail = (billingData?.email && billingData.email.trim() !== '')
+      ? billingData.email.trim()
+      : (shippingData?.email && shippingData.email.trim() !== ''
+        ? shippingData.email.trim()
+        : (user?.email || 'FEHLER_KEINE_EMAIL'));
 
-    const customerFirstName = (shippingData?.firstName && shippingData.firstName.trim() !== '')
-      ? shippingData.firstName.trim()
-      : (user?.firstName || 'FEHLER_KEIN_NAME');
+    const customerFirstName = (billingData?.firstName && billingData.firstName.trim() !== '')
+      ? billingData.firstName.trim()
+      : (shippingData?.firstName && shippingData.firstName.trim() !== ''
+        ? shippingData.firstName.trim()
+        : (user?.firstName || 'FEHLER_KEIN_NAME'));
 
-    const customerLastName = (shippingData?.lastName && shippingData.lastName.trim() !== '')
-      ? shippingData.lastName.trim()
-      : (user?.lastName || '');
+    const customerLastName = (billingData?.lastName && billingData.lastName.trim() !== '')
+      ? billingData.lastName.trim()
+      : (shippingData?.lastName && shippingData.lastName.trim() !== ''
+        ? shippingData.lastName.trim()
+        : (user?.lastName || ''));
 
-    const customerPhone = (shippingData?.phone && shippingData.phone.trim() !== '')
-      ? shippingData.phone.trim()
-      : (user?.phone || null);
+    const customerPhone = (billingData?.phone && billingData.phone.trim() !== '')
+      ? billingData.phone.trim()
+      : (shippingData?.phone && shippingData.phone.trim() !== ''
+        ? shippingData.phone.trim()
+        : (user?.phone || null));
 
     console.log('👤 Customer data extracted:', {
       customerEmail,
