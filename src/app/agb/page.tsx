@@ -23,8 +23,8 @@ export default function AGBPage() {
             <section>
               <h2 className="text-xl md:text-2xl lg:text-h3 font-serif text-graphite-dark mb-3 md:mb-4">2. Vertragspartner und Kontakt</h2>
               <div className="bg-rose-light/30 p-4 md:p-6 rounded-lg">
-                <p className="font-semibold">Vier Korken Wein-Boutique</p>
-                <p>Joel Hediger</p>
+                <p className="font-semibold">Vier Korken Wein-Boutique Hediger</p>
+                <p>Christina Hediger</p>
                 <p>Steinbrunnengasse 3A</p>
                 <p>5707 Seengen AG</p>
                 <p>Schweiz</p>
@@ -61,7 +61,8 @@ export default function AGBPage() {
               <h2 className="text-xl md:text-2xl lg:text-h3 font-serif text-graphite-dark mb-3 md:mb-4">4. Preise, Versandkosten und Zahlungsbedingungen</h2>
               <p>
                 <strong>4.1 Preise</strong><br />
-                Alle angegebenen Preise verstehen sich in Schweizer Franken (CHF) und beinhalten die gesetzliche Schweizer Mehrwertsteuer (8.1%). Zusätzlich können Versandkosten anfallen, die separat ausgewiesen werden.
+                Alle angegebenen Preise für Weine verstehen sich in Schweizer Franken (CHF) exklusive der gesetzlichen Schweizer Mehrwertsteuer. Bei Divers-Produkten und Events ist die gesetzliche Schweizer Mehrwertsteuer (8.1%) bereits im Preis inbegriffen.<br />
+                Zusätzlich können Versandkosten anfallen, die separat ausgewiesen werden.
               </p>
               <p className="mt-2">
                 <strong>4.2 Versandkosten</strong><br />
@@ -258,7 +259,14 @@ export default function AGBPage() {
             </section>
 
             <section>
-              <h2 className="text-xl md:text-2xl lg:text-h3 font-serif text-graphite-dark mb-3 md:mb-4">13. Online-Streitbeilegung</h2>
+              <h2 className="text-xl md:text-2xl lg:text-h3 font-serif text-graphite-dark mb-3 md:mb-4">13. Geschenkgutscheine</h2>
+              <p>
+                Im Onlineshop erworbene Geschenkgutscheine sind ausschliesslich für Einkäufe im Onlineshop unter vierkorken.ch gültig und können nicht im physischen Ladengeschäft eingelöst werden.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-xl md:text-2xl lg:text-h3 font-serif text-graphite-dark mb-3 md:mb-4">14. Online-Streitbeilegung</h2>
               <p>
                 Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:<br />
                 <a href="https://ec.europa.eu/consumers/odr" className="text-wine hover:underline" target="_blank" rel="noopener noreferrer">ec.europa.eu/consumers/odr</a>

@@ -174,7 +174,7 @@ export default function CartPage() {
                         </p>
                         {item.price > 0 && (
                           <p className="text-xs md:text-body-sm text-graphite/60">
-                            {formatPrice(item.price)} / Flasche
+                            {formatPrice(item.price)} / Flasche {item.type === 'wine' && 'Exkl. MwSt'}
                           </p>
                         )}
                       </div>
@@ -289,7 +289,7 @@ export default function CartPage() {
                 </div>
 
                 <p className="text-xs md:text-body-sm text-graphite/60">
-                  Inkl. MwSt. und Versandkosten
+                  Exkl. MwSt. und inkl. Versandkosten
                 </p>
               </div>
 

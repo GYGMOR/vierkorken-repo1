@@ -301,7 +301,9 @@ export default function WineDetailPage({ params }: { params: Promise<{ slug: str
               <span className="text-h2 font-serif text-accent-burgundy">
                 {formatPrice(wine.price)}
               </span>
-              <span className="text-graphite">/ Flasche</span>
+              <span className="text-graphite">
+                / Flasche <span className="text-sm text-graphite/60 ml-2">Exkl. MwSt</span>
+              </span>
             </div>
 
             <div className="border-y border-taupe-light py-6 my-6 space-y-4">

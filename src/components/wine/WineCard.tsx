@@ -269,17 +269,23 @@ export function WineCard({
           <div className="pt-2 border-t border-wood-light">
             {discountPercentage && discountPercentage > 0 ? (
               <div className="flex flex-col">
-                <span className="text-h4 text-red-700 font-bold font-serif">
-                  {formatPrice(finalPrice)}
-                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-h4 text-red-700 font-bold font-serif">
+                    {formatPrice(finalPrice)}
+                  </span>
+                  <span className="text-xs text-graphite/60 font-normal">Exkl. MwSt</span>
+                </div>
                 <span className="text-sm text-graphite/60 line-through">
                   {formatPrice(price)}
                 </span>
               </div>
             ) : (
-              <p className="font-serif text-h4 text-wine-dark">
-                {formatPrice(price)}
-              </p>
+              <div className="flex items-baseline gap-2">
+                <p className="font-serif text-h4 text-wine-dark">
+                  {formatPrice(price)}
+                </p>
+                <span className="text-xs text-graphite/60">Exkl. MwSt</span>
+              </div>
             )}
           </div>
         </div>
