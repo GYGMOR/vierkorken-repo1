@@ -27,9 +27,14 @@ export function SystemSettings() {
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [categoriesMessage, setCategoriesMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  const [twintEnabled, setTwintEnabled] = useState(true);
+  const [loadingTwint, setLoadingTwint] = useState(false);
+  const [twintMessage, setTwintMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
   useEffect(() => {
     fetchSettings();
     fetchCategoriesSettings();
+    fetchTwintSettings();
     fetchSubscriberCount();
     fetchSeason();
   }, []);
@@ -44,6 +49,19 @@ export function SystemSettings() {
       }
     } catch (e) {
       console.error('Error fetching categories setting:', e);
+    }
+  }
+
+  async function fetchTwintSettings() {
+    try {
+      const res = await fetch('/api/settings?keys=twint_enabled');
+      const data = await res.json();
+      if (data.success && data.settings) {
+        const twintSetting = data.settings.find((s: any) => s.key === 'twint_enabled');
+        setTwintEnabled(twintSetting?.value !== 'false'); // Default to true if not set
+      }
+    } catch (e) {
+      console.error('Error fetching twint setting:', e);
     }
   }
 
@@ -66,6 +84,28 @@ export function SystemSettings() {
       setCategoriesMessage({ type: 'error', text: 'Verbindungsfehler' });
     } finally {
       setLoadingCategories(false);
+    }
+  }
+
+  async function toggleTwintStatus(enabled: boolean) {
+    setLoadingTwint(true);
+    setTwintMessage(null);
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'twint_enabled', value: enabled ? 'true' : 'false' }),
+      });
+      if (res.ok) {
+        setTwintEnabled(enabled);
+        setTwintMessage({ type: 'success', text: enabled ? 'TWINT Option wird nun im Checkout angezeigt.' : 'TWINT Option ist im Checkout ausgeblendet.' });
+      } else {
+        setTwintMessage({ type: 'error', text: 'Fehler beim Speichern' });
+      }
+    } catch (e) {
+      setTwintMessage({ type: 'error', text: 'Verbindungsfehler' });
+    } finally {
+      setLoadingTwint(false);
     }
   }
 
@@ -350,6 +390,38 @@ export function SystemSettings() {
                   }`}
               >
                 {categoriesMessage.text}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Payment Integration */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Zahlungsmethoden</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex items-center justify-between p-4 bg-warmwhite rounded-lg">
+              <div className="flex-1">
+                <p className="font-medium text-graphite-dark text-lg">TWINT Sichtbarkeit (Checkout)</p>
+                <p className="text-sm text-graphite mt-1">
+                  Muss vorübergehend deaktiviert werden, bis Stripe TWINT für das Konto validiert hat.
+                </p>
+              </div>
+              <Toggle
+                checked={twintEnabled}
+                onChange={toggleTwintStatus}
+                disabled={loadingTwint}
+              />
+            </div>
+            {twintMessage && (
+              <div
+                className={`p-4 rounded-lg text-sm ${twintMessage.type === 'success'
+                  ? 'bg-green-50 text-green-700 border border-green-200'
+                  : 'bg-red-50 text-red-700 border border-red-200'
+                  }`}
+              >
+                {twintMessage.text}
               </div>
             )}
           </CardContent>

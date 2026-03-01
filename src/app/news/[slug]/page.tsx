@@ -165,7 +165,7 @@ export default function NewsDetailPage() {
 
           {/* Content */}
           <div
-            className="prose prose-lg max-w-none prose-headings:font-serif prose-headings:font-light prose-h2:text-h3 prose-h3:text-h4 prose-p:text-graphite prose-a:text-wine prose-a:no-underline hover:prose-a:underline"
+            className="prose md:prose-lg max-w-none w-full break-words overflow-hidden prose-img:max-w-full prose-img:h-auto prose-img:rounded-lg prose-headings:font-serif prose-headings:font-light prose-h2:text-h3 prose-h3:text-h4 prose-p:text-graphite prose-a:text-wine prose-a:no-underline hover:prose-a:underline"
             dangerouslySetInnerHTML={{ __html: news.content }}
           />
         </div>

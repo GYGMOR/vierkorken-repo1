@@ -33,6 +33,7 @@ function CheckoutPageContent() {
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('shipping');
   const [shippingMethod, setShippingMethod] = useState<ShippingMethod>('standard');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card');
+  const [twintEnabled, setTwintEnabled] = useState<boolean>(true);
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string>('');
   const [useNewAddress, setUseNewAddress] = useState(false);
@@ -149,7 +150,7 @@ function CheckoutPageContent() {
     }
 
     // Fetch Loyalty Settings
-    fetch('/api/settings?keys=loyalty_gift_min_order')
+    fetch('/api/settings?keys=loyalty_gift_min_order,twint_enabled')
       .then(res => res.json())
       .then(data => {
         if (data.success && data.settings) {
@@ -157,9 +158,17 @@ function CheckoutPageContent() {
           if (minOrder && minOrder.value) {
             setMinOrderForGifts(Number(minOrder.value));
           }
+          const twintSetting = data.settings.find((s: any) => s.key === 'twint_enabled');
+          if (twintSetting) {
+            const isEnabled = twintSetting.value !== 'false';
+            setTwintEnabled(isEnabled);
+            if (!isEnabled && paymentMethod === 'twint') {
+              setPaymentMethod('card'); // Fallback if twint globally disabled
+            }
+          }
         }
       })
-      .catch(err => console.error('Failed to fetch loyalty settings:', err));
+      .catch(err => console.error('Failed to fetch settings:', err));
 
     // Fetch Loyalty Rules
     fetch('/api/loyalty/rules')
@@ -259,18 +268,22 @@ function CheckoutPageContent() {
       const hasRestoredData = sessionStorage.getItem('checkoutDataRestored') === 'true';
 
       if (verified === 'true' && hasRestoredData) {
-        console.log('🔄 Triggering checkout after data restore...');
-        sessionStorage.removeItem('checkoutDataRestored'); // Clear flag
+        if (items.length > 0) {
+          console.log('🔄 Triggering checkout after data restore...');
+          sessionStorage.removeItem('checkoutDataRestored'); // Clear flag
 
-        // Remove the 'verified' param from URL to prevent infinite loops
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, '', newUrl);
+          // Remove the 'verified' param from URL to prevent infinite loops
+          const newUrl = window.location.pathname;
+          window.history.replaceState({}, '', newUrl);
 
-        // Trigger checkout using current state
-        proceedWithCheckout();
+          // Trigger checkout using current state
+          proceedWithCheckout();
+        } else {
+          console.log('⏳ Waiting for cart items to hydrate before auto-checkout...');
+        }
       }
     }
-  }, [isVerified, shippingData, searchParams]);
+  }, [isVerified, shippingData, searchParams, items]);
 
   const fetchSavedAddresses = async () => {
     try {
@@ -1029,16 +1042,18 @@ function CheckoutPageContent() {
                       selected={paymentMethod === 'card'}
                       onSelect={() => setPaymentMethod('card')}
                     />
-                    <PaymentOption
-                      id="twint"
-                      label="TWINT"
-                      sublabel={deliveryMethod === 'pickup'
-                        ? 'Bezahlen bei Abholung mit TWINT'
-                        : 'Schnell und sicher mit TWINT bezahlen'}
-                      icon={<TwintIcon />}
-                      selected={paymentMethod === 'twint'}
-                      onSelect={() => setPaymentMethod('twint')}
-                    />
+                    {twintEnabled && (
+                      <PaymentOption
+                        id="twint"
+                        label="TWINT"
+                        sublabel={deliveryMethod === 'pickup'
+                          ? 'Bezahlen bei Abholung mit TWINT'
+                          : 'Schnell und sicher mit TWINT bezahlen'}
+                        icon={<TwintIcon />}
+                        selected={paymentMethod === 'twint'}
+                        onSelect={() => setPaymentMethod('twint')}
+                      />
+                    )}
                     {deliveryMethod === 'pickup' && (
                       <PaymentOption
                         id="cash"
