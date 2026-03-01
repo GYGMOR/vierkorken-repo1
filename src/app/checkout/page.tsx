@@ -208,9 +208,10 @@ function CheckoutPageContent() {
             });
 
             // Update state
-            setBillingData(formData.billingData || formData.shippingData);
+            const restoredBilling = formData.billingData || formData.shippingData;
+            setBillingData(restoredBilling);
             setUseDifferentShipping(formData.useDifferentShipping || false);
-            setShippingData(formData.shippingData);
+            setShippingData(formData.shippingData || restoredBilling);
             setDeliveryMethod(formData.deliveryMethod);
             setShippingMethod(formData.shippingMethod);
             setPaymentMethod(formData.paymentMethod);
@@ -263,7 +264,7 @@ function CheckoutPageContent() {
 
   // Handle proceeding with checkout after data restore
   useEffect(() => {
-    if (isVerified && shippingData.firstName && shippingData.email) {
+    if (isVerified && billingData.firstName && billingData.email) {
       // Check if we just restored data from verification and need to proceed
       const verified = searchParams.get('verified');
       const hasRestoredData = sessionStorage.getItem('checkoutDataRestored') === 'true';
