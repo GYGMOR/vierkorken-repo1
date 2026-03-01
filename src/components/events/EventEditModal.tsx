@@ -281,7 +281,7 @@ export function EventEditModal({ event, onClose, onSave }: EventEditModalProps) 
                                     value={formData.venue}
                                     onChange={handleInputChange}
                                     required
-                                    placeholder="z.B. Vierkorken Weinlounge"
+                                    placeholder="z.B. Vier Korken Wein-Boutique"
                                     className="w-full px-3 py-2 border border-taupe-light rounded focus:outline-none focus:ring-2 focus:ring-burgundy"
                                 />
                             </div>

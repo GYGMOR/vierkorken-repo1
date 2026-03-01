@@ -181,9 +181,13 @@ export async function buildInvoiceDoc(order: Order, logoBase64?: string): Promis
     let shippingY = currentY + 7;
 
     if (order.deliveryMethod === 'PICKUP') {
-      doc.text('Abholung im Geschäft', 20, shippingY);
+      doc.text('Vier Korken Wein-Boutique', 20, shippingY);
       shippingY += 5;
-      doc.text('Vier Korken Weinlounge', 20, shippingY);
+      doc.text('Steinbrunnengasse 3a', 20, shippingY);
+      shippingY += 5;
+      doc.text('5707 Seengen', 20, shippingY);
+      shippingY += 5;
+      doc.text('Schweiz', 20, shippingY);
       shippingY += 5;
       doc.text(`Kontakt: ${order.shippingAddress.firstName} ${order.shippingAddress.lastName}`, 20, shippingY);
       if (order.shippingAddress.phone) {
@@ -337,6 +341,13 @@ export async function buildInvoiceDoc(order: Order, logoBase64?: string): Promis
   doc.text('Versand:', totalsX, totalsY);
   doc.text(formatPrice(order.shippingCost), 180, totalsY, { align: 'right' });
 
+  const giftWrapCost = order.items?.some(item => item.giftWrap) ? 5 : 0;
+  if (giftWrapCost > 0) {
+    totalsY += 7;
+    doc.text('Geschenkverpackung:', totalsX, totalsY);
+    doc.text(formatPrice(giftWrapCost), 180, totalsY, { align: 'right' });
+  }
+
   totalsY += 7;
   doc.text(`MwSt. (${order.taxRate}%):`, totalsX, totalsY);
   doc.text(formatPrice(order.taxAmount), 180, totalsY, { align: 'right' });
@@ -395,7 +406,7 @@ export async function buildInvoiceDoc(order: Order, logoBase64?: string): Promis
   doc.setFontSize(8);
   doc.setTextColor(grayColor);
   doc.setFont('helvetica', 'normal');
-  const footerText = 'Zahlungsbedingungen: Innerhalb von 30 Tagen ohne Abzug.\nVielen Dank für Ihren Einkauf!';
+  const footerText = 'Vielen Dank für Ihren Einkauf!';
   doc.text(footerText, 105, 270, { align: 'center' });
 
   // Save PDF

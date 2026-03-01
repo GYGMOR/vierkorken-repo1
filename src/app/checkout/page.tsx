@@ -675,7 +675,7 @@ function CheckoutPageContent() {
                       <DeliveryOption
                         id="pickup"
                         label="Abholung im Geschäft"
-                        sublabel="Kostenlos - Vier Korken Weinlounge, Zürich"
+                        sublabel="Kostenlos - Vier Korken Wein-Boutique, Seengen"
                         icon={<StoreIcon />}
                         selected={deliveryMethod === 'pickup'}
                         onSelect={() => setDeliveryMethod('pickup')}

@@ -430,7 +430,7 @@ export async function sendOrderConfirmationEmail(
                 <p style="margin: 5px 0;"><strong>Datum:</strong> ${new Date(orderDetails.createdAt).toLocaleDateString('de-CH')}</p>
                 <p style="margin: 5px 0;"><strong>Status:</strong> Bestätigt</p>
                 <p style="margin: 5px 0; color: #8B4513; font-weight: bold;">
-                  <strong>Liefermethode:</strong> ${orderDetails.deliveryMethod === 'PICKUP' ? 'Abholung in der Weinlounge (Seengen)' : 'Postversand'}
+                  <strong>Liefermethode:</strong> ${orderDetails.deliveryMethod === 'PICKUP' ? 'Abholung in der Wein Boutique (Seengen)' : 'Postversand'}
                 </p>
               </div>
 
@@ -492,9 +492,9 @@ export async function sendOrderConfirmationEmail(
 
               <h3 style="color: #333;">Nächste Schritte:</h3>
               <ol style="padding-left: 20px;">
-                <li style="margin-bottom: 10px;">Wir bereiten Ihre Bestellung sorgfältig vor</li>
-                <li style="margin-bottom: 10px;">Sie erhalten eine Versandbestätigung, sobald Ihre Bestellung unterwegs ist</li>
-                <li style="margin-bottom: 10px;">Die Lieferung erfolgt innerhalb von 3-5 Werktagen</li>
+                <li style="margin-bottom: 10px;">${orderDetails.deliveryMethod === 'PICKUP' ? 'Wir bereiten Ihre Artikel in unserer Wein Boutique zur Abholung vor' : 'Wir bereiten Ihre Bestellung sorgfältig vor'}</li>
+                <li style="margin-bottom: 10px;">${orderDetails.deliveryMethod === 'PICKUP' ? 'Sie erhalten eine E-Mail, sobald Ihre Bestellung abholbereit ist' : 'Sie erhalten eine Versandbestätigung, sobald Ihre Bestellung unterwegs ist'}</li>
+                <li style="margin-bottom: 10px;">${orderDetails.deliveryMethod === 'PICKUP' ? 'Bitte beachten Sie unsere Öffnungszeiten für die Abholung in Seengen' : 'Die Lieferung erfolgt innerhalb von 3-5 Werktagen'}</li>
               </ol>
 
               <div style="text-align: center; margin: 30px 0;">
@@ -529,7 +529,7 @@ Ihre Bestellung wurde erfolgreich aufgegeben und wird schnellstmöglich bearbeit
 Bestellnummer: ${orderDetails.orderNumber}
 Datum: ${new Date(orderDetails.createdAt).toLocaleDateString('de-CH')}
 Status: Bestätigt
-Liefermethode: ${orderDetails.deliveryMethod === 'PICKUP' ? 'Abholung in der Weinlounge (Seengen)' : 'Postversand'}
+Liefermethode: ${orderDetails.deliveryMethod === 'PICKUP' ? 'Abholung in der Wein Boutique (Seengen)' : 'Postversand'}
 
 BESTELLTE ARTIKEL:
 ${itemsList}
@@ -557,9 +557,9 @@ ${shippingAddr.country}
 Ihre Rechnung als PDF ist dieser E-Mail als Anhang beigefügt.
 
 NÄCHSTE SCHRITTE:
-1. Wir bereiten Ihre Bestellung sorgfältig vor
-2. Sie erhalten eine Versandbestätigung, sobald Ihre Bestellung unterwegs ist
-3. Die Lieferung erfolgt innerhalb von 3-5 Werktagen
+1. ${orderDetails.deliveryMethod === 'PICKUP' ? 'Wir bereiten Ihre Bestellung zur Abholung vor' : 'Wir bereiten Ihre Bestellung sorgfältig vor'}
+2. ${orderDetails.deliveryMethod === 'PICKUP' ? 'Sie erhalten eine E-Mail, sobald Ihre Bestellung abholbereit ist' : 'Sie erhalten eine Versandbestätigung, sobald Ihre Bestellung unterwegs ist'}
+3. ${orderDetails.deliveryMethod === 'PICKUP' ? 'Bitte beachten Sie unsere Öffnungszeiten' : 'Die Lieferung erfolgt innerhalb von 3-5 Werktagen'}
 
 Bestellung verfolgen: ${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/bestellung/${orderDetails.orderNumber}
 
@@ -1398,7 +1398,7 @@ export async function sendOrderShippedEmail(
 
             <p>Hallo ${customerFirstName},</p>
 
-            <p>Gute Neuigkeiten! ${isPickup ? 'Ihre Bestellung ist verpackt und steht für Sie in unserer Weinlounge zur Abholung bereit.' : 'Ihre Bestellung wurde soeben versendet und ist nun auf dem Weg zu Ihnen.'}</p>
+            <p>Gute Neuigkeiten! ${isPickup ? 'Ihre Bestellung ist verpackt und steht für Sie in unserer Wein Boutique zur Abholung bereit.' : 'Ihre Bestellung wurde soeben versendet und ist nun auf dem Weg zu Ihnen.'}</p>
 
             <div style="background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #28a745;">
               <p style="margin: 0;"><strong>Bestellnummer:</strong> ${orderNumber}</p>
@@ -1416,12 +1416,16 @@ export async function sendOrderShippedEmail(
               ` : ''}
             </div>
 
-            ${isPickup ? `
+              ${isPickup ? `
             <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107; margin: 20px 0;">
               <h3 style="color: #856404; margin-top: 0; font-size: 16px;">Öffnungszeiten für Abholung</h3>
-              <p style="margin: 0; color: #856404;">
-                 <strong>Montag - Freitag:</strong> 09:00 - 18:00 Uhr<br>
-                 <strong>Samstag:</strong> 10:00 - 16:00 Uhr<br><br>
+              <p style="margin: 0; color: #856404; font-size: 14px;">
+                 <strong>Montag & Dienstag:</strong> Geschlossen<br>
+                 <strong>Mittwoch:</strong> 13:30 – 18:30 Uhr<br>
+                 <strong>Donnerstag:</strong> 13:30 – 18:30 Uhr<br>
+                 <strong>Freitag:</strong> 09:00 – 12:00, 13:30 – 18:30 Uhr<br>
+                 <strong>Samstag:</strong> 09:00 – 14:00 Uhr<br>
+                 <strong>Sonntag:</strong> Geschlossen<br><br>
                  <strong>Adresse:</strong> Steinbrunnengasse 3a, 5707 Seengen
               </p>
             </div>
@@ -1432,54 +1436,60 @@ export async function sendOrderShippedEmail(
             </div>
             `}
 
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${orderUrl}" style="background-color: #8B4513; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: 500;">
-                Bestelldetails ansehen
-              </a>
-            </div>
+<div style="text-align: center; margin: 30px 0;" >
+  <a href="${orderUrl}" style = "background-color: #8B4513; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: 500;" >
+    Bestelldetails ansehen
+      </a>
+      </div>
 
-            <p>Vielen Dank für Ihre Bestellung. Wir hoffen, Sie genießen Ihre Weine!</p>
+      < p > Vielen Dank für Ihre Bestellung.Wir hoffen, Sie genießen Ihre Weine! </p>
 
-            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+        < hr style = "border: none; border-top: 1px solid #ddd; margin: 30px 0;" >
 
-            <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} Vier Korken Wein-Boutique<br>
-              Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
-            </p>
-          </div>
-        </body>
-      </html>
+          <p style="color: #999; font-size: 12px; text-align: center;" >
+              © ${new Date().getFullYear()} Vier Korken Wein - Boutique<br>
+              Bei Fragen kontaktieren Sie uns unter info @vierkorken.ch
+</p>
+  </div>
+  </body>
+  </html>
     `;
 
   const text = `
-Vier Korken Wein-Boutique - ${isPickup ? 'Bestellung abholbereit' : 'Bestellung versendet'}
+Vier Korken Wein - Boutique - ${isPickup ? 'Bestellung abholbereit' : 'Bestellung versendet'}
 
 Hallo ${customerFirstName},
 
-Gute Neuigkeiten! ${isPickup ? 'Ihre Bestellung ist verpackt und steht für Sie in unserer Weinlounge zur Abholung bereit.' : 'Ihre Bestellung wurde soeben versendet und ist nun auf dem Weg zu Ihnen.'}
+Gute Neuigkeiten! ${isPickup ? 'Ihre Bestellung ist verpackt und steht für Sie in unserer Wein Boutique zur Abholung bereit.' : 'Ihre Bestellung wurde soeben versendet und ist nun auf dem Weg zu Ihnen.'}
 
 Bestellnummer: ${orderNumber}
 Status: ${isPickup ? 'Bereit zur Abholung' : 'Versendet'}
 
 ${isPickup ? `Öffnungszeiten für Abholung:
-Montag - Freitag: 09:00 - 18:00 Uhr
-Samstag: 10:00 - 16:00 Uhr
+Montag & Dienstag: Geschlossen
+Mittwoch: 13:30 – 18:30 Uhr
+Donnerstag: 13:30 – 18:30 Uhr
+Freitag: 09:00 – 12:00, 13:30 – 18:30 Uhr
+Samstag: 09:00 – 14:00 Uhr
+Sonntag: Geschlossen
+
 Adresse: Steinbrunnengasse 3a, 5707 Seengen` : trackingNumber ? `Tracking-Nummer: ${trackingNumber}
 ${trackingUrl ? `Sendung verfolgen: ${trackingUrl}` : ''}
 
-Voraussichtliche Lieferung: 2-3 Werktage` : ''}
+Voraussichtliche Lieferung: 2-3 Werktage` : ''
+    }
 
 Bestelldetails ansehen: ${orderUrl}
 
-Vielen Dank für Ihre Bestellung. Wir hoffen, Sie genießen Ihre Weine!
+Vielen Dank für Ihre Bestellung.Wir hoffen, Sie genießen Ihre Weine!
 
-© ${new Date().getFullYear()} Vier Korken Wein-Boutique
-Bei Fragen: info@vierkorken.ch
-    `.trim();
+© ${new Date().getFullYear()} Vier Korken Wein - Boutique
+Bei Fragen: info @vierkorken.ch
+  `.trim();
 
   await sendInfoMail({
     to,
-    subject: `Bestellung ${orderNumber} - Versendet ${trackingNumber ? '📦' : ''}`,
+    subject: `Bestellung ${orderNumber} - Versendet ${trackingNumber ? '📦' : ''} `,
     html,
     text,
   });
@@ -1494,68 +1504,68 @@ export async function sendOrderDeliveredEmail(
   customerFirstName: string
 ) {
   const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-  const orderUrl = `${siteUrl}/bestellung/${orderNumber}`;
+  const orderUrl = `${siteUrl} /bestellung/${orderNumber} `;
 
   const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Bestellung zugestellt</title>
-        </head>
-        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background-color: #8B4513; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">Vier Korken Wein-Boutique</h1>
-          </div>
+  < !DOCTYPE html >
+    <html>
+    <head>
+    <meta charset="utf-8" >
+      <meta name="viewport" content = "width=device-width, initial-scale=1.0" >
+        <title>Bestellung zugestellt </title>
+          </head>
+          < body style = "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;" >
+            <div style="background-color: #8B4513; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;" >
+              <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;" > Vier Korken Wein - Boutique </h1>
+                </div>
 
-          <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
-            <div style="background-color: #d4edda; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px;">
-              <h2 style="color: #155724; margin: 0; font-size: 24px;">✅ Ihre Bestellung wurde zugestellt!</h2>
-            </div>
+                < div style = "background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;" >
+                  <div style="background-color: #d4edda; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px;" >
+                    <h2 style="color: #155724; margin: 0; font-size: 24px;" >✅ Ihre Bestellung wurde zugestellt! </h2>
+                      </div>
 
-            <p>Hallo ${customerFirstName},</p>
+                      < p > Hallo ${customerFirstName}, </p>
 
-            <p>Ihre Bestellung wurde erfolgreich zugestellt. Wir hoffen, dass alles zu Ihrer Zufriedenheit ist!</p>
+                        < p > Ihre Bestellung wurde erfolgreich zugestellt.Wir hoffen, dass alles zu Ihrer Zufriedenheit ist! </p>
 
-            <div style="background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #28a745;">
-              <p style="margin: 0;"><strong>Bestellnummer:</strong> ${orderNumber}</p>
-              <p style="margin: 10px 0 0;"><strong>Status:</strong> Zugestellt</p>
-            </div>
+                          < div style = "background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #28a745;" >
+                            <p style="margin: 0;" > <strong>Bestellnummer: </strong> ${orderNumber}</p >
+                              <p style="margin: 10px 0 0;" > <strong>Status: </strong> Zugestellt</p >
+                                </div>
 
-            <div style="background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <h3 style="color: #333; margin-top: 0; font-size: 16px;">🍷 Genießen Sie Ihre Weine</h3>
-              <p style="margin: 5px 0 0; color: #666;">
-                Wir empfehlen, die Flaschen vor dem Genuss einige Stunden ruhen zu lassen.
+                                < div style = "background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0;" >
+                                  <h3 style="color: #333; margin-top: 0; font-size: 16px;" >🍷 Genießen Sie Ihre Weine </h3>
+                                    < p style = "margin: 5px 0 0; color: #666;" >
+                                      Wir empfehlen, die Flaschen vor dem Genuss einige Stunden ruhen zu lassen.
                 Bei Fragen zur optimalen Serviertemperatur oder Dekantierung kontaktieren Sie uns gerne.
               </p>
-            </div>
+  </div>
 
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${orderUrl}" style="background-color: #8B4513; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: 500;">
-                Bestelldetails ansehen
-              </a>
-            </div>
+  < div style = "text-align: center; margin: 30px 0;" >
+    <a href="${orderUrl}" style = "background-color: #8B4513; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: 500;" >
+      Bestelldetails ansehen
+        </a>
+        </div>
 
-            <p>Vielen Dank für Ihr Vertrauen. Wir freuen uns darauf, Sie bald wieder bei Vier Korken Wein-Boutique begrüßen zu dürfen!</p>
+        < p > Vielen Dank für Ihr Vertrauen.Wir freuen uns darauf, Sie bald wieder bei Vier Korken Wein - Boutique begrüßen zu dürfen! </p>
 
-            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+          < hr style = "border: none; border-top: 1px solid #ddd; margin: 30px 0;" >
 
-            <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} Vier Korken Wein-Boutique<br>
-              Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
-            </p>
-          </div>
-        </body>
-      </html>
+            <p style="color: #999; font-size: 12px; text-align: center;" >
+              © ${new Date().getFullYear()} Vier Korken Wein - Boutique<br>
+              Bei Fragen kontaktieren Sie uns unter info @vierkorken.ch
+</p>
+  </div>
+  </body>
+  </html>
     `;
 
   const text = `
-Vier Korken Wein-Boutique - Bestellung zugestellt
+Vier Korken Wein - Boutique - Bestellung zugestellt
 
 Hallo ${customerFirstName},
 
-Ihre Bestellung wurde erfolgreich zugestellt. Wir hoffen, dass alles zu Ihrer Zufriedenheit ist!
+Ihre Bestellung wurde erfolgreich zugestellt.Wir hoffen, dass alles zu Ihrer Zufriedenheit ist!
 
 Bestellnummer: ${orderNumber}
 Status: Zugestellt
@@ -1566,11 +1576,11 @@ Bei Fragen zur optimalen Serviertemperatur oder Dekantierung kontaktieren Sie un
 
 Bestelldetails ansehen: ${orderUrl}
 
-Vielen Dank für Ihr Vertrauen. Wir freuen uns darauf, Sie bald wieder bei Vier Korken Wein-Boutique begrüßen zu dürfen!
+Vielen Dank für Ihr Vertrauen.Wir freuen uns darauf, Sie bald wieder bei Vier Korken Wein - Boutique begrüßen zu dürfen!
 
-© ${new Date().getFullYear()} Vier Korken Wein-Boutique
-Bei Fragen: info@vierkorken.ch
-    `.trim();
+© ${new Date().getFullYear()} Vier Korken Wein - Boutique
+Bei Fragen: info @vierkorken.ch
+  `.trim();
 
   await sendInfoMail({
     to,
@@ -1591,74 +1601,74 @@ export async function sendOrderCancelledEmail(
   const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
   const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Bestellung storniert</title>
-        </head>
-        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background-color: #8B4513; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;">Vier Korken Wein-Boutique</h1>
-          </div>
+  < !DOCTYPE html >
+    <html>
+    <head>
+    <meta charset="utf-8" >
+      <meta name="viewport" content = "width=device-width, initial-scale=1.0" >
+        <title>Bestellung storniert </title>
+          </head>
+          < body style = "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;" >
+            <div style="background-color: #8B4513; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;" >
+              <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 2px;" > Vier Korken Wein - Boutique </h1>
+                </div>
 
-          <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
-            <h2 style="color: #333; margin-top: 0;">Bestellung storniert</h2>
+                < div style = "background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;" >
+                  <h2 style="color: #333; margin-top: 0;" > Bestellung storniert </h2>
 
-            <p>Hallo ${customerFirstName},</p>
+                    < p > Hallo ${customerFirstName}, </p>
 
-            <p>Ihre Bestellung wurde storniert.</p>
+                      < p > Ihre Bestellung wurde storniert.</p>
 
-            <div style="background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc3545;">
-              <p style="margin: 0;"><strong>Bestellnummer:</strong> ${orderNumber}</p>
-              <p style="margin: 10px 0 0;"><strong>Status:</strong> Storniert</p>
-            </div>
+                        < div style = "background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc3545;" >
+                          <p style="margin: 0;" > <strong>Bestellnummer: </strong> ${orderNumber}</p >
+                            <p style="margin: 10px 0 0;" > <strong>Status: </strong> Storniert</p >
+                              </div>
 
-            <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107; margin: 20px 0;">
-              <p style="margin: 0; color: #856404;">
-                Falls Sie bereits bezahlt haben, wird der Betrag innerhalb von 5-7 Werktagen zurückerstattet.
+                              < div style = "background-color: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107; margin: 20px 0;" >
+                                <p style="margin: 0; color: #856404;" >
+                                  Falls Sie bereits bezahlt haben, wird der Betrag innerhalb von 5 - 7 Werktagen zurückerstattet.
               </p>
-            </div>
+                                    </div>
 
-            <p>Bei Fragen zur Stornierung kontaktieren Sie uns bitte unter info@vierkorken.ch</p>
+                                    < p > Bei Fragen zur Stornierung kontaktieren Sie uns bitte unter info @vierkorken.ch</p>
 
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${siteUrl}/weine" style="background-color: #8B4513; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: 500;">
-                Weiter einkaufen
-              </a>
-            </div>
+                                      < div style = "text-align: center; margin: 30px 0;" >
+                                        <a href="${siteUrl}/weine" style = "background-color: #8B4513; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: 500;" >
+                                          Weiter einkaufen
+                                            </a>
+                                            </div>
 
-            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+                                            < hr style = "border: none; border-top: 1px solid #ddd; margin: 30px 0;" >
 
-            <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} Vier Korken Wein-Boutique<br>
-              Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
-            </p>
-          </div>
-        </body>
-      </html>
+                                              <p style="color: #999; font-size: 12px; text-align: center;" >
+              © ${new Date().getFullYear()} Vier Korken Wein - Boutique<br>
+              Bei Fragen kontaktieren Sie uns unter info @vierkorken.ch
+</p>
+  </div>
+  </body>
+  </html>
     `;
 
   const text = `
-Vier Korken Wein-Boutique - Bestellung storniert
+Vier Korken Wein - Boutique - Bestellung storniert
 
 Hallo ${customerFirstName},
 
 Ihre Bestellung wurde storniert.
 
-Bestellnummer: ${orderNumber}
+  Bestellnummer: ${orderNumber}
 Status: Storniert
 
-Falls Sie bereits bezahlt haben, wird der Betrag innerhalb von 5-7 Werktagen zurückerstattet.
+Falls Sie bereits bezahlt haben, wird der Betrag innerhalb von 5 - 7 Werktagen zurückerstattet.
 
-Bei Fragen zur Stornierung kontaktieren Sie uns bitte unter info@vierkorken.ch
+Bei Fragen zur Stornierung kontaktieren Sie uns bitte unter info @vierkorken.ch
 
 Weiter einkaufen: ${siteUrl}/weine
 
-© ${new Date().getFullYear()} Vier Korken Wein-Boutique
-Bei Fragen: info@vierkorken.ch
-    `.trim();
+© ${new Date().getFullYear()} Vier Korken Wein - Boutique
+Bei Fragen: info @vierkorken.ch
+  `.trim();
 
   await sendInfoMail({
     to,
@@ -1685,108 +1695,108 @@ export async function sendEventTicketsEmail(
   const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
   const ticketList = tickets
-    .map((t) => `• ${t.eventTitle} - Ticket: ${t.ticketNumber}`)
+    .map((t) => `• ${t.eventTitle} - Ticket: ${t.ticketNumber} `)
     .join('\n');
 
   const ticketListHtml = tickets
     .map(
       (t) => `
-      <div style="background-color: #fff; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #6D2932;">
-        <p style="margin: 0; font-weight: bold; color: #6D2932;">${t.eventTitle}</p>
-        <p style="margin: 5px 0 0 0; font-size: 14px; color: #666;">
-          Ticket-Nr: <span style="font-family: monospace;">${t.ticketNumber}</span>
-        </p>
-        <p style="margin: 5px 0 0 0; font-size: 13px; color: #888;">${t.eventDate}</p>
-      </div>
-    `
+  < div style = "background-color: #fff; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #6D2932;" >
+    <p style="margin: 0; font-weight: bold; color: #6D2932;" > ${t.eventTitle} </p>
+      < p style = "margin: 5px 0 0 0; font-size: 14px; color: #666;" >
+        Ticket - Nr: <span style="font-family: monospace;" > ${t.ticketNumber} </span>
+          </p>
+          < p style = "margin: 5px 0 0 0; font-size: 13px; color: #888;" > ${t.eventDate} </p>
+            </div>
+              `
     )
     .join('');
 
   const html = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Ihre Event-Tickets</title>
-      </head>
-      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); padding: 30px 20px; text-align: center; border-radius: 12px 12px 0 0;">
-          <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">Vier Korken Wein-Boutique</h1>
-          <div style="margin-top: 12px; height: 1px; width: 80px; background: linear-gradient(to right, transparent, #C9A961, transparent); margin-left: auto; margin-right: auto;"></div>
-          <p style="color: #FAF8F5; margin-top: 15px; margin-bottom: 0; font-size: 16px;">Ihre Event-Tickets</p>
-        </div>
+            < !DOCTYPE html >
+              <html>
+              <head>
+              <meta charset="utf-8" >
+                <meta name="viewport" content = "width=device-width, initial-scale=1.0" >
+                  <title>Ihre Event - Tickets </title>
+                    </head>
+                    < body style = "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;" >
+                      <div style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); padding: 30px 20px; text-align: center; border-radius: 12px 12px 0 0;" >
+                        <h1 style="color: #fff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;" > Vier Korken Wein - Boutique </h1>
+                          < div style = "margin-top: 12px; height: 1px; width: 80px; background: linear-gradient(to right, transparent, #C9A961, transparent); margin-left: auto; margin-right: auto;" > </div>
+                            < p style = "color: #FAF8F5; margin-top: 15px; margin-bottom: 0; font-size: 16px;" > Ihre Event - Tickets </p>
+                              </div>
 
-        <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 12px 12px;">
-          <h2 style="color: #6D2932; margin-top: 0;">Hallo ${customerFirstName}!</h2>
+                              < div style = "background-color: #f9f9f9; padding: 30px; border-radius: 0 0 12px 12px;" >
+                                <h2 style="color: #6D2932; margin-top: 0;" > Hallo ${customerFirstName} !</h2>
 
-          <p>Vielen Dank für Ihren Ticketkauf! Ihre Tickets sind dieser E-Mail als PDF angehängt.</p>
+                                  < p > Vielen Dank für Ihren Ticketkauf! Ihre Tickets sind dieser E - Mail als PDF angehängt.</p>
 
-          <div style="background-color: #d4edda; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745; margin: 20px 0;">
-            <p style="margin: 0; color: #155724;">
-              <strong>Ihre ${tickets.length} Ticket(s):</strong>
-            </p>
-          </div>
+                                    < div style = "background-color: #d4edda; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745; margin: 20px 0;" >
+                                      <p style="margin: 0; color: #155724;" >
+                                        <strong>Ihre ${tickets.length} Ticket(s): </strong>
+                                          </p>
+                                          </div>
 
           ${ticketListHtml}
 
-          <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107; margin: 20px 0;">
-            <p style="margin: 0; color: #856404;">
-              <strong>Wichtig:</strong> Bitte bringen Sie Ihre Tickets ausgedruckt oder digital auf Ihrem Smartphone zum Event mit. Der QR-Code wird beim Check-in gescannt.
-            </p>
-          </div>
+<div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107; margin: 20px 0;" >
+  <p style="margin: 0; color: #856404;" >
+    <strong>Wichtig: </strong> Bitte bringen Sie Ihre Tickets ausgedruckt oder digital auf Ihrem Smartphone zum Event mit. Der QR-Code wird beim Check-in gescannt.
+      </p>
+      </div>
 
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${siteUrl}/bestellung/${orderNumber}" style="background-color: #6D2932; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: 500;">
-              Bestellung & Tickets ansehen
+      < div style = "text-align: center; margin: 30px 0;" >
+        <a href="${siteUrl}/bestellung/${orderNumber}" style = "background-color: #6D2932; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: 500;" >
+          Bestellung & Tickets ansehen
             </a>
-          </div>
+            </div>
 
-          <p>Wir freuen uns auf Sie!</p>
+            < p > Wir freuen uns auf Sie! </p>
 
-          <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+              < hr style = "border: none; border-top: 1px solid #ddd; margin: 30px 0;" >
 
-          <p style="color: #999; font-size: 12px; text-align: center;">
-            © ${new Date().getFullYear()} Vier Korken Wein-Boutique<br>
+                <p style="color: #999; font-size: 12px; text-align: center;" >
+            © ${new Date().getFullYear()} Vier Korken Wein - Boutique<br>
             Steinbrunnengasse 3a, 5707 Seengen<br>
-            Tel: 062 390 04 04 | info@vierkorken.ch
-          </p>
-        </div>
-      </body>
-    </html>
-  `;
+Tel: 062 390 04 04 | info@vierkorken.ch
+</p>
+  </div>
+  </body>
+  </html>
+    `;
 
   const text = `
-Vier Korken Wein-Boutique - Ihre Event-Tickets
+Vier Korken Wein - Boutique - Ihre Event - Tickets
 
-Hallo ${customerFirstName}!
+Hallo ${customerFirstName} !
 
-Vielen Dank für Ihren Ticketkauf! Ihre Tickets sind dieser E-Mail als PDF angehängt.
+  Vielen Dank für Ihren Ticketkauf! Ihre Tickets sind dieser E - Mail als PDF angehängt.
 
 IHRE ${tickets.length} TICKET(S):
 ${ticketList}
 
 WICHTIG:
-Bitte bringen Sie Ihre Tickets ausgedruckt oder digital auf Ihrem Smartphone zum Event mit. Der QR-Code wird beim Check-in gescannt.
+Bitte bringen Sie Ihre Tickets ausgedruckt oder digital auf Ihrem Smartphone zum Event mit.Der QR - Code wird beim Check -in gescannt.
 
-Bestellung & Tickets ansehen: ${siteUrl}/bestellung/${orderNumber}
+  Bestellung & Tickets ansehen: ${siteUrl} /bestellung/${orderNumber}
 
 Wir freuen uns auf Sie!
 
-© ${new Date().getFullYear()} Vier Korken Wein-Boutique
+© ${new Date().getFullYear()} Vier Korken Wein - Boutique
 Steinbrunnengasse 3a, 5707 Seengen
 Tel: 062 390 04 04 | info@vierkorken.ch
   `.trim();
 
   // Prepare attachments
   const attachments = tickets.map((t) => ({
-    filename: `Ticket-${t.ticketNumber}.pdf`,
+    filename: `Ticket - ${t.ticketNumber}.pdf`,
     content: t.pdfBuffer,
   }));
 
   await sendInfoMail({
     to,
-    subject: `Ihre Event-Tickets - ${orderNumber}`,
+    subject: `Ihre Event - Tickets - ${orderNumber} `,
     html,
     text,
     attachments,
@@ -1809,42 +1819,42 @@ export async function sendGiftCardEmail(
   const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://vierkorken.ch';
 
   const html = `
-    <!DOCTYPE html>
+  < !DOCTYPE html >
     <html>
-      <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Geschenkgutschein</title>
-      </head>
-      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); padding: 40px 20px; text-align: center; border-radius: 12px 12px 0 0;">
-          <h1 style="color: #fff; margin: 0; font-size: 32px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;">Vier Korken Wein-Boutique</h1>
-          <div style="margin-top: 12px; height: 1px; width: 80px; background: linear-gradient(to right, transparent, #C9A961, transparent); margin-left: auto; margin-right: auto;"></div>
-          <p style="color: #C9A961; margin-top: 20px; margin-bottom: 0; font-size: 18px; font-family: Georgia, serif;">Geschenkgutschein</p>
-        </div>
+    <head>
+    <meta charset="utf-8" >
+      <meta name="viewport" content = "width=device-width, initial-scale=1.0" >
+        <title>Geschenkgutschein </title>
+        </head>
+        < body style = "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;" >
+          <div style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); padding: 40px 20px; text-align: center; border-radius: 12px 12px 0 0;" >
+            <h1 style="color: #fff; margin: 0; font-size: 32px; font-weight: 300; letter-spacing: 3px; font-family: Georgia, serif;" > Vier Korken Wein - Boutique </h1>
+              < div style = "margin-top: 12px; height: 1px; width: 80px; background: linear-gradient(to right, transparent, #C9A961, transparent); margin-left: auto; margin-right: auto;" > </div>
+                < p style = "color: #C9A961; margin-top: 20px; margin-bottom: 0; font-size: 18px; font-family: Georgia, serif;" > Geschenkgutschein </p>
+                  </div>
 
-        <div style="background-color: #FAF8F5; padding: 40px 30px; border-radius: 0 0 12px 12px;">
-          <h2 style="color: #6D2932; margin-top: 0; text-align: center; font-family: Georgia, serif; font-weight: 300;">
-            ${giftCard.recipientName ? `Liebe(r) ${giftCard.recipientName},` : 'Herzlichen Glückwunsch!'}
-          </h2>
+                  < div style = "background-color: #FAF8F5; padding: 40px 30px; border-radius: 0 0 12px 12px;" >
+                    <h2 style="color: #6D2932; margin-top: 0; text-align: center; font-family: Georgia, serif; font-weight: 300;" >
+                      ${giftCard.recipientName ? `Liebe(r) ${giftCard.recipientName},` : 'Herzlichen Glückwunsch!'}
+</h2>
 
-          <p style="text-align: center; font-size: 16px;">
-            ${giftCard.senderName} hat Ihnen einen Geschenkgutschein geschenkt!
-          </p>
+  < p style = "text-align: center; font-size: 16px;" >
+    ${giftCard.senderName} hat Ihnen einen Geschenkgutschein geschenkt!
+      </p>
 
-          <!-- Gift Card Box -->
-          <div style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); padding: 30px; border-radius: 12px; margin: 30px 0; text-align: center; box-shadow: 0 4px 15px rgba(109, 41, 50, 0.3);">
-            <p style="color: #C9A961; margin: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 2px;">Gutschein-Wert</p>
-            <p style="color: #fff; margin: 10px 0; font-size: 48px; font-family: Georgia, serif; font-weight: 300;">
+      < !--Gift Card Box-- >
+        <div style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); padding: 30px; border-radius: 12px; margin: 30px 0; text-align: center; box-shadow: 0 4px 15px rgba(109, 41, 50, 0.3);" >
+          <p style="color: #C9A961; margin: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 2px;" > Gutschein - Wert </p>
+            < p style = "color: #fff; margin: 10px 0; font-size: 48px; font-family: Georgia, serif; font-weight: 300;" >
               CHF ${giftCard.amount.toFixed(2)}
-            </p>
-            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-top: 20px;">
-              <p style="color: #C9A961; margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Ihr Gutschein-Code</p>
-              <p style="color: #fff; margin: 10px 0 0 0; font-size: 24px; font-family: monospace; letter-spacing: 3px; font-weight: bold;">
-                ${giftCard.code}
-              </p>
-            </div>
-          </div>
+</p>
+  < div style = "background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-top: 20px;" >
+    <p style="color: #C9A961; margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;" > Ihr Gutschein - Code </p>
+      < p style = "color: #fff; margin: 10px 0 0 0; font-size: 24px; font-family: monospace; letter-spacing: 3px; font-weight: bold;" >
+        ${giftCard.code}
+</p>
+  </div>
+  </div>
 
           ${giftCard.message
       ? `
@@ -1860,68 +1870,68 @@ export async function sendGiftCardEmail(
       : ''
     }
 
-          <div style="background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #6D2932; margin-top: 0; font-size: 16px;">So lösen Sie Ihren Gutschein ein:</h3>
-            <ol style="margin: 0; padding-left: 20px; color: #666;">
-              <li style="margin-bottom: 8px;">Besuchen Sie unseren Online-Shop</li>
-              <li style="margin-bottom: 8px;">Wählen Sie Ihre Lieblingsweine aus</li>
-              <li style="margin-bottom: 8px;">Geben Sie beim Checkout den Gutschein-Code ein</li>
-              <li>Geniessen Sie erstklassige Weine!</li>
-            </ol>
-          </div>
+<div style="background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0;" >
+  <h3 style="color: #6D2932; margin-top: 0; font-size: 16px;" > So lösen Sie Ihren Gutschein ein: </h3>
+    < ol style = "margin: 0; padding-left: 20px; color: #666;" >
+      <li style="margin-bottom: 8px;" > Besuchen Sie unseren Online - Shop </li>
+        < li style = "margin-bottom: 8px;" > Wählen Sie Ihre Lieblingsweine aus </li>
+          < li style = "margin-bottom: 8px;" > Geben Sie beim Checkout den Gutschein - Code ein </li>
+            < li > Geniessen Sie erstklassige Weine! </li>
+              </ol>
+              </div>
 
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${siteUrl}/weine" style="background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); color: #ffffff; padding: 16px 40px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 500; font-size: 16px; box-shadow: 0 4px 12px rgba(109, 41, 50, 0.3);">
-              Jetzt Weine entdecken
-            </a>
-          </div>
+              < div style = "text-align: center; margin: 30px 0;" >
+                <a href="${siteUrl}/weine" style = "background: linear-gradient(135deg, #6D2932 0%, #8B4155 100%); color: #ffffff; padding: 16px 40px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 500; font-size: 16px; box-shadow: 0 4px 12px rgba(109, 41, 50, 0.3);" >
+                  Jetzt Weine entdecken
+                    </a>
+                    </div>
 
-          <p style="color: #888; font-size: 13px; text-align: center;">
-            Dieser Gutschein ist 3 Jahre gültig und kann für alle Produkte in unserem Shop eingelöst werden.
+                    < p style = "color: #888; font-size: 13px; text-align: center;" >
+                      Dieser Gutschein ist 3 Jahre gültig und kann für alle Produkte in unserem Shop eingelöst werden.
           </p>
 
-          <hr style="border: none; border-top: 1px solid #E8E3DF; margin: 30px 0;">
+                        < hr style = "border: none; border-top: 1px solid #E8E3DF; margin: 30px 0;" >
 
-          <p style="color: #999; font-size: 12px; text-align: center;">
-            © ${new Date().getFullYear()} Vier Korken Wein-Boutique<br>
+                          <p style="color: #999; font-size: 12px; text-align: center;" >
+            © ${new Date().getFullYear()} Vier Korken Wein - Boutique<br>
             Steinbrunnengasse 3a, 5707 Seengen<br>
-            Tel: 062 390 04 04 | info@vierkorken.ch
-          </p>
-        </div>
-      </body>
-    </html>
-  `;
+Tel: 062 390 04 04 | info@vierkorken.ch
+</p>
+  </div>
+  </body>
+  </html>
+    `;
 
   const text = `
-Vier Korken Wein-Boutique - Geschenkgutschein
+Vier Korken Wein - Boutique - Geschenkgutschein
 
 ${giftCard.recipientName ? `Liebe(r) ${giftCard.recipientName},` : 'Herzlichen Glückwunsch!'}
 
 ${giftCard.senderName} hat Ihnen einen Geschenkgutschein geschenkt!
 
 ═══════════════════════════════
-GUTSCHEIN-WERT: CHF ${giftCard.amount.toFixed(2)}
-GUTSCHEIN-CODE: ${giftCard.code}
+GUTSCHEIN - WERT: CHF ${giftCard.amount.toFixed(2)}
+GUTSCHEIN - CODE: ${giftCard.code}
 ═══════════════════════════════
 
 ${giftCard.message ? `Nachricht: "${giftCard.message}" - ${giftCard.senderName}` : ''}
 
 SO LÖSEN SIE IHREN GUTSCHEIN EIN:
-1. Besuchen Sie unseren Online-Shop: ${siteUrl}/weine
+1. Besuchen Sie unseren Online - Shop: ${siteUrl}/weine
 2. Wählen Sie Ihre Lieblingsweine aus
-3. Geben Sie beim Checkout den Gutschein-Code ein
+3. Geben Sie beim Checkout den Gutschein - Code ein
 4. Geniessen Sie erstklassige Weine!
 
 Dieser Gutschein ist 3 Jahre gültig und kann für alle Produkte in unserem Shop eingelöst werden.
 
-© ${new Date().getFullYear()} Vier Korken Wein-Boutique
+© ${new Date().getFullYear()} Vier Korken Wein - Boutique
 Steinbrunnengasse 3a, 5707 Seengen
 Tel: 062 390 04 04 | info@vierkorken.ch
   `.trim();
 
   await sendInfoMail({
     to: recipientEmail,
-    subject: `Ein Geschenk von ${giftCard.senderName} - Vier Korken Wein-Boutique Gutschein`,
+    subject: `Ein Geschenk von ${giftCard.senderName} - Vier Korken Wein - Boutique Gutschein`,
     html,
     text,
   });
@@ -1944,7 +1954,7 @@ export async function sendEventNotificationEmail(to: string, event: any) {
     to.includes('admin');
 
   if (isSafeMode && !isAllowedRecipient) {
-    console.log(`🔒 [SafeMode] Skipping email to ${to} (Safe Mode Active)`);
+    console.log(`🔒[SafeMode] Skipping email to ${to} (Safe Mode Active)`);
     return;
   }
 
@@ -1961,16 +1971,16 @@ export async function sendEventNotificationEmail(to: string, event: any) {
   });
 
   const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>${event.title}</title>
-        </head>
-        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 0;">
-          <!-- Header Image -->
-          ${event.featuredImage ? `
+  < !DOCTYPE html >
+    <html>
+    <head>
+    <meta charset="utf-8" >
+      <meta name="viewport" content = "width=device-width, initial-scale=1.0" >
+        <title>${event.title} </title>
+          </head>
+          < body style = "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 0;" >
+            <!--Header Image-- >
+              ${event.featuredImage ? `
           <div style="width: 100%; border-radius: 8px 8px 0 0; position: relative; overflow: hidden; background-color: #8B4513;">
              <img src="${event.featuredImage}" alt="${event.title}" style="width: 100%; max-height: 400px; display: block; object-fit: cover;" />
              <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.8)); padding: 20px; box-sizing: border-box;">
@@ -1985,56 +1995,56 @@ export async function sendEventNotificationEmail(to: string, event: any) {
           </div>
           `}
 
-          <div style="background-color: #fff; padding: 30px; border-radius: 0 0 8px 8px; border: 1px solid #eee; border-top: none;">
-            <!-- Event Info Box -->
-            <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid #8B4513;">
-               <table style="width: 100%; border-collapse: collapse;">
-                 <tr>
-                   <td style="padding: 5px 0; color: #666; width: 30px;">📅</td>
-                   <td style="padding: 5px 0; font-weight: 600; color: #333;">${eventDate}</td>
-                 </tr>
-                 <tr>
-                   <td style="padding: 5px 0; color: #666;">⏰</td>
-                   <td style="padding: 5px 0; font-weight: 600; color: #333;">${eventTime} Uhr</td>
-                 </tr>
-                 <tr>
-                   <td style="padding: 5px 0; color: #666;">📍</td>
-                   <td style="padding: 5px 0; font-weight: 600; color: #333;">${event.venue}</td>
-                 </tr>
-                 <tr>
-                   <td style="padding: 5px 0; color: #666;">🎟️</td>
-                   <td style="padding: 5px 0; font-weight: 600; color: #8B4513;">CHF ${Number(event.price).toFixed(2)}</td>
-                 </tr>
-               </table>
-            </div>
+<div style="background-color: #fff; padding: 30px; border-radius: 0 0 8px 8px; border: 1px solid #eee; border-top: none;" >
+  <!--Event Info Box-- >
+    <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid #8B4513;" >
+      <table style="width: 100%; border-collapse: collapse;" >
+        <tr>
+        <td style="padding: 5px 0; color: #666; width: 30px;" >📅</td>
+          < td style = "padding: 5px 0; font-weight: 600; color: #333;" > ${eventDate} </td>
+            </tr>
+            < tr >
+            <td style="padding: 5px 0; color: #666;" >⏰</td>
+              < td style = "padding: 5px 0; font-weight: 600; color: #333;" > ${eventTime} Uhr </td>
+                </tr>
+                < tr >
+                <td style="padding: 5px 0; color: #666;" >📍</td>
+                  < td style = "padding: 5px 0; font-weight: 600; color: #333;" > ${event.venue} </td>
+                    </tr>
+                    < tr >
+                    <td style="padding: 5px 0; color: #666;" >🎟️</td>
+                      < td style = "padding: 5px 0; font-weight: 600; color: #8B4513;" > CHF ${Number(event.price).toFixed(2)} </td>
+                        </tr>
+                        </table>
+                        </div>
 
-            <h2 style="color: #333; margin-top: 0; font-size: 20px;">${event.subtitle || 'Erleben Sie Wein neu'}</h2>
-            
-            <div style="color: #555; margin-bottom: 30px; line-height: 1.8;">
-              ${event.description ? event.description.substring(0, 300) + '...' : ''}
-            </div>
+                        < h2 style = "color: #333; margin-top: 0; font-size: 20px;" > ${event.subtitle || 'Erleben Sie Wein neu'} </h2>
 
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/events/${event.slug}" 
-                 style="background-color: #8B4513; color: #ffffff; padding: 16px 32px; text-decoration: none; border-radius: 50px; display: inline-block; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 6px rgba(139, 69, 19, 0.2);">
-                Jetzt anmelden
-              </a>
-            </div>
+                          < div style = "color: #555; margin-bottom: 30px; line-height: 1.8;" >
+                            ${event.description ? event.description.substring(0, 300) + '...' : ''}
+</div>
 
-            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+  < div style = "text-align: center; margin: 30px 0;" >
+    <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/events/${event.slug}"
+style = "background-color: #8B4513; color: #ffffff; padding: 16px 32px; text-decoration: none; border-radius: 50px; display: inline-block; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 6px rgba(139, 69, 19, 0.2);" >
+  Jetzt anmelden
+    </a>
+    </div>
 
-            <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} Vier Korken Wein-Boutique<br>
-              Sie erhalten diese E-Mail, weil Sie sich für unseren Newsletter angemeldet haben.<br>
-              <a href="${process.env.NEXT_PUBLIC_APP_URL}/newsletter/unsubscribe" style="color: #8B4513; text-decoration: underline;">Abmelden</a>
-            </p>
-          </div>
-        </body>
-      </html>
-    `;
+    < hr style = "border: none; border-top: 1px solid #eee; margin: 30px 0;" >
+
+      <p style="color: #999; font-size: 12px; text-align: center;" >
+              © ${new Date().getFullYear()} Vier Korken Wein - Boutique<br>
+              Sie erhalten diese E - Mail, weil Sie sich für unseren Newsletter angemeldet haben.< br >
+  <a href="${process.env.NEXT_PUBLIC_APP_URL}/newsletter/unsubscribe" style = "color: #8B4513; text-decoration: underline;" > Abmelden </a>
+    </p>
+    </div>
+    </body>
+    </html>
+      `;
 
   const text = `
-Vier Korken Wein-Boutique - Neues Event: ${event.title}
+Vier Korken Wein - Boutique - Neues Event: ${event.title}
 
 ${event.subtitle || ''}
 
@@ -2044,14 +2054,14 @@ Preis: CHF ${Number(event.price).toFixed(2)}
 
 ${event.description ? event.description.substring(0, 150) + '...' : ''}
 
-Jetzt anmelden: ${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/events/${event.slug}
+Jetzt anmelden: ${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'} /events/${event.slug}
 
-© ${new Date().getFullYear()} Vier Korken Wein-Boutique
+© ${new Date().getFullYear()} Vier Korken Wein - Boutique
   `.trim();
 
   await sendInfoMail({
     to,
-    subject: `🥂 Neues Event: ${event.title}`,
+    subject: `🥂 Neues Event: ${event.title} `,
     html,
     text,
   });

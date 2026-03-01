@@ -503,7 +503,7 @@ export async function POST(req: NextRequest) {
                 title: eventItem.name || 'Unbekanntes Event',
                 description: 'Automatisch erstelltes Event aus dem Warenkorb.',
                 eventType: 'TASTING',
-                venue: 'Vier Korken Weinlounge',
+                venue: 'Vier Korken Wein-Boutique',
                 venueAddress: { street: 'Steinbrunnengasse 3a', city: 'Seengen', zip: '5707' },
                 startDateTime: eventItem.eventDate ? new Date(eventItem.eventDate) : new Date(),
                 endDateTime: eventItem.eventDate ? new Date(new Date(eventItem.eventDate).getTime() + 2 * 60 * 60 * 1000) : new Date(),
