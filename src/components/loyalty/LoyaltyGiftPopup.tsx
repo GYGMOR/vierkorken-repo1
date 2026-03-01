@@ -114,15 +114,13 @@ export function LoyaltyGiftPopup() {
                         initial={{ opacity: 0, scale: 0.8, y: 50 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.8, y: 50 }}
-                        transition={{ type: "spring", duration: 0.8, bounce: 0.3 }}
-                        className="relative w-full max-w-5xl bg-white rounded-2xl overflow-hidden shadow-2xl border border-accent-gold/30"
+                        className="relative w-full max-w-5xl bg-white rounded-2xl overflow-y-auto overflow-x-hidden max-h-[90vh] shadow-2xl border border-accent-gold/30"
                     >
                         {/* Shimmering Golden Border */}
                         <div className="absolute inset-0 z-0 p-[3px] rounded-2xl bg-gradient-to-r from-accent-gold via-yellow-200 to-accent-gold animate-shimmer bg-[length:200%_100%]">
                             <div className="absolute inset-[3px] bg-warmwhite rounded-xl" />
                         </div>
-
-                        <div className="relative z-10 flex flex-col items-center p-8 md:p-14 text-center">
+                        <div className="relative z-10 flex flex-col items-center p-6 md:p-14 text-center">
 
                             {/* Level Badge */}
                             <motion.div

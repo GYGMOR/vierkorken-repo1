@@ -466,6 +466,7 @@ function CheckoutPageContent() {
           giftOptions,
           appliedCoupon,
           couponCode,
+          items,
         };
         sessionStorage.setItem('checkoutFormData', JSON.stringify(formData));
         console.log('💾 Saved form data to session storage');
@@ -496,10 +497,13 @@ function CheckoutPageContent() {
         firstName: formData.shippingData?.firstName,
       });
 
+      // Use items from formData if available, to avoid empty cart issues on fast restore
+      const orderItems = formData.items && formData.items.length > 0 ? formData.items : items;
+
       // Barzahlung bei Abholung
       if (formData.paymentMethod === 'cash' && formData.deliveryMethod === 'pickup') {
         console.log('💰 Creating cash order for pickup (with restored data)...');
-        console.log('📦 Items:', items);
+        console.log('📦 Items:', orderItems);
         console.log('👤 Contact Data:', {
           firstName: formData.shippingData.firstName,
           lastName: formData.shippingData.lastName,
@@ -511,7 +515,7 @@ function CheckoutPageContent() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            items,
+            items: orderItems,
             deliveryMethod: formData.deliveryMethod,
             shippingMethod: null,
             paymentMethod: 'cash',
@@ -542,7 +546,7 @@ function CheckoutPageContent() {
         console.log('💳 Creating Stripe checkout session (with restored data)...');
 
         const checkoutData: any = {
-          items,
+          items: orderItems,
           deliveryMethod: formData.deliveryMethod,
           shippingMethod: formData.deliveryMethod === 'shipping' ? formData.shippingMethod : null,
           paymentMethod: formData.paymentMethod,
@@ -713,7 +717,7 @@ function CheckoutPageContent() {
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-warmwhite py-12">
+      <div className="min-h-screen bg-warmwhite py-6 md:py-12">
         <div className="container-custom">
           <div className="max-w-6xl mx-auto">
             {/* Header */}
@@ -726,7 +730,7 @@ function CheckoutPageContent() {
               </h1>
             </div>
 
-            <div className="grid lg:grid-cols-3 gap-8">
+            <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
               {/* Main Content */}
               <div className="lg:col-span-2 space-y-6">
                 {/* 1. Liefermethode */}
@@ -999,7 +1003,7 @@ function CheckoutPageContent() {
                         type="checkbox"
                         checked={billingIsSame}
                         onChange={(e) => setBillingIsSame(e.target.checked)}
-                        className="w-4 h-4 rounded border-taupe text-accent-burgundy focus:ring-accent-burgundy"
+                        className="w-4 h-4 rounded border-taupe text-accent-burgundy focus:ring-accent-burgundy flex-shrink-0"
                       />
                       <span className="text-body text-graphite">
                         Rechnungsadresse ist identisch mit {deliveryMethod === 'shipping' ? 'Lieferadresse' : 'Kontaktdaten'}
@@ -1157,7 +1161,7 @@ function CheckoutPageContent() {
                           onChange={(e) =>
                             setGiftOptions({ ...giftOptions, isGift: e.target.checked })
                           }
-                          className="w-4 h-4 rounded border-taupe text-accent-burgundy focus:ring-accent-burgundy"
+                          className="w-4 h-4 rounded border-taupe text-accent-burgundy focus:ring-accent-burgundy flex-shrink-0"
                         />
                         <span className="text-body text-graphite">Dies ist ein Geschenk</span>
                       </label>
@@ -1171,7 +1175,7 @@ function CheckoutPageContent() {
                               onChange={(e) =>
                                 setGiftOptions({ ...giftOptions, giftWrap: e.target.checked })
                               }
-                              className="w-4 h-4 rounded border-taupe text-accent-burgundy focus:ring-accent-burgundy"
+                              className="w-4 h-4 rounded border-taupe text-accent-burgundy focus:ring-accent-burgundy flex-shrink-0"
                             />
                             <span className="text-body text-graphite">
                               Geschenkverpackung (+CHF 5.00)
@@ -1441,7 +1445,7 @@ function CheckoutPageContent() {
                 type="checkbox"
                 checked={saveAddressAsDefault}
                 onChange={(e) => setSaveAddressAsDefault(e.target.checked)}
-                className="w-4 h-4 rounded border-taupe text-accent-burgundy focus:ring-accent-burgundy"
+                className="w-4 h-4 rounded border-taupe text-accent-burgundy focus:ring-accent-burgundy flex-shrink-0"
               />
               <span className="text-body text-graphite">Als Standard-Adresse festlegen</span>
             </label>
