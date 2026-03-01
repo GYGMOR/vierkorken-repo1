@@ -203,11 +203,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Taxable items are those that are not gift cards
+    // Non-taxable items: gift cards, events, and divers products
     const totalNonTaxable = items
       .filter((item: any) =>
         item.type === 'giftcard' ||
         item.type === 'geschenkgutschein' ||
+        item.type === 'event' ||
+        item.type === 'divers' ||
         (item.name && item.name.toLowerCase().includes('gutschein'))
       )
       .reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);

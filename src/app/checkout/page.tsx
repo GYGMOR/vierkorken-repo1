@@ -123,11 +123,11 @@ function CheckoutPageContent() {
   const subtotalAfterDiscount = Math.max(0, subtotalBeforeDiscount - discountAmount);
 
   // Calculate taxable vs non-taxable subtotals for UI display
+  // Non-taxable: gift cards, events, divers products
   const nonTaxableItemsSubtotal = items
     .filter((item) => item.type === 'event' || item.type === 'divers' || item.type === 'giftcard' || item.type === 'geschenkgutschein')
     .reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
 
-  // Gift cards are always non-taxable
   const giftCardSubtotal = 0; // Already included above
 
   // Tax calculation (Inclusive): Tax is a component of the gross price
