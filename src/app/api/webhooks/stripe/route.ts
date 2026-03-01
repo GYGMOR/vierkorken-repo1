@@ -514,6 +514,7 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
             deliveryMethod: order.deliveryMethod,
             paymentMethod: order.paymentMethod,
             shippingMethod: order.shippingMethod,
+            customerNote: order.customerNote,
           };
 
           // Generate Ticket PDFs before sending the confirmation email
@@ -594,6 +595,12 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
 
         if (order) {
           console.log('✅ Found order:', order.orderNumber);
+
+          const wasAlreadyPaid = order.paymentStatus === 'PAID' || order.status === 'CONFIRMED';
+          if (wasAlreadyPaid) {
+            console.log('⚠️ Order already marked as PAID. Skipping duplicate email logic.');
+            break;
+          }
 
           // Update order status to PAID and CONFIRMED
           await prisma.order.update({
@@ -707,6 +714,7 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
                 deliveryMethod: orderWithItems.deliveryMethod,
                 paymentMethod: orderWithItems.paymentMethod,
                 shippingMethod: orderWithItems.shippingMethod,
+                customerNote: orderWithItems.customerNote,
               };
 
               await sendOrderConfirmationEmail(orderWithItems.customerEmail, orderWithItems.id, orderData);

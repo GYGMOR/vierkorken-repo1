@@ -698,6 +698,7 @@ export async function POST(req: NextRequest) {
             deliveryMethod: orderWithItems.deliveryMethod,
             paymentMethod: orderWithItems.paymentMethod,
             shippingMethod: orderWithItems.shippingMethod,
+            customerNote: orderWithItems.customerNote,
           };
 
           await sendOrderConfirmationEmail(orderWithItems.customerEmail, orderWithItems.id, orderData);

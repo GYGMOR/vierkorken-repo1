@@ -39,7 +39,7 @@ function CheckoutPageContent() {
   const [useNewAddress, setUseNewAddress] = useState(false);
 
   // Address Data
-  const [shippingData, setShippingData] = useState({
+  const [billingData, setBillingData] = useState({
     firstName: '',
     lastName: '',
     email: '',
@@ -51,8 +51,9 @@ function CheckoutPageContent() {
     country: 'CH',
   });
 
-  const [billingIsSame, setBillingIsSame] = useState(true);
-  const [billingData, setBillingData] = useState({
+  const [useDifferentShipping, setUseDifferentShipping] = useState(false);
+
+  const [shippingData, setShippingData] = useState({
     firstName: '',
     lastName: '',
     email: '',
@@ -207,9 +208,9 @@ function CheckoutPageContent() {
             });
 
             // Update state
+            setBillingData(formData.billingData || formData.shippingData);
+            setUseDifferentShipping(formData.useDifferentShipping || false);
             setShippingData(formData.shippingData);
-            setBillingData(formData.billingData);
-            setBillingIsSame(formData.billingIsSame);
             setDeliveryMethod(formData.deliveryMethod);
             setShippingMethod(formData.shippingMethod);
             setPaymentMethod(formData.paymentMethod);
@@ -297,7 +298,7 @@ function CheckoutPageContent() {
         if (defaultAddr) {
           setSelectedAddressId(defaultAddr.id);
           // Populate shippingData with the default address
-          setShippingData({
+          const addrData = {
             firstName: defaultAddr.firstName,
             lastName: defaultAddr.lastName,
             email: session?.user?.email || '',
@@ -307,7 +308,9 @@ function CheckoutPageContent() {
             postalCode: defaultAddr.postalCode,
             city: defaultAddr.city,
             country: defaultAddr.country,
-          });
+          };
+          setBillingData(addrData);
+          setShippingData(addrData);
         }
       }
     } catch (error) {
@@ -321,7 +324,7 @@ function CheckoutPageContent() {
 
     const addr = savedAddresses.find(a => a.id === addressId);
     if (addr) {
-      setShippingData({
+      const addrData = {
         firstName: addr.firstName,
         lastName: addr.lastName,
         email: session?.user?.email || '',
@@ -331,7 +334,9 @@ function CheckoutPageContent() {
         postalCode: addr.postalCode,
         city: addr.city,
         country: addr.country,
-      });
+      };
+      setBillingData(addrData);
+      setShippingData(addrData);
     }
   };
 
@@ -343,14 +348,14 @@ function CheckoutPageContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          firstName: shippingData.firstName,
-          lastName: shippingData.lastName,
-          street: shippingData.street,
-          streetNumber: shippingData.streetNumber,
-          postalCode: shippingData.postalCode,
-          city: shippingData.city,
-          country: shippingData.country,
-          phone: shippingData.phone,
+          firstName: billingData.firstName,
+          lastName: billingData.lastName,
+          street: billingData.street,
+          streetNumber: billingData.streetNumber,
+          postalCode: billingData.postalCode,
+          city: billingData.city,
+          country: billingData.country,
+          phone: billingData.phone,
           isDefault: saveAddressAsDefault,
           isShipping: true,
         }),
@@ -425,10 +430,18 @@ function CheckoutPageContent() {
       // Check if using new address or selected address
       if (useNewAddress || savedAddresses.length === 0) {
         // Validate new address fields
-        if (!shippingData.firstName || !shippingData.lastName || !shippingData.street ||
-          !shippingData.streetNumber || !shippingData.city || !shippingData.postalCode) {
-          alert('Bitte füllen Sie alle Pflichtfelder aus');
+        if (!billingData.firstName || !billingData.lastName || !billingData.street ||
+          !billingData.streetNumber || !billingData.city || !billingData.postalCode) {
+          alert('Bitte füllen Sie alle Pflichtfelder der Rechnungsadresse aus');
           return;
+        }
+
+        if (useDifferentShipping) {
+          if (!shippingData.firstName || !shippingData.lastName || !shippingData.street ||
+            !shippingData.streetNumber || !shippingData.city || !shippingData.postalCode) {
+            alert('Bitte füllen Sie alle Pflichtfelder der Lieferadresse aus');
+            return;
+          }
         }
 
         // Ask if user wants to save address (only if logged in and using new address)
@@ -438,14 +451,14 @@ function CheckoutPageContent() {
         }
       } else if (!selectedAddressId) {
         // No address selected
-        alert('Bitte wählen Sie eine Lieferadresse');
+        alert('Bitte wählen Sie eine Adresse');
         return;
       }
     }
 
     // Validate contact data for pickup
     if (deliveryMethod === 'pickup') {
-      if (!shippingData.firstName || !shippingData.lastName || !shippingData.email) {
+      if (!billingData.firstName || !billingData.lastName || !billingData.email) {
         alert('Bitte geben Sie Ihre Kontaktdaten an');
         return;
       }
@@ -478,8 +491,8 @@ function CheckoutPageContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          customerEmail: shippingData.email || session?.user?.email,
-          customerName: `${shippingData.firstName} ${shippingData.lastName}`,
+          customerEmail: billingData.email || session?.user?.email,
+          customerName: `${billingData.firstName} ${billingData.lastName}`,
         }),
       });
 
@@ -496,7 +509,7 @@ function CheckoutPageContent() {
         const formData = {
           shippingData,
           billingData,
-          billingIsSame,
+          useDifferentShipping,
           deliveryMethod,
           shippingMethod,
           paymentMethod,
@@ -531,11 +544,13 @@ function CheckoutPageContent() {
         console.log('💰 Creating cash order for pickup...');
         console.log('📦 Items:', items);
         console.log('👤 Contact Data:', {
-          firstName: shippingData.firstName,
-          lastName: shippingData.lastName,
-          email: shippingData.email,
-          phone: shippingData.phone
+          firstName: billingData.firstName,
+          lastName: billingData.lastName,
+          email: billingData.email,
+          phone: billingData.phone
         });
+
+        const finalShippingData = useDifferentShipping ? shippingData : billingData;
 
         const response = await fetch('/api/orders/create-cash', {
           method: 'POST',
@@ -545,12 +560,8 @@ function CheckoutPageContent() {
             deliveryMethod,
             shippingMethod: null,
             paymentMethod: 'cash',
-            shippingData: {
-              firstName: shippingData.firstName,
-              lastName: shippingData.lastName,
-              email: shippingData.email,
-              phone: shippingData.phone,
-            },
+            shippingData: finalShippingData,
+            billingData: billingData,
             giftOptions,
             couponCode: appliedCoupon?.code || null,
           }),
@@ -585,26 +596,13 @@ function CheckoutPageContent() {
         };
 
         // Add contact/shipping data
-        if (deliveryMethod === 'pickup') {
-          // For pickup, send contact info as shippingData
-          checkoutData.shippingData = {
-            firstName: shippingData.firstName,
-            lastName: shippingData.lastName,
-            email: shippingData.email,
-            phone: shippingData.phone,
-          };
-          console.log('  - Contact Data (pickup):', checkoutData.shippingData);
-        } else {
-          // For delivery, send full address
-          checkoutData.shippingData = shippingData;
-          console.log('  - Shipping Address:', checkoutData.shippingData);
-        }
+        const finalShippingData = (deliveryMethod === 'pickup' || !useDifferentShipping) ? billingData : shippingData;
 
-        // Add billing data if different
-        if (!billingIsSame) {
-          checkoutData.billingData = billingData;
-          console.log('  - Billing Address (different):', checkoutData.billingData);
-        }
+        checkoutData.shippingData = finalShippingData;
+        checkoutData.billingData = billingData;
+
+        console.log('  - Shipping Address:', checkoutData.shippingData);
+        console.log('  - Billing Address:', checkoutData.billingData);
 
         const response = await fetch('/api/checkout/create-session', {
           method: 'POST',
@@ -717,228 +715,70 @@ function CheckoutPageContent() {
                   </CardContent>
                 </Card>
 
-                {/* 2. Adresse (nur bei Lieferung) */}
-                {deliveryMethod === 'shipping' && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>2. Lieferadresse</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {/* Gespeicherte Adressen */}
-                      {savedAddresses.length > 0 && !useNewAddress && (
-                        <div className="space-y-3">
-                          <label className="block text-sm font-medium text-graphite-dark">
-                            Gespeicherte Adressen
-                          </label>
-                          {savedAddresses.map((addr) => (
-                            <label
-                              key={addr.id}
-                              className={`flex items-start gap-4 p-4 border rounded-lg cursor-pointer transition-colors ${selectedAddressId === addr.id
-                                ? 'border-accent-burgundy bg-accent-burgundy/5'
-                                : 'border-taupe hover:border-graphite'
-                                }`}
-                            >
-                              <input
-                                type="radio"
-                                name="address"
-                                checked={selectedAddressId === addr.id}
-                                onChange={() => handleAddressSelect(addr.id)}
-                                className="mt-1 w-4 h-4 text-accent-burgundy focus:ring-accent-burgundy"
-                              />
-                              <div className="flex-1">
-                                <div className="font-medium text-graphite-dark">
-                                  {addr.firstName} {addr.lastName}
-                                </div>
-                                <div className="text-sm text-graphite">
-                                  {addr.street} {addr.streetNumber}, {addr.postalCode} {addr.city}
-                                </div>
-                                {addr.isDefault && (
-                                  <span className="inline-block mt-1 text-xs bg-accent-burgundy/10 text-accent-burgundy px-2 py-1 rounded">
-                                    Standard
-                                  </span>
-                                )}
-                              </div>
-                            </label>
-                          ))}
-                          <Button
-                            variant="secondary"
-                            onClick={() => setUseNewAddress(true)}
-                            className="w-full"
-                          >
-                            + Neue Adresse verwenden
-                          </Button>
-                        </div>
-                      )}
-
-                      {/* Neue Adresse Formular */}
-                      {(savedAddresses.length === 0 || useNewAddress) && (
-                        <>
-                          {useNewAddress && (
-                            <Button
-                              variant="secondary"
-                              onClick={() => setUseNewAddress(false)}
-                              size="sm"
-                            >
-                              ← Zurück zu gespeicherten Adressen
-                            </Button>
-                          )}
-                          <div className="grid md:grid-cols-2 gap-4">
-                            <Input
-                              label="Vorname"
-                              required
-                              value={shippingData.firstName}
-                              onChange={(e) =>
-                                setShippingData({ ...shippingData, firstName: e.target.value })
-                              }
-                            />
-                            <Input
-                              label="Nachname"
-                              required
-                              value={shippingData.lastName}
-                              onChange={(e) =>
-                                setShippingData({ ...shippingData, lastName: e.target.value })
-                              }
-                            />
-                          </div>
-
-                          <Input
-                            label="E-Mail"
-                            type="email"
-                            required
-                            value={shippingData.email}
-                            onChange={(e) =>
-                              setShippingData({ ...shippingData, email: e.target.value })
-                            }
-                          />
-
-                          <Input
-                            label="Telefon"
-                            type="tel"
-                            value={shippingData.phone}
-                            onChange={(e) =>
-                              setShippingData({ ...shippingData, phone: e.target.value })
-                            }
-                          />
-
-                          <div className="grid grid-cols-4 gap-4">
-                            <div className="col-span-4 sm:col-span-3">
-                              <Input
-                                label="Strasse"
-                                required
-                                value={shippingData.street}
-                                onChange={(e) =>
-                                  setShippingData({ ...shippingData, street: e.target.value })
-                                }
-                              />
-                            </div>
-                            <div className="col-span-4 sm:col-span-1">
-                              <Input
-                                label="Nr."
-                                required
-                                value={shippingData.streetNumber}
-                                onChange={(e) =>
-                                  setShippingData({ ...shippingData, streetNumber: e.target.value })
-                                }
-                              />
-                            </div>
-                          </div>
-
-                          <div className="grid md:grid-cols-3 gap-4">
-                            <div className="md:col-span-1">
-                              <Input
-                                label="PLZ"
-                                required
-                                value={shippingData.postalCode}
-                                onChange={(e) =>
-                                  setShippingData({ ...shippingData, postalCode: e.target.value })
-                                }
-                              />
-                            </div>
-                            <div className="md:col-span-2">
-                              <Input
-                                label="Ort"
-                                required
-                                value={shippingData.city}
-                                onChange={(e) =>
-                                  setShippingData({ ...shippingData, city: e.target.value })
-                                }
-                              />
-                            </div>
-                          </div>
-                        </>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Kontaktdaten bei Abholung */}
-                {deliveryMethod === 'pickup' && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>2. Kontaktdaten</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <Input
-                          label="Vorname"
-                          required
-                          value={shippingData.firstName}
-                          onChange={(e) =>
-                            setShippingData({ ...shippingData, firstName: e.target.value })
-                          }
-                        />
-                        <Input
-                          label="Nachname"
-                          required
-                          value={shippingData.lastName}
-                          onChange={(e) =>
-                            setShippingData({ ...shippingData, lastName: e.target.value })
-                          }
-                        />
-                      </div>
-                      <Input
-                        label="E-Mail"
-                        type="email"
-                        required
-                        value={shippingData.email}
-                        onChange={(e) =>
-                          setShippingData({ ...shippingData, email: e.target.value })
-                        }
-                      />
-                      <Input
-                        label="Telefon"
-                        type="tel"
-                        value={shippingData.phone}
-                        onChange={(e) =>
-                          setShippingData({ ...shippingData, phone: e.target.value })
-                        }
-                      />
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Rechnungsadresse */}
+                {/* 2. Rechnungs- & Kontaktdaten */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Rechnungsadresse</CardTitle>
+                    <CardTitle>{deliveryMethod === 'shipping' ? '2. Rechnungsadresse' : '2. Kontaktdaten & Rechnungsadresse'}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {/* Checkbox: Rechnungsadresse = Lieferadresse */}
-                    <label className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        checked={billingIsSame}
-                        onChange={(e) => setBillingIsSame(e.target.checked)}
-                        className="w-4 h-4 rounded border-taupe text-accent-burgundy focus:ring-accent-burgundy flex-shrink-0"
-                      />
-                      <span className="text-body text-graphite">
-                        Rechnungsadresse ist identisch mit {deliveryMethod === 'shipping' ? 'Lieferadresse' : 'Kontaktdaten'}
-                      </span>
-                    </label>
+                    {/* Gespeicherte Adressen */}
+                    {savedAddresses.length > 0 && !useNewAddress && (
+                      <div className="space-y-3">
+                        <label className="block text-sm font-medium text-graphite-dark">
+                          Gespeicherte Adressen
+                        </label>
+                        {savedAddresses.map((addr) => (
+                          <label
+                            key={addr.id}
+                            className={`flex items-start gap-4 p-4 border rounded-lg cursor-pointer transition-colors ${selectedAddressId === addr.id
+                              ? 'border-accent-burgundy bg-accent-burgundy/5'
+                              : 'border-taupe hover:border-graphite'
+                              }`}
+                          >
+                            <input
+                              type="radio"
+                              name="address"
+                              checked={selectedAddressId === addr.id}
+                              onChange={() => handleAddressSelect(addr.id)}
+                              className="mt-1 w-4 h-4 text-accent-burgundy focus:ring-accent-burgundy"
+                            />
+                            <div className="flex-1">
+                              <div className="font-medium text-graphite-dark">
+                                {addr.firstName} {addr.lastName}
+                              </div>
+                              <div className="text-sm text-graphite">
+                                {addr.street} {addr.streetNumber}, {addr.postalCode} {addr.city}
+                              </div>
+                              {addr.isDefault && (
+                                <span className="inline-block mt-1 text-xs bg-accent-burgundy/10 text-accent-burgundy px-2 py-1 rounded">
+                                  Standard
+                                </span>
+                              )}
+                            </div>
+                          </label>
+                        ))}
+                        <Button
+                          variant="secondary"
+                          onClick={() => setUseNewAddress(true)}
+                          className="w-full"
+                        >
+                          + Neue Adresse verwenden
+                        </Button>
+                      </div>
+                    )}
 
-                    {/* Separate Rechnungsadresse Felder */}
-                    {!billingIsSame && (
+                    {/* Neue Adresse Formular (Rechnungsadresse / Kontakt) */}
+                    {(savedAddresses.length === 0 || useNewAddress) && (
                       <>
+                        {useNewAddress && savedAddresses.length > 0 && (
+                          <Button
+                            variant="secondary"
+                            onClick={() => setUseNewAddress(false)}
+                            size="sm"
+                          >
+                            ← Zurück zu gespeicherten Adressen
+                          </Button>
+                        )}
                         <div className="grid md:grid-cols-2 gap-4">
                           <Input
                             label="Vorname"
@@ -978,7 +818,7 @@ function CheckoutPageContent() {
                         />
 
                         <div className="grid grid-cols-4 gap-4">
-                          <div className="col-span-3">
+                          <div className="col-span-4 sm:col-span-3">
                             <Input
                               label="Strasse"
                               required
@@ -988,7 +828,7 @@ function CheckoutPageContent() {
                               }
                             />
                           </div>
-                          <div className="col-span-1">
+                          <div className="col-span-4 sm:col-span-1">
                             <Input
                               label="Nr."
                               required
@@ -1026,6 +866,99 @@ function CheckoutPageContent() {
                     )}
                   </CardContent>
                 </Card>
+
+                {/* Optionale Lieferadresse (nur bei Versand) */}
+                {deliveryMethod === 'shipping' && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Lieferadresse</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Checkbox: Abweichende Lieferadresse */}
+                      <label className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={useDifferentShipping}
+                          onChange={(e) => setUseDifferentShipping(e.target.checked)}
+                          className="w-4 h-4 rounded border-taupe text-accent-burgundy focus:ring-accent-burgundy flex-shrink-0"
+                        />
+                        <span className="text-body text-graphite">
+                          Abweichende Lieferadresse verwenden
+                        </span>
+                      </label>
+
+                      {/* Separate Lieferadresse Felder */}
+                      {useDifferentShipping && (
+                        <>
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <Input
+                              label="Vorname"
+                              required
+                              value={shippingData.firstName}
+                              onChange={(e) =>
+                                setShippingData({ ...shippingData, firstName: e.target.value })
+                              }
+                            />
+                            <Input
+                              label="Nachname"
+                              required
+                              value={shippingData.lastName}
+                              onChange={(e) =>
+                                setShippingData({ ...shippingData, lastName: e.target.value })
+                              }
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-4 gap-4">
+                            <div className="col-span-3">
+                              <Input
+                                label="Strasse"
+                                required
+                                value={shippingData.street}
+                                onChange={(e) =>
+                                  setShippingData({ ...shippingData, street: e.target.value })
+                                }
+                              />
+                            </div>
+                            <div className="col-span-1">
+                              <Input
+                                label="Nr."
+                                required
+                                value={shippingData.streetNumber}
+                                onChange={(e) =>
+                                  setShippingData({ ...shippingData, streetNumber: e.target.value })
+                                }
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid md:grid-cols-3 gap-4">
+                            <div className="md:col-span-1">
+                              <Input
+                                label="PLZ"
+                                required
+                                value={shippingData.postalCode}
+                                onChange={(e) =>
+                                  setShippingData({ ...shippingData, postalCode: e.target.value })
+                                }
+                              />
+                            </div>
+                            <div className="md:col-span-2">
+                              <Input
+                                label="Ort"
+                                required
+                                value={shippingData.city}
+                                onChange={(e) =>
+                                  setShippingData({ ...shippingData, city: e.target.value })
+                                }
+                              />
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* 3. Zahlungsmethode */}
                 <Card>

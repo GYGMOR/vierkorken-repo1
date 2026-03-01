@@ -337,6 +337,7 @@ export async function POST(req: NextRequest) {
       shippingAddress: pickupAddress,
       paymentMethod: 'cash',
       deliveryMethod: 'PICKUP',
+      customerNote: order.customerNote,
     };
 
     // Send confirmation email
