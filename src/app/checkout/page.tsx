@@ -191,11 +191,16 @@ function CheckoutPageContent() {
   // Check if user is already verified or returning from verification
   useEffect(() => {
     const checkVerificationStatus = async () => {
-      // Check if returning from verification
+      // Check if returning from verification (success or failure)
       const verified = searchParams.get('verified');
-      if (verified === 'true') {
-        console.log('✅ Returned from successful verification');
-        setIsVerified(true);
+      if (verified === 'true' || verified === 'false') {
+        if (verified === 'true') {
+          console.log('✅ Returned from successful verification');
+          setIsVerified(true);
+        } else {
+          console.log('⚠️ Returned from failed/cancelled verification');
+          setIsVerified(false);
+        }
 
         // RESTORE form data from sessionStorage
         const savedFormData = sessionStorage.getItem('checkoutFormData');
@@ -203,6 +208,7 @@ function CheckoutPageContent() {
           try {
             const formData = JSON.parse(savedFormData);
             console.log('📋 Restoring form data from session:', {
+              status: verified,
               hasEmail: !!formData.shippingData?.email,
               email: formData.shippingData?.email,
               firstName: formData.shippingData?.firstName,
@@ -227,13 +233,11 @@ function CheckoutPageContent() {
             // Clean up sessionStorage
             sessionStorage.removeItem('checkoutFormData');
 
-            // IMPORTANT: Proceed immediately with the RESTORED data (not state)
-            // This avoids timing issues with React state updates
-            console.log('🚀 Setting flag to proceed with checkout using restored data...');
-            // Inject restored discount onto formData so it executes with it accurately
-            sessionStorage.setItem('checkoutDataRestored', 'true');
-            // proceedWithCheckoutData is removed from here because it causes dependency cycle issues. 
-            // We use the new useEffect above instead.
+            // IMPORTANT: Proceed immediately with the RESTORED data (if successful)
+            if (verified === 'true') {
+              console.log('🚀 Setting flag to proceed with checkout using restored data...');
+              sessionStorage.setItem('checkoutDataRestored', 'true');
+            }
           } catch (error) {
             console.error('Error restoring form data:', error);
           }

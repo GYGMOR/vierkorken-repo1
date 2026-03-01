@@ -152,7 +152,7 @@ function VerifyCompleteContent() {
                       {errorMessage}
                     </p>
                     <button
-                      onClick={() => router.push('/checkout')}
+                      onClick={() => router.push('/checkout?verified=false')}
                       className="btn btn-primary"
                     >
                       Zurück zum Checkout
