@@ -43,9 +43,11 @@ export async function POST(req: NextRequest) {
                 });
                 break;
 
-            case 'ORDER':
+            case 'ORDER_SHIPPING':
+            case 'ORDER_PICKUP':
             case 'ADMIN_ORDER':
                 // Mock Order Data
+                const isDebugPickup = type === 'ORDER_PICKUP';
                 const mockOrder = {
                     orderNumber: `TEST-${Date.now().toString().slice(-4)}`,
                     createdAt: new Date(),
@@ -78,7 +80,8 @@ export async function POST(req: NextRequest) {
                             winery: 'Weingut Test',
                             vintage: '2020',
                             bottleSize: '0.75',
-                            totalPrice: 45.00
+                            totalPrice: 45.00,
+                            giftWrap: true // Add gift wrap to test UI
                         },
                         {
                             quantity: 6,
@@ -90,20 +93,34 @@ export async function POST(req: NextRequest) {
                         }
                     ],
                     subtotal: 165.00,
-                    shippingCost: 15.00,
+                    shippingCost: isDebugPickup ? 0.00 : 15.00,
                     taxAmount: 13.50,
-                    total: 180.00,
+                    total: isDebugPickup ? 165.00 : 180.00,
                     paymentMethod: 'stripe',
-                    deliveryMethod: 'SHIPPING'
+                    deliveryMethod: isDebugPickup ? 'PICKUP' : 'SHIPPING'
                 };
 
-                if (type === 'ORDER') {
+                if (type === 'ORDER_SHIPPING' || type === 'ORDER_PICKUP') {
                     await sendOrderConfirmationEmail(email, 'test-order-id', mockOrder);
-                    result = { success: true, message: 'Order confirmation sent to ' + email };
+                    result = { success: true, message: `Order confirmation (${isDebugPickup ? 'Pickup' : 'Shipping'}) sent to ` + email };
                 } else {
                     await sendNewOrderNotificationToAdmin('test-order-id', mockOrder, email);
                     result = { success: true, message: 'Admin notification sent to ' + email };
                 }
+                break;
+
+            case 'SHIPPED_SHIPPING':
+            case 'SHIPPED_PICKUP':
+                const isDebugShippedPickup = type === 'SHIPPED_PICKUP';
+                const { sendOrderShippedEmail } = await import('@/lib/email');
+                await sendOrderShippedEmail(
+                    email,
+                    `TEST-${Date.now().toString().slice(-4)}`,
+                    'Max',
+                    isDebugShippedPickup ? undefined : '99.00.123456.12345678',
+                    isDebugShippedPickup ? 'PICKUP' : 'SHIPPING'
+                );
+                result = { success: true, message: `Status Update (${isDebugShippedPickup ? 'Pickup' : 'Shipping'}) sent to ` + email };
                 break;
 
             case 'NEWS':
@@ -171,7 +188,7 @@ export async function POST(req: NextRequest) {
                         <!-- Footer -->
                         <div style="background-color: #f5f5f5; padding: 20px; text-align: center; border-top: 1px solid #ddd; color: #999; font-size: 12px;">
                         <p style="margin: 0 0 10px;">
-                            © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
+                            © ${new Date().getFullYear()} Vier Korken Wein-Boutique<br>
                             Steinbrunnengasse 3a, 5707 Seengen
                         </p>
                         <p style="margin: 0;">

@@ -321,10 +321,10 @@ export async function POST(req: NextRequest) {
       finalShippingAddress = {
         firstName: shippingData?.firstName || user?.firstName || 'Abholung',
         lastName: shippingData?.lastName || user?.lastName || 'Kunde',
-        street: 'Weinlounge',
-        streetNumber: '1',
-        postalCode: '8000',
-        city: 'Zürich',
+        street: 'Steinbrunnengasse',
+        streetNumber: '3a',
+        postalCode: '5707',
+        city: 'Seengen AG',
         country: 'CH',
         phone: shippingData?.phone || user?.phone || '',
       };

@@ -151,7 +151,7 @@ export async function PATCH(
 
         switch (status) {
           case 'PROCESSING':
-            await sendOrderProcessingEmail(customerEmail, orderNumber, customerFirstName);
+            await sendOrderProcessingEmail(customerEmail, orderNumber, customerFirstName, order.deliveryMethod);
             console.log(`✅ Processing email sent to ${customerEmail}`);
             break;
 
@@ -160,9 +160,10 @@ export async function PATCH(
               customerEmail,
               orderNumber,
               customerFirstName,
-              trackingNumber || undefined
+              trackingNumber || undefined,
+              order.deliveryMethod
             );
-            console.log(`✅ Shipping email sent to ${customerEmail} with tracking: ${trackingNumber || 'none'}`);
+            console.log(`✅ Shipping email sent to ${customerEmail}`);
             break;
 
           case 'DELIVERED':

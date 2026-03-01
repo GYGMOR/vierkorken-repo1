@@ -47,7 +47,7 @@ export default function AdminOrders() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, deliveryMethod?: string) => {
     const variants: Record<string, 'primary' | 'secondary'> = {
       PENDING: 'secondary',
       CONFIRMED: 'primary',
@@ -57,12 +57,14 @@ export default function AdminOrders() {
       CANCELLED: 'secondary',
     };
 
+    const isPickup = deliveryMethod === 'PICKUP';
+
     const labels: Record<string, string> = {
       PENDING: 'Ausstehend',
       CONFIRMED: 'Bestätigt',
       PROCESSING: 'In Bearbeitung',
-      SHIPPED: 'Versendet',
-      DELIVERED: 'Zugestellt',
+      SHIPPED: isPickup ? 'Abholbereit' : 'Versendet',
+      DELIVERED: isPickup ? 'Abgeholt' : 'Zugestellt',
       CANCELLED: 'Storniert',
     };
 
@@ -144,8 +146,13 @@ export default function AdminOrders() {
                       {orders.map((order) => (
                         <tr key={order.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-graphite-dark">
+                            <div className="flex items-center text-sm font-medium text-graphite-dark">
                               {order.orderNumber}
+                              {(order.isGift || order.hasNote) && (
+                                <span className="ml-2" title={order.isGift ? "Enthält Geschenke" : "Enthält eine Kudennotiz"}>
+                                  {order.isGift ? "🎁" : "📝"}
+                                </span>
+                              )}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -163,7 +170,7 @@ export default function AdminOrders() {
                             CHF {order.total.toFixed(2)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            {getStatusBadge(order.status)}
+                            {getStatusBadge(order.status, order.deliveryMethod)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm">
                             <div className="flex gap-2">
@@ -179,7 +186,7 @@ export default function AdminOrders() {
                                   size="sm"
                                   onClick={() => updateOrderStatus(order.id, 'SHIPPED')}
                                 >
-                                  Versenden
+                                  {order.deliveryMethod === 'PICKUP' ? 'Bereitstellen' : 'Versenden'}
                                 </Button>
                               )}
                             </div>
@@ -201,11 +208,16 @@ export default function AdminOrders() {
                       <div className="flex items-start justify-between mb-3">
                         <div>
                           <div className="text-xs text-graphite/60 mb-1">Bestellnummer</div>
-                          <div className="text-sm font-medium text-graphite-dark">
+                          <div className="flex items-center text-sm font-medium text-graphite-dark">
                             {order.orderNumber}
+                            {(order.isGift || order.hasNote) && (
+                              <span className="ml-2" title={order.isGift ? "Enthält Geschenke" : "Enthält eine Kudennotiz"}>
+                                {order.isGift ? "🎁" : "📝"}
+                              </span>
+                            )}
                           </div>
                         </div>
-                        {getStatusBadge(order.status)}
+                        {getStatusBadge(order.status, order.deliveryMethod)}
                       </div>
 
                       {/* Customer Info */}
@@ -248,10 +260,10 @@ export default function AdminOrders() {
                         {order.status === 'CONFIRMED' && (
                           <Button
                             size="sm"
-                            onClick={() => updateOrderStatus(order.id, 'SHIPPED')}
                             className="flex-1"
+                            onClick={() => updateOrderStatus(order.id, 'SHIPPED')}
                           >
-                            Versenden
+                            {order.deliveryMethod === 'PICKUP' ? 'Bereitstellen' : 'Versenden'}
                           </Button>
                         )}
                       </div>

@@ -17,6 +17,9 @@ interface OrderItem {
   quantity: number;
   unitPrice: number | string; // Can be Decimal from Prisma
   totalPrice: number | string; // Can be Decimal from Prisma
+  isGift?: boolean;
+  giftWrap?: boolean;
+  giftMessage?: string | null;
   variant?: {
     wine: {
       name: string;
@@ -67,6 +70,8 @@ interface Order {
   trackingNumber: string | null;
   shippedAt: string | null;
   deliveredAt: string | null;
+  deliveryMethod?: string;
+  customerNote?: string | null;
   user?: {
     email: string;
     firstName: string;
@@ -365,7 +370,7 @@ export default function OrderDetailPage() {
     return value;
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, deliveryMethod?: string) => {
     const variants: Record<string, 'primary' | 'secondary'> = {
       PENDING: 'secondary',
       CONFIRMED: 'primary',
@@ -375,12 +380,14 @@ export default function OrderDetailPage() {
       CANCELLED: 'secondary',
     };
 
+    const isPickup = deliveryMethod === 'PICKUP';
+
     const labels: Record<string, string> = {
       PENDING: 'Ausstehend',
       CONFIRMED: 'Bestätigt',
       PROCESSING: 'In Bearbeitung',
-      SHIPPED: 'Versendet',
-      DELIVERED: 'Zugestellt',
+      SHIPPED: isPickup ? 'Abholbereit' : 'Versendet',
+      DELIVERED: isPickup ? 'Abgeholt' : 'Zugestellt',
       CANCELLED: 'Storniert',
     };
 
@@ -447,6 +454,7 @@ export default function OrderDetailPage() {
               <h1 className="text-3xl font-serif font-light text-graphite-dark">
                 Bestellung {order.orderNumber}
               </h1>
+              {getStatusBadge(order.status, order.deliveryMethod)}
               <p className="mt-2 text-graphite">
                 Bestellt am {new Date(order.createdAt).toLocaleDateString('de-CH', {
                   day: '2-digit',
@@ -541,6 +549,42 @@ export default function OrderDetailPage() {
           </Card>
         </div>
 
+        {/* Notizen & Geschenke */}
+        {(order.customerNote || order.items.some(i => i.isGift)) && (
+          <Card className="mt-6 border-accent-burgundy/20 bg-accent-burgundy/5">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-accent-burgundy" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" /></svg>
+                Geschenkoptionen & Notizen
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {order.customerNote && (
+                <div>
+                  <p className="text-sm font-medium text-graphite/60 mb-1">Nachricht des Kunden (Grusskarte / Notiz)</p>
+                  <p className="italic text-graphite-dark bg-white p-3 rounded border border-taupe-light/50">"{order.customerNote}"</p>
+                </div>
+              )}
+              {order.items.some(i => i.isGift) && (
+                <div className="pt-2">
+                  <p className="text-sm font-medium text-graphite/60 mb-2">Geschenkartikel</p>
+                  <ul className="list-disc pl-5 text-sm text-graphite-dark space-y-1">
+                    {order.items.filter(i => i.isGift).map(item => (
+                      <li key={item.id}>
+                        <span className="font-semibold">{item.quantity}x {item.wineName}</span>
+                        {item.giftWrap && <span className="ml-2 text-accent-burgundy text-xs bg-white px-2 py-0.5 rounded-full border border-accent-burgundy/20">Mit Geschenkverpackung</span>}
+                        {item.giftMessage && item.giftMessage !== order.customerNote && (
+                          <p className="text-xs text-graphite italic mt-1">Spezifische Nachricht: "{item.giftMessage}"</p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Status & Tracking */}
         <Card className="print:hidden">
           <CardHeader>
@@ -561,8 +605,8 @@ export default function OrderDetailPage() {
                   <option value="PENDING">Ausstehend</option>
                   <option value="CONFIRMED">Bestätigt</option>
                   <option value="PROCESSING">In Bearbeitung</option>
-                  <option value="SHIPPED">Versendet</option>
-                  <option value="DELIVERED">Zugestellt</option>
+                  <option value="SHIPPED">{order.deliveryMethod === 'PICKUP' ? 'Abholbereit' : 'Versendet'}</option>
+                  <option value="DELIVERED">{order.deliveryMethod === 'PICKUP' ? 'Abgeholt' : 'Zugestellt'}</option>
                   <option value="CANCELLED">Storniert</option>
                   <option value="REFUNDED">Erstattet</option>
                 </select>

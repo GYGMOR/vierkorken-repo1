@@ -458,7 +458,8 @@ function CheckoutPageContent() {
   const handleVerificationFlow = async () => {
     // ⚠️ SCHWEIZER RICHTLINIEN: Identity Verification vor Payment
     // Check if user needs identity verification (18+ for alcohol)
-    if (!isVerified) {
+    // Bei Abholung im Laden wird das Alter vor Ort geprüft, daher kann die Online-Verifikation übersprungen werden
+    if (!isVerified && deliveryMethod !== 'pickup') {
       console.log('🔐 Identity verification required, redirecting...');
       await startIdentityVerification();
       return;

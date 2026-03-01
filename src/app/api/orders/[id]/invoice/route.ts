@@ -78,6 +78,7 @@ export async function GET(
         quantity: item.quantity,
         unitPrice: Number(item.unitPrice),
         totalPrice: Number(item.totalPrice),
+        giftWrap: item.giftWrap,
       })),
 
       subtotal: Number(dbOrder.subtotal),
@@ -102,7 +103,7 @@ export async function GET(
     doc
       .fontSize(10)
       .font('Helvetica')
-      .text('Premium Weinshop', 50, 80)
+      .text('', 50, 80)
       .text('Steinbrunnengasse 3a', 50, 95)
       .text('5707 Seengen', 50, 110)
       .text('Tel: 062 390 04 04', 50, 125)
@@ -198,6 +199,13 @@ export async function GET(
     doc
       .text('Versand:', 350, yPosition)
       .text(formatPrice(order.shippingCost), 470, yPosition, { width: 80, align: 'right' });
+
+    if (order.items?.some((item: any) => item.giftWrap)) {
+      yPosition += 20;
+      doc
+        .text('Geschenkverpackung:', 350, yPosition)
+        .text(formatPrice(5.00), 470, yPosition, { width: 80, align: 'right' });
+    }
 
     yPosition += 20;
     doc

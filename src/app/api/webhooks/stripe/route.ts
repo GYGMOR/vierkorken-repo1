@@ -188,6 +188,11 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
         if (existingOrderId) {
           console.log('📦 Found existing order ID in metadata:', existingOrderId);
 
+          // Get existing order to check delivery method (we don't want to overwrite pickup store address)
+          const existingOrder = await prisma.order.findUnique({
+            where: { id: existingOrderId }
+          });
+
           // Update existing order with payment confirmation
           order = await prisma.order.update({
             where: { id: existingOrderId },
@@ -201,8 +206,8 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
               customerFirstName: session.customer_details?.name?.split(' ')[0] || undefined,
               customerLastName: session.customer_details?.name?.split(' ').slice(1).join(' ') || undefined,
               customerPhone: session.customer_details?.phone || undefined,
-              // Update addresses if provided by Stripe
-              ...(session.shipping_details?.address && {
+              // Update addresses if provided by Stripe (Skip for PICKUP orders to keep store address!)
+              ...(session.shipping_details?.address && existingOrder?.deliveryMethod !== 'PICKUP' && {
                 shippingAddress: {
                   firstName: session.shipping_details.name?.split(' ')[0] || '',
                   lastName: session.shipping_details.name?.split(' ').slice(1).join(' ') || '',
@@ -213,7 +218,7 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
                   country: session.shipping_details.address.country || '',
                 },
               }),
-              ...(session.customer_details?.address && {
+              ...(session.customer_details?.address && existingOrder?.deliveryMethod !== 'PICKUP' && {
                 billingAddress: {
                   firstName: session.customer_details.name?.split(' ')[0] || '',
                   lastName: session.customer_details.name?.split(' ').slice(1).join(' ') || '',

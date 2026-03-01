@@ -177,7 +177,7 @@ export async function sendPasswordResetEmail(
             <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
+              © ${new Date().getFullYear()} Vier Korken Wein-Boutique<br>
               Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
             </p>
           </div>
@@ -198,7 +198,7 @@ Dieser Link ist nur 1 Stunde gültig.
 
 Falls Sie diese Anfrage nicht gestellt haben, können Sie diese E-Mail ignorieren. Ihr Passwort bleibt unverändert.
 
-© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique
 Bei Fragen: info@vierkorken.ch
     `.trim();
 
@@ -264,7 +264,7 @@ export async function sendContactEmail(
             <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
+              © ${new Date().getFullYear()} Vier Korken Wein-Boutique<br>
               Diese E-Mail wurde automatisch vom Kontaktformular generiert.
             </p>
           </div>
@@ -285,7 +285,7 @@ ${message}
 
 Sie können direkt auf diese E-Mail antworten, um dem Kunden zu antworten.
 
-© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique
     `.trim();
 
   await sendInfoMail({
@@ -398,6 +398,9 @@ export async function sendOrderConfirmationEmail(
 
   const formatPrice = (price: number) => `CHF ${Number(price).toFixed(2)}`;
 
+  const hasGiftWrap = orderDetails.items?.some((item: any) => item.giftWrap);
+  const giftWrapCost = hasGiftWrap ? 5.00 : 0;
+
   // Format addresses
   const billingAddr = orderDetails.billingAddress;
   const shippingAddr = orderDetails.shippingAddress;
@@ -426,6 +429,9 @@ export async function sendOrderConfirmationEmail(
                 <h3 style="color: #8B4513; margin-top: 0;">Bestellnummer: ${orderDetails.orderNumber}</h3>
                 <p style="margin: 5px 0;"><strong>Datum:</strong> ${new Date(orderDetails.createdAt).toLocaleDateString('de-CH')}</p>
                 <p style="margin: 5px 0;"><strong>Status:</strong> Bestätigt</p>
+                <p style="margin: 5px 0; color: #8B4513; font-weight: bold;">
+                  <strong>Liefermethode:</strong> ${orderDetails.deliveryMethod === 'PICKUP' ? 'Abholung in der Weinlounge (Seengen)' : 'Postversand'}
+                </p>
               </div>
 
               <h3 style="color: #333;">Bestellte Artikel:</h3>
@@ -443,6 +449,11 @@ export async function sendOrderConfirmationEmail(
                     <td style="padding: 8px 0; border-bottom: 1px solid #eee;">Versand:</td>
                     <td style="padding: 8px 0; text-align: right; border-bottom: 1px solid #eee;">${formatPrice(orderDetails.shippingCost)}</td>
                   </tr>
+                  ${hasGiftWrap ? `
+                  <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #eee;">Geschenkverpackung:</td>
+                    <td style="padding: 8px 0; text-align: right; border-bottom: 1px solid #eee;">${formatPrice(giftWrapCost)}</td>
+                  </tr>` : ''}
                   <tr>
                     <td style="padding: 8px 0; border-bottom: 2px solid #8B4513;">MwSt. (8.1%):</td>
                     <td style="padding: 8px 0; text-align: right; border-bottom: 2px solid #8B4513;">${formatPrice(orderDetails.taxAmount)}</td>
@@ -495,7 +506,7 @@ export async function sendOrderConfirmationEmail(
               <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
               <p style="color: #999; font-size: 12px; text-align: center;">
-                © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
+                © ${new Date().getFullYear()} Vier Korken Wein-Boutique<br>
                 Steinbrunnengasse 3a, 5707 Seengen<br>
                 Tel: 062 390 04 04 | info@vierkorken.ch<br><br>
                 Diese E-Mail wurde automatisch generiert. Bitte antworten Sie nicht direkt darauf.<br>
@@ -518,6 +529,7 @@ Ihre Bestellung wurde erfolgreich aufgegeben und wird schnellstmöglich bearbeit
 Bestellnummer: ${orderDetails.orderNumber}
 Datum: ${new Date(orderDetails.createdAt).toLocaleDateString('de-CH')}
 Status: Bestätigt
+Liefermethode: ${orderDetails.deliveryMethod === 'PICKUP' ? 'Abholung in der Weinlounge (Seengen)' : 'Postversand'}
 
 BESTELLTE ARTIKEL:
 ${itemsList}
@@ -525,7 +537,7 @@ ${itemsList}
 PREISÜBERSICHT:
 Zwischensumme: ${formatPrice(orderDetails.subtotal)}
 Versand: ${formatPrice(orderDetails.shippingCost)}
-MwSt. (8.1%): ${formatPrice(orderDetails.taxAmount)}
+${hasGiftWrap ? `Geschenkverpackung: ${formatPrice(giftWrapCost)}\n` : ''}MwSt. (8.1%): ${formatPrice(orderDetails.taxAmount)}
 ─────────────────────────
 Gesamtbetrag: ${formatPrice(orderDetails.total)}
 
@@ -551,7 +563,7 @@ NÄCHSTE SCHRITTE:
 
 Bestellung verfolgen: ${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/bestellung/${orderDetails.orderNumber}
 
-© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique
 Steinbrunnengasse 3a, 5707 Seengen
 Tel: 062 390 04 04 | info@vierkorken.ch
 
@@ -723,6 +735,12 @@ export async function sendNewOrderNotificationToAdmin(orderId: string, orderDeta
                       <td style="padding: 8px; text-align: right;">${formatPrice(orderDetails.shippingCost)}</td>
                     </tr>
                     ` : ''}
+                    ${orderDetails.items?.some((item: any) => item.giftWrap) ? `
+                    <tr>
+                      <td style="padding: 8px;">Geschenkverpackung:</td>
+                      <td style="padding: 8px; text-align: right;">${formatPrice(5.00)}</td>
+                    </tr>
+                    ` : ''}
                     ${Number(orderDetails.discountAmount) > 0 ? `
                     <tr style="color: #4caf50;">
                       <td style="padding: 8px;">Rabatt:</td>
@@ -775,7 +793,7 @@ export async function sendNewOrderNotificationToAdmin(orderId: string, orderDeta
               <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
               <p style="color: #999; font-size: 12px; text-align: center;">
-                © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
+                © ${new Date().getFullYear()} Vier Korken Wein-Boutique<br>
                 Diese E-Mail wurde automatisch generiert.
               </p>
             </div>
@@ -862,7 +880,7 @@ export async function sendMaintenanceSubscriptionEmail(to: string) {
             <hr style="border: none; border-top: 1px solid #E8E3DF; margin: 30px 0;">
 
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
+              © ${new Date().getFullYear()} Vier Korken Wein-Boutique<br>
               <a href="mailto:info@vierkorken.ch" style="color: #6D2932; text-decoration: none;">info@vierkorken.ch</a>
             </p>
           </div>
@@ -871,7 +889,7 @@ export async function sendMaintenanceSubscriptionEmail(to: string) {
     `;
 
   const text = `
-Vier Korken Wein-Boutique - Premium Weinshop
+Vier Korken Wein-Boutique
 
 Vielen Dank für Ihr Interesse!
 
@@ -890,7 +908,7 @@ Mit besten Grüßen,
 Ihr Vier Korken Wein-Boutique Team
 
 ---
-© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique
 info@vierkorken.ch
     `.trim();
 
@@ -959,7 +977,7 @@ export async function sendLaunchNotificationEmail(to: string) {
             <hr style="border: none; border-top: 1px solid #E8E3DF; margin: 30px 0;">
 
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
+              © ${new Date().getFullYear()} Vier Korken Wein-Boutique<br>
               <a href="mailto:info@vierkorken.ch" style="color: #6D2932; text-decoration: none;">info@vierkorken.ch</a> |
               <a href="${siteUrl}" style="color: #6D2932; text-decoration: none;">www.vierkorken.ch</a>
             </p>
@@ -969,7 +987,7 @@ export async function sendLaunchNotificationEmail(to: string) {
     `;
 
   const text = `
-Vier Korken Wein-Boutique - Premium Weinshop
+Vier Korken Wein-Boutique
 
 Wir sind jetzt online!
 
@@ -992,7 +1010,7 @@ Prost und beste Grüße,
 Ihr Vier Korken Wein-Boutique Team
 
 ---
-© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique
 info@vierkorken.ch | ${siteUrl}
     `.trim();
 
@@ -1065,7 +1083,7 @@ export async function sendNewsletterConfirmationEmail(to: string) {
             </p>
 
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
+              © ${new Date().getFullYear()} Vier Korken Wein-Boutique<br>
               <a href="mailto:info@vierkorken.ch" style="color: #6D2932; text-decoration: none;">info@vierkorken.ch</a>
             </p>
           </div>
@@ -1074,7 +1092,7 @@ export async function sendNewsletterConfirmationEmail(to: string) {
     `;
 
   const text = `
-Vier Korken Wein-Boutique - Premium Weinshop
+Vier Korken Wein-Boutique
 
 Willkommen beim Vier Korken Wein-Boutique Newsletter!
 
@@ -1097,7 +1115,7 @@ Ihr Vier Korken Wein-Boutique Team
 Sie erhalten diese E-Mail, weil Sie sich für unseren Newsletter angemeldet haben.
 Newsletter abbestellen: ${unsubscribeUrl}
 
-© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique
 info@vierkorken.ch
     `.trim();
 
@@ -1205,7 +1223,7 @@ export async function sendNewsNotificationEmail(
             </p>
 
             <p style="color: #999; font-size: 12px; margin: 10px 0 0;">
-              © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
+              © ${new Date().getFullYear()} Vier Korken Wein-Boutique<br>
               <a href="mailto:info@vierkorken.ch" style="color: #6D2932; text-decoration: none;">info@vierkorken.ch</a>
             </p>
           </div>
@@ -1214,7 +1232,7 @@ export async function sendNewsNotificationEmail(
     `;
 
   const text = `
-Vier Korken Wein-Boutique - Premium Weinshop
+Vier Korken Wein-Boutique
 
 NEUE NEUIGKEITEN
 
@@ -1238,7 +1256,7 @@ Weitere Links:
 Sie erhalten diese E-Mail, weil Sie unseren Newsletter abonniert haben.
 Newsletter abbestellen: ${unsubscribeUrl}
 
-© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique
 info@vierkorken.ch
     `.trim();
 
@@ -1256,10 +1274,12 @@ info@vierkorken.ch
 export async function sendOrderProcessingEmail(
   to: string,
   orderNumber: string,
-  customerFirstName: string
+  customerFirstName: string,
+  deliveryMethod?: string
 ) {
   const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   const orderUrl = `${siteUrl}/bestellung/${orderNumber}`;
+  const isPickup = deliveryMethod === 'PICKUP';
 
   const html = `
       <!DOCTYPE html>
@@ -1279,7 +1299,7 @@ export async function sendOrderProcessingEmail(
 
             <p>Hallo ${customerFirstName},</p>
 
-            <p>Wir haben mit der Bearbeitung Ihrer Bestellung begonnen und stellen gerade alles für Sie zusammen.</p>
+            <p>Wir haben mit der Bearbeitung Ihrer Bestellung begonnen und stellen gerade alles für Sie ${isPickup ? 'zur Abholung ' : ''}zusammen.</p>
 
             <div style="background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #8B4513;">
               <p style="margin: 0;"><strong>Bestellnummer:</strong> ${orderNumber}</p>
@@ -1288,7 +1308,7 @@ export async function sendOrderProcessingEmail(
 
             <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107; margin: 20px 0;">
               <p style="margin: 0; color: #856404;">
-                <strong>📦 Nächster Schritt:</strong> Sobald Ihre Bestellung versendet wurde, erhalten Sie eine weitere E-Mail mit der Tracking-Nummer.
+                <strong>📦 Nächster Schritt:</strong> ${isPickup ? 'Sobald Ihre Bestellung abholbereit ist, erhalten Sie eine weitere E-Mail.' : 'Sobald Ihre Bestellung versendet wurde, erhalten Sie eine weitere E-Mail mit der Tracking-Nummer.'}
               </p>
             </div>
 
@@ -1303,7 +1323,7 @@ export async function sendOrderProcessingEmail(
             <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
+              © ${new Date().getFullYear()} Vier Korken Wein-Boutique<br>
               Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
             </p>
           </div>
@@ -1316,18 +1336,18 @@ Vier Korken Wein-Boutique - Bestellung in Bearbeitung
 
 Hallo ${customerFirstName},
 
-Wir haben mit der Bearbeitung Ihrer Bestellung begonnen und stellen gerade alles für Sie zusammen.
+Wir haben mit der Bearbeitung Ihrer Bestellung begonnen und stellen gerade alles für Sie ${isPickup ? 'zur Abholung ' : ''}zusammen.
 
 Bestellnummer: ${orderNumber}
 Status: In Bearbeitung
 
-Nächster Schritt: Sobald Ihre Bestellung versendet wurde, erhalten Sie eine weitere E-Mail mit der Tracking-Nummer.
+Nächster Schritt: ${isPickup ? 'Sobald Ihre Bestellung abholbereit ist, erhalten Sie eine weitere E-Mail.' : 'Sobald Ihre Bestellung versendet wurde, erhalten Sie eine weitere E-Mail mit der Tracking-Nummer.'}
 
 Bestellung verfolgen: ${orderUrl}
 
 Vielen Dank für Ihr Vertrauen!
 
-© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique
 Bei Fragen: info@vierkorken.ch
     `.trim();
 
@@ -1346,10 +1366,12 @@ export async function sendOrderShippedEmail(
   to: string,
   orderNumber: string,
   customerFirstName: string,
-  trackingNumber?: string
+  trackingNumber?: string,
+  deliveryMethod?: string
 ) {
   const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   const orderUrl = `${siteUrl}/bestellung/${orderNumber}`;
+  const isPickup = deliveryMethod === 'PICKUP';
 
   // Swiss Post tracking URL
   const trackingUrl = trackingNumber
@@ -1362,7 +1384,7 @@ export async function sendOrderShippedEmail(
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Bestellung versendet</title>
+          <title>${isPickup ? 'Bestellung abholbereit' : 'Bestellung versendet'}</title>
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background-color: #8B4513; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
@@ -1371,37 +1393,44 @@ export async function sendOrderShippedEmail(
 
           <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
             <div style="background-color: #d4edda; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px;">
-              <h2 style="color: #155724; margin: 0; font-size: 24px;">📦 Ihre Bestellung ist unterwegs!</h2>
+              <h2 style="color: #155724; margin: 0; font-size: 24px;">🎉 ${isPickup ? 'Ihre Bestellung ist abholbereit!' : '📦 Ihre Bestellung ist unterwegs!'}</h2>
             </div>
 
             <p>Hallo ${customerFirstName},</p>
 
-            <p>Gute Neuigkeiten! Ihre Bestellung wurde soeben versendet und ist nun auf dem Weg zu Ihnen.</p>
+            <p>Gute Neuigkeiten! ${isPickup ? 'Ihre Bestellung ist verpackt und steht für Sie in unserer Weinlounge zur Abholung bereit.' : 'Ihre Bestellung wurde soeben versendet und ist nun auf dem Weg zu Ihnen.'}</p>
 
             <div style="background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #28a745;">
               <p style="margin: 0;"><strong>Bestellnummer:</strong> ${orderNumber}</p>
-              <p style="margin: 10px 0 0;"><strong>Status:</strong> Versendet</p>
-              ${trackingNumber ? `
+              <p style="margin: 10px 0 0;"><strong>Status:</strong> ${isPickup ? 'Bereit zur Abholung' : 'Versendet'}</p>
+              ${trackingNumber && !isPickup ? `
               <p style="margin: 10px 0 0;"><strong>Tracking-Nummer:</strong></p>
               <p style="margin: 5px 0 0; font-family: monospace; font-size: 14px; background-color: #f5f5f5; padding: 8px; border-radius: 4px;">${trackingNumber}</p>
               ` : ''}
+              ${trackingUrl && !isPickup ? `
+              <div style="margin-top: 15px;">
+                <a href="${trackingUrl}" style="color: #8B4513; text-decoration: underline; font-weight: 500;">
+                  Sendung bei der Schweizerischen Post verfolgen →
+                </a>
+              </div>
+              ` : ''}
             </div>
 
-            ${trackingUrl ? `
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${trackingUrl}" style="background-color: #28a745; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: 500; margin-bottom: 10px;">
-                📍 Sendung verfolgen
-              </a>
-              <p style="margin: 10px 0 0; font-size: 13px; color: #666;">
-                Klicken Sie hier, um Ihre Sendung bei der Post zu verfolgen
+            ${isPickup ? `
+            <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107; margin: 20px 0;">
+              <h3 style="color: #856404; margin-top: 0; font-size: 16px;">Öffnungszeiten für Abholung</h3>
+              <p style="margin: 0; color: #856404;">
+                 <strong>Montag - Freitag:</strong> 09:00 - 18:00 Uhr<br>
+                 <strong>Samstag:</strong> 10:00 - 16:00 Uhr<br><br>
+                 <strong>Adresse:</strong> Steinbrunnengasse 3a, 5707 Seengen
               </p>
             </div>
-            ` : ''}
-
+            ` : `
             <div style="background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0;">
               <h3 style="color: #333; margin-top: 0; font-size: 16px;">📅 Voraussichtliche Lieferung</h3>
               <p style="margin: 5px 0 0; color: #666;">Ihre Bestellung sollte innerhalb von 2-3 Werktagen bei Ihnen eintreffen.</p>
             </div>
+            `}
 
             <div style="text-align: center; margin: 30px 0;">
               <a href="${orderUrl}" style="background-color: #8B4513; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: 500;">
@@ -1414,7 +1443,7 @@ export async function sendOrderShippedEmail(
             <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
+              © ${new Date().getFullYear()} Vier Korken Wein-Boutique<br>
               Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
             </p>
           </div>
@@ -1423,25 +1452,28 @@ export async function sendOrderShippedEmail(
     `;
 
   const text = `
-Vier Korken Wein-Boutique - Bestellung versendet
+Vier Korken Wein-Boutique - ${isPickup ? 'Bestellung abholbereit' : 'Bestellung versendet'}
 
 Hallo ${customerFirstName},
 
-Gute Neuigkeiten! Ihre Bestellung wurde soeben versendet und ist nun auf dem Weg zu Ihnen.
+Gute Neuigkeiten! ${isPickup ? 'Ihre Bestellung ist verpackt und steht für Sie in unserer Weinlounge zur Abholung bereit.' : 'Ihre Bestellung wurde soeben versendet und ist nun auf dem Weg zu Ihnen.'}
 
 Bestellnummer: ${orderNumber}
-Status: Versendet
-${trackingNumber ? `Tracking-Nummer: ${trackingNumber}` : ''}
+Status: ${isPickup ? 'Bereit zur Abholung' : 'Versendet'}
 
+${isPickup ? `Öffnungszeiten für Abholung:
+Montag - Freitag: 09:00 - 18:00 Uhr
+Samstag: 10:00 - 16:00 Uhr
+Adresse: Steinbrunnengasse 3a, 5707 Seengen` : trackingNumber ? `Tracking-Nummer: ${trackingNumber}
 ${trackingUrl ? `Sendung verfolgen: ${trackingUrl}` : ''}
 
-Voraussichtliche Lieferung: 2-3 Werktage
+Voraussichtliche Lieferung: 2-3 Werktage` : ''}
 
 Bestelldetails ansehen: ${orderUrl}
 
 Vielen Dank für Ihre Bestellung. Wir hoffen, Sie genießen Ihre Weine!
 
-© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique
 Bei Fragen: info@vierkorken.ch
     `.trim();
 
@@ -1510,7 +1542,7 @@ export async function sendOrderDeliveredEmail(
             <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
+              © ${new Date().getFullYear()} Vier Korken Wein-Boutique<br>
               Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
             </p>
           </div>
@@ -1536,7 +1568,7 @@ Bestelldetails ansehen: ${orderUrl}
 
 Vielen Dank für Ihr Vertrauen. Wir freuen uns darauf, Sie bald wieder bei Vier Korken Wein-Boutique begrüßen zu dürfen!
 
-© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique
 Bei Fragen: info@vierkorken.ch
     `.trim();
 
@@ -1600,7 +1632,7 @@ export async function sendOrderCancelledEmail(
             <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
+              © ${new Date().getFullYear()} Vier Korken Wein-Boutique<br>
               Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
             </p>
           </div>
@@ -1624,7 +1656,7 @@ Bei Fragen zur Stornierung kontaktieren Sie uns bitte unter info@vierkorken.ch
 
 Weiter einkaufen: ${siteUrl}/weine
 
-© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique
 Bei Fragen: info@vierkorken.ch
     `.trim();
 
@@ -1715,7 +1747,7 @@ export async function sendEventTicketsEmail(
           <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
           <p style="color: #999; font-size: 12px; text-align: center;">
-            © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
+            © ${new Date().getFullYear()} Vier Korken Wein-Boutique<br>
             Steinbrunnengasse 3a, 5707 Seengen<br>
             Tel: 062 390 04 04 | info@vierkorken.ch
           </p>
@@ -1741,7 +1773,7 @@ Bestellung & Tickets ansehen: ${siteUrl}/bestellung/${orderNumber}
 
 Wir freuen uns auf Sie!
 
-© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique
 Steinbrunnengasse 3a, 5707 Seengen
 Tel: 062 390 04 04 | info@vierkorken.ch
   `.trim();
@@ -1851,7 +1883,7 @@ export async function sendGiftCardEmail(
           <hr style="border: none; border-top: 1px solid #E8E3DF; margin: 30px 0;">
 
           <p style="color: #999; font-size: 12px; text-align: center;">
-            © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
+            © ${new Date().getFullYear()} Vier Korken Wein-Boutique<br>
             Steinbrunnengasse 3a, 5707 Seengen<br>
             Tel: 062 390 04 04 | info@vierkorken.ch
           </p>
@@ -1882,7 +1914,7 @@ SO LÖSEN SIE IHREN GUTSCHEIN EIN:
 
 Dieser Gutschein ist 3 Jahre gültig und kann für alle Produkte in unserem Shop eingelöst werden.
 
-© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique
 Steinbrunnengasse 3a, 5707 Seengen
 Tel: 062 390 04 04 | info@vierkorken.ch
   `.trim();
@@ -1992,7 +2024,7 @@ export async function sendEventNotificationEmail(to: string, event: any) {
             <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
 
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop<br>
+              © ${new Date().getFullYear()} Vier Korken Wein-Boutique<br>
               Sie erhalten diese E-Mail, weil Sie sich für unseren Newsletter angemeldet haben.<br>
               <a href="${process.env.NEXT_PUBLIC_APP_URL}/newsletter/unsubscribe" style="color: #8B4513; text-decoration: underline;">Abmelden</a>
             </p>
@@ -2014,7 +2046,7 @@ ${event.description ? event.description.substring(0, 150) + '...' : ''}
 
 Jetzt anmelden: ${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/events/${event.slug}
 
-© ${new Date().getFullYear()} Vier Korken Wein-Boutique - Premium Weinshop
+© ${new Date().getFullYear()} Vier Korken Wein-Boutique
   `.trim();
 
   await sendInfoMail({

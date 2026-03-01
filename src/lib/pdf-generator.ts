@@ -167,7 +167,12 @@ export async function buildInvoiceDoc(order: Order, logoBase64?: string): Promis
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(primaryColor);
-    doc.text(order.deliveryMethod === 'PICKUP' ? 'Abholung:' : 'Lieferadresse:', 20, currentY);
+
+    // Explicitly add delivery method line before the address block
+    doc.text(`Liefermethode: ${order.deliveryMethod === 'PICKUP' ? 'Abholung in Seengen' : 'Postversand'}`, 20, currentY);
+    currentY += 8;
+
+    doc.text(order.deliveryMethod === 'PICKUP' ? 'Abholadresse:' : 'Lieferadresse:', 20, currentY);
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');

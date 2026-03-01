@@ -76,6 +76,8 @@ export async function GET(req: NextRequest) {
         createdAt: order.createdAt.toISOString(),
         itemsCount: order.items.length,
         ticketsCount: order.tickets.length,
+        isGift: order.items.some(i => i.isGift),
+        hasNote: !!order.customerNote,
       })),
     });
   } catch (error: any) {

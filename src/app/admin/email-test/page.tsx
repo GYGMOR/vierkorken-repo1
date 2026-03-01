@@ -79,11 +79,35 @@ export default function EmailTestPage() {
                             </Button>
 
                             <Button
-                                onClick={() => handleTest('ORDER')}
+                                onClick={() => handleTest('ORDER_SHIPPING')}
                                 disabled={loading}
                                 variant="outline"
                             >
-                                2. Bestellbestätigung (Kunde)
+                                2a. Bestellbestätigung (Versand)
+                            </Button>
+
+                            <Button
+                                onClick={() => handleTest('ORDER_PICKUP')}
+                                disabled={loading}
+                                variant="outline"
+                            >
+                                2b. Bestellbestätigung (Abholung)
+                            </Button>
+
+                            <Button
+                                onClick={() => handleTest('SHIPPED_SHIPPING')}
+                                disabled={loading}
+                                variant="outline"
+                            >
+                                2c. Status: Versendet (Post)
+                            </Button>
+
+                            <Button
+                                onClick={() => handleTest('SHIPPED_PICKUP')}
+                                disabled={loading}
+                                variant="outline"
+                            >
+                                2d. Status: Abholbereit (Lounge)
                             </Button>
 
                             <Button
