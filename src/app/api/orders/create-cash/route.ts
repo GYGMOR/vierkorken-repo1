@@ -182,16 +182,24 @@ export async function POST(req: NextRequest) {
         ? shippingData.phone.trim()
         : null);
 
+    const customerCompany = (billingData?.company && billingData.company.trim() !== '')
+      ? billingData.company.trim()
+      : (shippingData?.company && shippingData.company.trim() !== ''
+        ? shippingData.company.trim()
+        : null);
+
     console.log('👤 Customer data for order:', {
       email: customerEmail,
       firstName: customerFirstName,
       lastName: customerLastName,
       phone: customerPhone,
+      company: customerCompany,
       shippingDataReceived: {
         email: shippingData?.email,
         firstName: shippingData?.firstName,
         lastName: shippingData?.lastName,
         phone: shippingData?.phone,
+        company: shippingData?.company,
       }
     });
 
@@ -232,14 +240,27 @@ export async function POST(req: NextRequest) {
 
     console.log('✅ Customer data validation passed');
 
-    // Prepare address data for pickup
+    // Prepare address data for pickup (Store address)
     const pickupAddress = {
-      firstName: customerFirstName,
-      lastName: customerLastName,
+      firstName: 'Abholung',
+      lastName: 'vierkorken.ch',
       street: 'Steinbrunnengasse',
       streetNumber: '3A',
       postalCode: '5707',
       city: 'Seengen AG',
+      country: 'CH',
+      phone: '062 767 70 00',
+    };
+
+    // The billing address should be the CUSTOMER'S address, even if they pick up
+    const finalBillingAddress = billingData || {
+      firstName: customerFirstName,
+      lastName: customerLastName,
+      company: customerCompany,
+      street: '',
+      streetNumber: '',
+      postalCode: '',
+      city: '',
       country: 'CH',
       phone: customerPhone || '',
     };
@@ -256,9 +277,9 @@ export async function POST(req: NextRequest) {
         customerLastName,
         customerPhone,
 
-        // Addresses (both same for pickup)
+        // Addresses (Shipping is Store, Billing is Customer)
         shippingAddress: pickupAddress,
-        billingAddress: pickupAddress,
+        billingAddress: finalBillingAddress,
 
         // Pricing
         subtotal,

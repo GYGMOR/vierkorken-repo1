@@ -386,11 +386,18 @@ export async function POST(req: NextRequest) {
         ? shippingData.phone.trim()
         : (user?.phone || null));
 
+    const customerCompany = (billingData?.company && billingData.company.trim() !== '')
+      ? billingData.company.trim()
+      : (shippingData?.company && shippingData.company.trim() !== ''
+        ? shippingData.company.trim()
+        : (user?.company || null));
+
     console.log('👤 Customer data extracted:', {
       customerEmail,
       customerFirstName,
       customerLastName,
       customerPhone,
+      customerCompany,
       fromShippingData: !!shippingData?.email,
       fromUser: !!user?.email,
     });

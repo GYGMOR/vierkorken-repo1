@@ -42,6 +42,7 @@ function CheckoutPageContent() {
   const [billingData, setBillingData] = useState({
     firstName: '',
     lastName: '',
+    company: '',
     email: '',
     phone: '',
     street: '',
@@ -56,6 +57,7 @@ function CheckoutPageContent() {
   const [shippingData, setShippingData] = useState({
     firstName: '',
     lastName: '',
+    company: '',
     email: '',
     phone: '',
     street: '',
@@ -302,6 +304,7 @@ function CheckoutPageContent() {
           const addrData = {
             firstName: defaultAddr.firstName,
             lastName: defaultAddr.lastName,
+            company: defaultAddr.company || '',
             email: session?.user?.email || '',
             phone: defaultAddr.phone || '',
             street: defaultAddr.street,
@@ -328,6 +331,7 @@ function CheckoutPageContent() {
       const addrData = {
         firstName: addr.firstName,
         lastName: addr.lastName,
+        company: addr.company || '',
         email: session?.user?.email || '',
         phone: addr.phone || '',
         street: addr.street,
@@ -351,6 +355,7 @@ function CheckoutPageContent() {
         body: JSON.stringify({
           firstName: billingData.firstName,
           lastName: billingData.lastName,
+          company: billingData.company,
           street: billingData.street,
           streetNumber: billingData.streetNumber,
           postalCode: billingData.postalCode,
@@ -800,6 +805,14 @@ function CheckoutPageContent() {
                         </div>
 
                         <Input
+                          label="Firma (Optional)"
+                          value={billingData.company}
+                          onChange={(e) =>
+                            setBillingData({ ...billingData, company: e.target.value })
+                          }
+                        />
+
+                        <Input
                           label="E-Mail"
                           type="email"
                           required
@@ -909,6 +922,14 @@ function CheckoutPageContent() {
                               }
                             />
                           </div>
+
+                          <Input
+                            label="Firma (Optional)"
+                            value={shippingData.company}
+                            onChange={(e) =>
+                              setShippingData({ ...shippingData, company: e.target.value })
+                            }
+                          />
 
                           <div className="grid grid-cols-4 gap-4">
                             <div className="col-span-3">
