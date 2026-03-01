@@ -90,13 +90,12 @@ export async function buildInvoiceDoc(order: Order, logoBase64?: string): Promis
   doc.setFontSize(9);
   doc.setTextColor(grayColor);
   doc.setFont('helvetica', 'normal');
-  doc.text('Premium Weinshop', 20, 32);
-  doc.text('Steinbrunnengasse 3a', 20, 37);
-  doc.text('5707 Seengen', 20, 42);
-  doc.text('Tel: 062 390 04 04', 20, 47);
-  doc.text('info@vierkorken.ch', 20, 52);
-  doc.text('www.vierkorken.ch', 20, 57);
-  doc.text('MWST NR.: CHE-471.048.672 MWST', 20, 62);
+  doc.text('Steinbrunnengasse 3a', 20, 32);
+  doc.text('5707 Seengen', 20, 37);
+  doc.text('Tel: 062 390 04 04', 20, 42);
+  doc.text('info@vierkorken.ch', 20, 47);
+  doc.text('www.vierkorken.ch', 20, 52);
+  doc.text('MWST NR.: CHE-471.048.672 MWST', 20, 57);
 
   if (logoBase64) {
     try {
