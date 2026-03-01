@@ -71,7 +71,7 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
               alt="VIER KORKEN Logo"
               width={180}
               height={56}
-              className="h-14 w-auto"
+              className="h-8 md:h-10 lg:h-12 w-auto"
               priority
             />
           </Link>
