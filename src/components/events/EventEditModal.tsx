@@ -33,7 +33,6 @@ export interface Event {
     publishedAt: string | null;
     createdAt: string;
     updatedAt: string;
-    includeTax: boolean;
 }
 
 const EVENT_TYPES = [
@@ -77,7 +76,6 @@ export function EventEditModal({ event, onClose, onSave }: EventEditModalProps) 
         memberPrice: '',
         featuredImage: '',
         status: 'DRAFT',
-        includeTax: true,
     });
 
     useEffect(() => {
@@ -98,7 +96,6 @@ export function EventEditModal({ event, onClose, onSave }: EventEditModalProps) 
                 memberPrice: event.memberPrice?.toString() || '',
                 featuredImage: event.featuredImage || '',
                 status: event.status,
-                includeTax: event.includeTax ?? true,
             });
         }
     }, [event]);
@@ -398,26 +395,6 @@ export function EventEditModal({ event, onClose, onSave }: EventEditModalProps) 
                             </div>
                         </div>
 
-                        <div className="bg-taupe-light/10 p-4 rounded-lg border border-taupe-light/30">
-                            <label className="flex items-center gap-3 cursor-pointer group">
-                                <div className="relative">
-                                    <input
-                                        type="checkbox"
-                                        name="includeTax"
-                                        className="sr-only"
-                                        checked={formData.includeTax}
-                                        onChange={handleInputChange}
-                                    />
-                                    <div className={`block w-10 h-6 rounded-full transition-colors ${formData.includeTax ? 'bg-accent-gold' : 'bg-gray-300'}`}></div>
-                                    <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${formData.includeTax ? 'translate-x-4' : ''}`}></div>
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-sm font-medium text-graphite-dark group-hover:text-accent-gold transition-colors">MwSt (8.1%) berechnen</span>
-                                    <span className="text-xs text-graphite/60">Falls deaktiviert, wird für dieses Event im Checkout keine MwSt aufgeschlagen.</span>
-                                </div>
-                            </label>
-                        </div>
-
                         {/* Featured Image - Uses Admin ImageUploader */}
                         <div>
                             <label className="block text-sm font-medium text-graphite mb-2">
@@ -453,24 +430,23 @@ export function EventEditModal({ event, onClose, onSave }: EventEditModalProps) 
                             />
                         </div>
                     </form>
-                </div>
 
-                {/* Footer actions - Fixed */}
-                <div className="flex justify-end gap-3 p-6 border-t border-taupe-light bg-white rounded-b-lg">
-                    <Button
-                        type="button"
-                        variant="secondary"
-                        onClick={onClose}
-                    >
-                        Abbrechen
-                    </Button>
-                    <Button
-                        type="submit"
-                        form="event-form"
-                        disabled={loading}
-                    >
-                        {loading ? 'Speichert...' : event ? 'Speichern' : 'Erstellen'}
-                    </Button>
+                    <div className="flex justify-end gap-3 p-6 border-t border-taupe-light bg-white rounded-b-lg mt-auto">
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={onClose}
+                        >
+                            Abbrechen
+                        </Button>
+                        <Button
+                            type="submit"
+                            form="event-form"
+                            disabled={loading}
+                        >
+                            {loading ? 'Speichert...' : event ? 'Speichern' : 'Erstellen'}
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>

@@ -33,22 +33,26 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { title, description, price, image, gallery, type, isActive, includeTax } = body;
+        const { title, description, price, image, gallery, type, isActive } = body;
 
-        if (!title || price === undefined) {
-            return NextResponse.json({ error: 'Titel und Preis sind erforderlich' }, { status: 400 });
+        if (!title) {
+            return NextResponse.json({ error: 'Titel ist erforderlich' }, { status: 400 });
+        }
+
+        const parsedPrice = parseFloat(String(price || 0));
+        if (isNaN(parsedPrice)) {
+            return NextResponse.json({ error: 'Ungültiger Preis' }, { status: 400 });
         }
 
         const product = await prisma.diversProduct.create({
             data: {
                 title,
                 description,
-                price: parseFloat(price),
+                price: parsedPrice,
                 image,
                 gallery: gallery || [],
                 type: type || 'SELL',
-                isActive: isActive ?? true,
-                includeTax: includeTax ?? false
+                isActive: isActive ?? true
             }
         });
 
@@ -67,10 +71,18 @@ export async function PUT(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { id, title, description, price, image, gallery, type, isActive, includeTax } = body;
+        const { id, title, description, price, image, gallery, type, isActive } = body;
 
         if (!id) {
             return NextResponse.json({ error: 'ID ist erforderlich' }, { status: 400 });
+        }
+
+        let parsedPrice = undefined;
+        if (price !== undefined) {
+            parsedPrice = parseFloat(String(price || 0));
+            if (isNaN(parsedPrice)) {
+                return NextResponse.json({ error: 'Ungültiger Preis' }, { status: 400 });
+            }
         }
 
         const product = await prisma.diversProduct.update({
@@ -78,12 +90,11 @@ export async function PUT(req: NextRequest) {
             data: {
                 ...(title && { title }),
                 ...(description !== undefined && { description }),
-                ...(price !== undefined && { price: parseFloat(price) }),
+                ...(parsedPrice !== undefined && { price: parsedPrice }),
                 ...(image !== undefined && { image }),
                 ...(gallery !== undefined && { gallery }),
                 ...(type !== undefined && { type }),
-                ...(isActive !== undefined && { isActive }),
-                ...(includeTax !== undefined && { includeTax })
+                ...(isActive !== undefined && { isActive })
             }
         });
 

@@ -15,7 +15,6 @@ export interface CartItem {
   eventDate?: string;
   maxCapacity?: number;
   currentCapacity?: number;
-  includeTax?: boolean;
 }
 
 interface CartContextType {

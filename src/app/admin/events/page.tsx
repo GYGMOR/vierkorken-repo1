@@ -90,7 +90,7 @@ export default function AdminEvents() {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/events');
+      const response = await fetch(`/api/admin/events?t=${Date.now()}`, { cache: 'no-store' });
       if (response.ok) {
         const data = await response.json();
         setEvents(data.events || []);
@@ -103,8 +103,13 @@ export default function AdminEvents() {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData((prev) => ({ ...prev, [name]: checked }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

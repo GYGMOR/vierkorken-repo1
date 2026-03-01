@@ -203,12 +203,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Calculate taxable vs non-taxable subtotals
-    // Taxable items are those that have includeTax: true (like wines)
-    // Gift cards and anything with "Gutschein" in the name are always non-taxable
+    // Taxable items are those that are not gift cards
     const totalNonTaxable = items
       .filter((item: any) =>
-        item.includeTax === false ||
         item.type === 'giftcard' ||
         item.type === 'geschenkgutschein' ||
         (item.name && item.name.toLowerCase().includes('gutschein'))

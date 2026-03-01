@@ -62,7 +62,6 @@ export async function GET(
         followUpOffer: event.followUpOffer,
         followUpDuration: event.followUpDuration,
         status: event.status,
-        includeTax: event.includeTax,
         publishedAt: event.publishedAt?.toISOString(),
       },
     });
@@ -119,7 +118,6 @@ export async function PUT(
       followUpOffer,
       followUpDuration,
       status,
-      includeTax,
     } = body;
 
     // Check if event exists
@@ -154,7 +152,6 @@ export async function PUT(
     if (requiresApproval !== undefined) updateData.requiresApproval = requiresApproval;
     if (followUpOffer !== undefined) updateData.followUpOffer = followUpOffer;
     if (followUpDuration !== undefined) updateData.followUpDuration = followUpDuration;
-    if (includeTax !== undefined) updateData.includeTax = includeTax;
 
     // Handle status changes
     if (status !== undefined) {

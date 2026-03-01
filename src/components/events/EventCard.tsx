@@ -128,8 +128,7 @@ export function EventCard({ event, isAdmin, onEdit }: { event: any; isAdmin?: bo
                 eventDate: `${event.date} ${event.time}`,
                 imageUrl: event.image,
                 maxCapacity: event.capacity,
-                currentCapacity: event.booked,
-                includeTax: event.includeTax
+                currentCapacity: event.booked
             });
         }
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -123,13 +124,11 @@ function CheckoutPageContent() {
 
   // Calculate taxable vs non-taxable subtotals for UI display
   const nonTaxableItemsSubtotal = items
-    .filter((item) => item.includeTax === false)
+    .filter((item) => item.type === 'event' || item.type === 'divers' || item.type === 'giftcard' || item.type === 'geschenkgutschein')
     .reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
 
   // Gift cards are always non-taxable
-  const giftCardSubtotal = items
-    .filter((item) => item.type === 'giftcard' || item.type === 'geschenkgutschein')
-    .reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
+  const giftCardSubtotal = 0; // Already included above
 
   // Tax calculation (Inclusive): Tax is a component of the gross price
   // Standard Swiss rate: 8.1%
@@ -1311,8 +1310,16 @@ function CheckoutPageContent() {
                     <div className="space-y-3">
                       {items.map((item) => (
                         <div key={item.id} className="flex gap-3 pb-3 border-b border-taupe-light">
-                          <div className="w-16 h-16 bg-gradient-to-br from-rose-medium/20 to-accent-burgundy/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <WineBottleIcon className="w-8 h-8 text-graphite/30" />
+                          <div className="w-16 h-16 bg-gradient-to-br from-warmwhite to-sand-light rounded-lg flex items-center justify-center flex-shrink-0 relative overflow-hidden">
+                            {item.imageUrl ? (
+                              <img
+                                src={item.imageUrl}
+                                alt={item.name}
+                                className="w-full h-full object-contain p-1"
+                              />
+                            ) : (
+                              <WineBottleIcon className="w-8 h-8 text-graphite/30" />
+                            )}
                           </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="text-body-sm font-medium text-graphite-dark truncate">

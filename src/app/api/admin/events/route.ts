@@ -6,7 +6,7 @@ import { sendEventNotificationEmail } from '@/lib/email';
 
 // Force Node.js runtime (required for Prisma)
 export const runtime = 'nodejs';
-
+export const dynamic = 'force-dynamic';
 
 // GET all events (for admin)
 export async function GET(req: NextRequest) {
@@ -59,7 +59,6 @@ export async function GET(req: NextRequest) {
         followUpOffer: event.followUpOffer,
         followUpDuration: event.followUpDuration,
         status: event.status,
-        includeTax: event.includeTax,
         publishedAt: event.publishedAt?.toISOString(),
         createdAt: event.createdAt.toISOString(),
         updatedAt: event.updatedAt.toISOString(),
@@ -115,7 +114,6 @@ export async function POST(req: NextRequest) {
       followUpOffer,
       followUpDuration,
       status,
-      includeTax,
     } = body;
 
     const isDraft = status === 'DRAFT';
@@ -160,7 +158,6 @@ export async function POST(req: NextRequest) {
         followUpOffer: followUpOffer || null,
         followUpDuration: followUpDuration || null,
         status: status || 'DRAFT',
-        includeTax: includeTax ?? true,
         publishedAt: status === 'PUBLISHED' ? new Date() : null,
       },
     });

@@ -19,7 +19,6 @@ interface DiversProduct {
     gallery?: string[];
     type: 'SELL' | 'RENT';
     isActive: boolean;
-    includeTax: boolean;
 }
 
 export default function DiversPage() {
@@ -95,8 +94,7 @@ export default function DiversPage() {
         image: '',
         gallery: [] as string[],
         type: 'SELL' as 'SELL' | 'RENT',
-        isActive: true,
-        includeTax: false
+        isActive: true
     });
 
     const fetchProducts = async () => {
@@ -152,7 +150,7 @@ export default function DiversPage() {
 
     const openCreateModal = (type: 'SELL' | 'RENT' = 'SELL') => {
         setEditingProduct(null);
-        setFormData({ title: '', description: '', price: '', image: '', gallery: [], type, isActive: true, includeTax: false });
+        setFormData({ title: '', description: '', price: '', image: '', gallery: [], type, isActive: true });
         setIsModalOpen(true);
     };
 
@@ -165,8 +163,7 @@ export default function DiversPage() {
             image: product.image || '',
             gallery: product.gallery || [],
             type: product.type,
-            isActive: product.isActive,
-            includeTax: product.includeTax
+            isActive: product.isActive
         });
         setIsModalOpen(true);
     };
@@ -218,8 +215,7 @@ export default function DiversPage() {
             name: product.title,
             price: Number(product.price),
             imageUrl: product.image || undefined,
-            type: 'divers',
-            includeTax: product.includeTax
+            type: 'divers'
         });
         setToastMessage(`${product.title} wurde zum Warenkorb hinzugefügt.`);
         setShowToast(true);
@@ -478,24 +474,6 @@ export default function DiversPage() {
                                                 <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${formData.isActive ? 'translate-x-4' : ''}`}></div>
                                             </div>
                                             <span className="text-sm font-medium text-graphite-dark">Produkt ist sichtbar</span>
-                                        </label>
-                                    </div>
-                                    <div className="flex items-center">
-                                        <label className="flex items-center gap-3 cursor-pointer group">
-                                            <div className="relative">
-                                                <input
-                                                    type="checkbox"
-                                                    className="sr-only"
-                                                    checked={formData.includeTax}
-                                                    onChange={e => setFormData({ ...formData, includeTax: e.target.checked })}
-                                                />
-                                                <div className={`block w-10 h-6 rounded-full transition-colors ${formData.includeTax ? 'bg-accent-gold' : 'bg-gray-300'}`}></div>
-                                                <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${formData.includeTax ? 'translate-x-4' : ''}`}></div>
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-sm font-medium text-graphite-dark group-hover:text-accent-gold transition-colors">MwSt (8.1%) berechnen</span>
-                                                <span className="text-xs text-graphite/60 italic">Aufschlag im Checkout</span>
-                                            </div>
                                         </label>
                                     </div>
                                 </div>

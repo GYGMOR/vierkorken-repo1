@@ -118,7 +118,6 @@ export default function WineDetailPage({ params }: { params: Promise<{ slug: str
       imageUrl,
       type: 'wine',
       slug: wine.id,
-      includeTax: true,
     });
 
     setShowToast(true);

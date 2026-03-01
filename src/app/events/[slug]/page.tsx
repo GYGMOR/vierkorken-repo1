@@ -178,8 +178,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
         slug: event.slug,
         eventDate: `${event.date} ${event.time}`,
         maxCapacity: event.capacity,
-        currentCapacity: event.booked,
-        includeTax: event.includeTax
+        currentCapacity: event.booked
       });
     }
 
