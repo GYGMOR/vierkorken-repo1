@@ -117,14 +117,22 @@ export async function POST(req: NextRequest) {
     if (deliveryMethod === 'pickup') {
       shippingCost = 0;
     } else {
-      const freeShippingThreshold = 150;
-      const isFreeShippingEligible = subtotal >= freeShippingThreshold;
+      // Events are digital tickets — no shipping needed
+      const hasOnlyEvents = items.every((item: any) => item.type === 'event');
+      if (!hasOnlyEvents) {
+        const freeShippingThreshold = 150;
+        // Only count non-event items toward free shipping threshold
+        const shippableSubtotal = items
+          .filter((item: any) => item.type !== 'event')
+          .reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
+        const isFreeShippingEligible = shippableSubtotal >= freeShippingThreshold;
 
-      if (shippingMethod === 'express') {
-        shippingCost = isFreeShippingEligible ? 9.90 : 19.90;
-      } else {
-        // standard
-        shippingCost = isFreeShippingEligible ? 0 : 9.90;
+        if (shippingMethod === 'express') {
+          shippingCost = isFreeShippingEligible ? 9.90 : 19.90;
+        } else {
+          // standard
+          shippingCost = isFreeShippingEligible ? 0 : 9.90;
+        }
       }
     }
 

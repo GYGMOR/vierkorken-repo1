@@ -92,8 +92,16 @@ function CheckoutPageContent() {
   const calculateShippingCost = () => {
     if (deliveryMethod === 'pickup') return 0;
 
+    // Events are tickets (digital/code) - no shipping needed
+    const hasOnlyEvents = items.every((item) => item.type === 'event');
+    if (hasOnlyEvents) return 0;
+
     const freeShippingThreshold = 150;
-    const isFreeShippingEligible = total >= freeShippingThreshold;
+    // For shipping threshold, only count non-event, non-divers items
+    const shippableTotal = items
+      .filter((item) => item.type !== 'event')
+      .reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
+    const isFreeShippingEligible = shippableTotal >= freeShippingThreshold;
 
     if (shippingMethod === 'express') {
       return isFreeShippingEligible ? 9.90 : 19.90;
