@@ -1174,7 +1174,7 @@ function ProfilePictureUpload() {
       const formData = new FormData();
       formData.append('file', selectedFile);
 
-      const uploadRes = await fetch('/api/admin/upload', {
+      const uploadRes = await fetch('/api/user/upload', {
         method: 'POST',
         body: formData,
       });

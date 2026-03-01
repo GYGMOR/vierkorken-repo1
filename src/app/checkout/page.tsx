@@ -920,15 +920,17 @@ function CheckoutPageContent() {
                           </div>
 
                           <div className="grid md:grid-cols-3 gap-4">
-                            <Input
-                              label="PLZ"
-                              required
-                              value={shippingData.postalCode}
-                              onChange={(e) =>
-                                setShippingData({ ...shippingData, postalCode: e.target.value })
-                              }
-                            />
-                            <div className="col-span-2">
+                            <div className="md:col-span-1">
+                              <Input
+                                label="PLZ"
+                                required
+                                value={shippingData.postalCode}
+                                onChange={(e) =>
+                                  setShippingData({ ...shippingData, postalCode: e.target.value })
+                                }
+                              />
+                            </div>
+                            <div className="md:col-span-2">
                               <Input
                                 label="Ort"
                                 required
@@ -1075,15 +1077,17 @@ function CheckoutPageContent() {
                         </div>
 
                         <div className="grid md:grid-cols-3 gap-4">
-                          <Input
-                            label="PLZ"
-                            required
-                            value={billingData.postalCode}
-                            onChange={(e) =>
-                              setBillingData({ ...billingData, postalCode: e.target.value })
-                            }
-                          />
-                          <div className="col-span-2">
+                          <div className="md:col-span-1">
+                            <Input
+                              label="PLZ"
+                              required
+                              value={billingData.postalCode}
+                              onChange={(e) =>
+                                setBillingData({ ...billingData, postalCode: e.target.value })
+                              }
+                            />
+                          </div>
+                          <div className="md:col-span-2">
                             <Input
                               label="Ort"
                               required
