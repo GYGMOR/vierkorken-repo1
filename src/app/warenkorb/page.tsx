@@ -31,8 +31,9 @@ export default function CartPage() {
     window.location.href = '/checkout';
   };
 
-  // Free shipping at CHF 150+
-  const shipping = subtotal >= 150 ? 0 : 9.90;
+  // Free shipping at CHF 150+ or if only events
+  const hasOnlyEvents = items.length > 0 && items.every((item) => item.type === 'event');
+  const shipping = hasOnlyEvents || subtotal >= 150 ? 0 : 9.90;
   const total = subtotal + shipping;
 
   // Check if cart has wine products (not events)

@@ -141,7 +141,10 @@ function CheckoutPageContent() {
   // Tax calculation (Inclusive): Tax is a component of the gross price
   // Standard Swiss rate: 8.1%
   const totalNonTaxable = nonTaxableItemsSubtotal + giftCardSubtotal;
-  const taxableGrossAmount = Math.max(0, subtotalAfterDiscount - totalNonTaxable);
+  const hasTaxableItems = items.some(item => !['event', 'divers', 'giftcard', 'geschenkgutschein'].includes(item.type));
+
+  // Only calculate tax if there are taxable items in the cart (so shipping isn't taxed alone)
+  const taxableGrossAmount = hasTaxableItems ? Math.max(0, subtotalAfterDiscount - totalNonTaxable) : 0;
   const taxAmount = taxableGrossAmount - (taxableGrossAmount / 1.081);
 
   const finalTotal = subtotalAfterDiscount; // Total remains the same as inclusive subtotal
@@ -1404,12 +1407,14 @@ function CheckoutPageContent() {
                           </span>
                         </div>
                       )}
-                      <div className="flex items-center justify-between text-body-sm">
-                        <span className="text-graphite/70">MwSt. (8.1%)</span>
-                        <span className="text-graphite">
-                          CHF {taxAmount.toFixed(2)}
-                        </span>
-                      </div>
+                      {taxAmount > 0 && (
+                        <div className="flex items-center justify-between text-body-sm">
+                          <span className="text-graphite/70">MwSt. (8.1%)</span>
+                          <span className="text-graphite">
+                            CHF {taxAmount.toFixed(2)}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex items-center justify-between pt-4 border-t border-graphite-dark">
