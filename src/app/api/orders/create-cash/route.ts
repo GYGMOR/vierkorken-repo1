@@ -1,0 +1,497 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-options';
+import { prisma } from '@/lib/prisma';
+import { sendOrderConfirmationEmail, sendNewOrderNotificationToAdmin, sendEventTicketsEmail } from '@/lib/email';
+import { generateTicketPDFBuffer } from '@/lib/ticket-pdf-buffer';
+import { calculatePointsFromAmount } from '@/lib/loyalty';
+
+// Force Node.js runtime (required for Prisma)
+export const runtime = 'nodejs';
+
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    const body = await req.json();
+
+    const { items, deliveryMethod, shippingMethod, paymentMethod, shippingData, billingData, giftOptions, couponCode } = body;
+
+    console.log('💰 Cash order request:', { deliveryMethod, shippingMethod, couponCode });
+
+    // Validate
+    if (!items || items.length === 0) {
+      return NextResponse.json({ error: 'Keine Artikel im Warenkorb' }, { status: 400 });
+    }
+
+    if (paymentMethod !== 'cash') {
+      return NextResponse.json({ error: 'Ungültige Zahlungsmethode' }, { status: 400 });
+    }
+
+    if (deliveryMethod !== 'pickup') {
+      return NextResponse.json(
+        { error: 'Barzahlung nur bei Abholung möglich' },
+        { status: 400 }
+      );
+    }
+
+    // Calculate totals
+    const subtotal = items.reduce(
+      (sum: number, item: any) => sum + item.price * item.quantity,
+      0
+    );
+
+    // Check if there's a loyalty gift in the cart
+    const hasGiftInCart = items.some((item: any) => item.price === 0 && item.winery === 'Loyalty Gift');
+    if (hasGiftInCart) {
+      const minOrderSetting = await prisma.settings.findUnique({
+        where: { key: 'loyalty_gift_min_order' }
+      });
+      const minOrder = minOrderSetting?.value ? Number(minOrderSetting.value) : 50;
+      if (subtotal < minOrder) {
+        return NextResponse.json(
+          { error: `Gratis-Geschenke sind ab einem Bestellwert von CHF ${minOrder} einlösbar.` },
+          { status: 400 }
+        );
+      }
+    }
+
+    const shippingCost = 0; // Pickup = free
+    const giftWrapCost = giftOptions?.giftWrap ? 5.0 : 0;
+
+    // Validate and apply coupon
+    let coupon = null;
+    let discountAmount = 0;
+
+    if (couponCode) {
+      try {
+        coupon = await prisma.coupon.findUnique({
+          where: { code: couponCode.toUpperCase() }
+        });
+
+        if (coupon && coupon.isActive) {
+          const now = new Date();
+
+          // Check validity
+          if (coupon.validFrom <= now && (!coupon.validUntil || coupon.validUntil >= now)) {
+            // Check usage limits
+            if (!coupon.maxUses || coupon.currentUses < coupon.maxUses) {
+              // Check per-user limit
+              let canUse = true;
+              if (session?.user?.id && coupon.maxUsesPerUser) {
+                const userUsageCount = await prisma.order.count({
+                  where: {
+                    userId: session.user.id,
+                    couponId: coupon.id
+                  }
+                });
+                if (userUsageCount >= coupon.maxUsesPerUser) {
+                  canUse = false;
+                }
+              }
+
+              if (canUse) {
+                // Check minimum order amount
+                if (!coupon.minOrderAmount || subtotal >= Number(coupon.minOrderAmount)) {
+                  // Calculate discount
+                  if (coupon.type === 'PERCENTAGE') {
+                    discountAmount = (subtotal * Number(coupon.value)) / 100;
+                    if (coupon.maxDiscount && discountAmount > Number(coupon.maxDiscount)) {
+                      discountAmount = Number(coupon.maxDiscount);
+                    }
+                  } else if (coupon.type === 'FIXED_AMOUNT' || coupon.type === 'GIFT_CARD') {
+                    discountAmount = Number(coupon.value);
+                    if (discountAmount > subtotal) {
+                      discountAmount = subtotal;
+                    }
+                  }
+
+                  console.log('✅ Coupon applied:', coupon.code, '- Discount:', discountAmount);
+                } else {
+                  console.log('⚠️ Coupon minimum order amount not met');
+                  coupon = null;
+                }
+              } else {
+                console.log('⚠️ Coupon usage limit exceeded for user');
+                coupon = null;
+              }
+            } else {
+              console.log('⚠️ Coupon usage limit exceeded');
+              coupon = null;
+            }
+          } else {
+            console.log('⚠️ Coupon not valid at this time');
+            coupon = null;
+          }
+        } else {
+          console.log('⚠️ Coupon not found or not active');
+        }
+      } catch (couponError) {
+        console.error('❌ Error validating coupon:', couponError);
+      }
+    }
+
+    // Taxable items are those that have includeTax: true (like wines)
+    // Gift cards and anything with "Gutschein" in the name are always non-taxable
+    const totalNonTaxable = items
+      .filter((item: any) =>
+        item.type === 'giftcard' ||
+        item.type === 'geschenkgutschein' ||
+        item.type === 'event' ||
+        item.type === 'divers' ||
+        (item.name && item.name.toLowerCase().includes('gutschein'))
+      )
+      .reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
+
+    const subtotalAfterDiscount = Math.max(0, subtotal + shippingCost + giftWrapCost - discountAmount);
+
+    // Tax calculation (Inclusive): Tax is a component of the gross price
+    // Standard Swiss rate: 8.1%
+    const taxableGrossAmount = Math.max(0, subtotalAfterDiscount - totalNonTaxable);
+    const taxAmount = (taxableGrossAmount > 0)
+      ? taxableGrossAmount - (taxableGrossAmount / 1.081)
+      : 0;
+
+    const total = subtotalAfterDiscount; // Total remains the same as inclusive subtotal
+
+    // Generate order number
+    const orderNumber = `VK-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+
+    // Get customer data (prioritize billingData as it is the primary contact info in our new UI)
+    const customerEmail = (billingData?.email && billingData.email.trim() !== '')
+      ? billingData.email.trim()
+      : (shippingData?.email && shippingData.email.trim() !== ''
+        ? shippingData.email.trim()
+        : (session?.user?.email || 'gast@vierkorken.ch'));
+
+    const customerFirstName = (billingData?.firstName && billingData.firstName.trim() !== '')
+      ? billingData.firstName.trim()
+      : (shippingData?.firstName && shippingData.firstName.trim() !== ''
+        ? shippingData.firstName.trim()
+        : (session?.user?.firstName || 'Gast'));
+
+    const customerLastName = (billingData?.lastName && billingData.lastName.trim() !== '')
+      ? billingData.lastName.trim()
+      : (shippingData?.lastName && shippingData.lastName.trim() !== ''
+        ? shippingData.lastName.trim()
+        : (session?.user?.lastName || 'Kunde'));
+
+    const customerPhone = (billingData?.phone && billingData.phone.trim() !== '')
+      ? billingData.phone.trim()
+      : (shippingData?.phone && shippingData.phone.trim() !== ''
+        ? shippingData.phone.trim()
+        : null);
+
+    const customerCompany = (billingData?.company && billingData.company.trim() !== '')
+      ? billingData.company.trim()
+      : (shippingData?.company && shippingData.company.trim() !== ''
+        ? shippingData.company.trim()
+        : null);
+
+    console.log('👤 Customer data for order:', {
+      email: customerEmail,
+      firstName: customerFirstName,
+      lastName: customerLastName,
+      phone: customerPhone,
+      company: customerCompany,
+      shippingDataReceived: {
+        email: shippingData?.email,
+        firstName: shippingData?.firstName,
+        lastName: shippingData?.lastName,
+        phone: shippingData?.phone,
+        company: shippingData?.company,
+      }
+    });
+
+    // Validate required customer data
+    if (!customerEmail || customerEmail === 'gast@vierkorken.ch' || customerEmail.trim() === '') {
+      console.error('❌ Invalid email:', customerEmail);
+      return NextResponse.json(
+        { error: 'Bitte geben Sie Ihre E-Mail-Adresse ein' },
+        { status: 400 }
+      );
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(customerEmail)) {
+      console.error('❌ Invalid email format:', customerEmail);
+      return NextResponse.json(
+        { error: 'Bitte geben Sie eine gültige E-Mail-Adresse ein' },
+        { status: 400 }
+      );
+    }
+
+    if (!customerFirstName || customerFirstName === 'Gast' || customerFirstName.trim() === '') {
+      console.error('❌ Invalid firstName:', customerFirstName);
+      return NextResponse.json(
+        { error: 'Bitte geben Sie Ihren Vornamen ein' },
+        { status: 400 }
+      );
+    }
+
+    if (!customerLastName || customerLastName === 'Kunde' || customerLastName.trim() === '') {
+      console.error('❌ Invalid lastName:', customerLastName);
+      return NextResponse.json(
+        { error: 'Bitte geben Sie Ihren Nachnamen ein' },
+        { status: 400 }
+      );
+    }
+
+    console.log('✅ Customer data validation passed');
+
+    // Prepare address data for pickup (Store address)
+    const pickupAddress = {
+      firstName: 'Abholung',
+      lastName: 'vierkorken.ch',
+      street: 'Steinbrunnengasse',
+      streetNumber: '3A',
+      postalCode: '5707',
+      city: 'Seengen AG',
+      country: 'CH',
+      phone: '062 767 70 00',
+    };
+
+    // The billing address should be the CUSTOMER'S address, even if they pick up
+    const finalBillingAddress = billingData || {
+      firstName: customerFirstName,
+      lastName: customerLastName,
+      company: customerCompany,
+      street: '',
+      streetNumber: '',
+      postalCode: '',
+      city: '',
+      country: 'CH',
+      phone: customerPhone || '',
+    };
+
+    // Create order
+    const order = await prisma.order.create({
+      data: {
+        orderNumber,
+        userId: session?.user?.id || undefined,
+
+        // Customer info
+        customerEmail,
+        customerFirstName,
+        customerLastName,
+        customerPhone,
+
+        // Addresses (Shipping is Store, Billing is Customer)
+        shippingAddress: pickupAddress,
+        billingAddress: finalBillingAddress,
+
+        // Pricing
+        subtotal,
+        shippingCost,
+        taxAmount,
+        discountAmount,
+        total,
+        pointsEarned: await calculatePointsFromAmount(total, prisma),
+        pointsUsed: 0,
+        cashbackAmount: 0,
+
+        // Payment
+        paymentMethod: 'cash',
+        paymentStatus: 'PENDING', // Will be paid on pickup
+
+        // Fulfillment
+        status: 'CONFIRMED',
+        deliveryMethod: 'PICKUP',
+        shippingMethod: null, // Not applicable for pickup
+
+        // Coupon
+        couponId: coupon?.id || undefined,
+        couponCode: coupon?.code || undefined,
+
+        // Customer note
+        customerNote: giftOptions?.giftMessage || null,
+
+        // Create order items
+        items: {
+          create: items.map((item: any) => ({
+            variantId: item.variantId || null,
+            wineName: item.name,
+            winery: item.winery || item.type || '',
+            vintage: item.vintage || null,
+            bottleSize: item.bottleSize || 0.75,
+            quantity: item.quantity,
+            unitPrice: item.price,
+            totalPrice: item.price * item.quantity,
+            isGift: giftOptions?.isGift || false,
+            giftMessage: giftOptions?.giftMessage || null,
+            giftWrap: giftOptions?.giftWrap || false,
+          })),
+        },
+      },
+      include: {
+        items: true,
+        tickets: {
+          include: {
+            event: true,
+          },
+        },
+      },
+    });
+
+    // Increment coupon usage count
+    if (coupon) {
+      await prisma.coupon.update({
+        where: { id: coupon.id },
+        data: {
+          currentUses: {
+            increment: 1,
+          },
+        },
+      });
+      console.log('✅ Coupon usage incremented:', coupon.code);
+    }
+
+    // Prepare order data for emails
+    const orderData = {
+      orderNumber: order.orderNumber,
+      customerFirstName: order.customerFirstName,
+      customerLastName: order.customerLastName,
+      customerEmail: order.customerEmail,
+      customerPhone: order.customerPhone,
+      createdAt: order.createdAt,
+      items: order.items,
+      tickets: order.tickets, // Include event tickets for invoice
+      subtotal: order.subtotal,
+      shippingCost: order.shippingCost,
+      taxAmount: order.taxAmount,
+      discountAmount: order.discountAmount,
+      total: order.total,
+      billingAddress: pickupAddress,
+      shippingAddress: pickupAddress,
+      paymentMethod: 'cash',
+      deliveryMethod: 'PICKUP',
+      customerNote: order.customerNote,
+    };
+
+    // Send confirmation email
+    let emailSent = false;
+    let emailError: any = null;
+
+    try {
+      console.log('📧 Sending cash order confirmation email to:', order.customerEmail);
+      console.log('📧 Order data:', {
+        orderNumber: orderData.orderNumber,
+        customerName: `${orderData.customerFirstName} ${orderData.customerLastName}`,
+        items: orderData.items.length,
+        total: orderData.total,
+      });
+
+      await sendOrderConfirmationEmail(order.customerEmail, order.id, orderData);
+      console.log('✅ Cash order confirmation email sent successfully');
+      emailSent = true;
+    } catch (error: any) {
+      emailError = error;
+      console.error('❌ Failed to send cash order confirmation email:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        stack: error.stack?.split('\n').slice(0, 3),
+      });
+      // Continue with order creation even if email fails
+    }
+
+    // Notify admin about new cash order
+    try {
+      console.log('📧 Sending admin notification for cash order:', order.orderNumber);
+      await sendNewOrderNotificationToAdmin(order.id, orderData);
+      console.log('✅ Admin notification sent successfully');
+    } catch (error: any) {
+      console.error('❌ Failed to send admin notification:', error);
+      console.error('❌ Admin email error details:', {
+        message: error.message,
+        stack: error.stack?.split('\n').slice(0, 3),
+      });
+      // Continue - admin email is non-critical
+    }
+
+    // Check for event tickets and send ticket emails with QR codes
+    try {
+      const orderWithTickets = await prisma.order.findUnique({
+        where: { id: order.id },
+        include: {
+          tickets: {
+            include: {
+              event: true,
+            },
+          },
+        },
+      });
+
+      if (orderWithTickets?.tickets && orderWithTickets.tickets.length > 0) {
+        console.log(`🎫 Found ${orderWithTickets.tickets.length} event tickets for cash order`);
+
+        const ticketPDFs = [];
+        for (const ticket of orderWithTickets.tickets) {
+          try {
+            const pdfBuffer = await generateTicketPDFBuffer({
+              ticketNumber: ticket.ticketNumber,
+              qrCode: ticket.qrCode,
+              holderFirstName: ticket.holderFirstName || '',
+              holderLastName: ticket.holderLastName || '',
+              holderEmail: ticket.holderEmail || '',
+              price: Number(ticket.price),
+              event: {
+                title: ticket.event.title,
+                subtitle: ticket.event.subtitle || undefined,
+                venue: ticket.event.venue,
+                startDateTime: ticket.event.startDateTime.toISOString(),
+                duration: ticket.event.duration || undefined,
+              },
+            });
+
+            const eventDate = new Intl.DateTimeFormat('de-CH', {
+              weekday: 'long',
+              day: '2-digit',
+              month: 'long',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            }).format(ticket.event.startDateTime);
+
+            ticketPDFs.push({
+              ticketNumber: ticket.ticketNumber,
+              eventTitle: ticket.event.title,
+              eventDate: eventDate,
+              pdfBuffer: pdfBuffer,
+            });
+
+            console.log(`✅ Generated PDF for ticket: ${ticket.ticketNumber}`);
+          } catch (pdfError: any) {
+            console.error(`❌ Failed to generate ticket PDF:`, pdfError.message);
+          }
+        }
+
+        if (ticketPDFs.length > 0) {
+          await sendEventTicketsEmail(
+            order.customerEmail,
+            order.orderNumber,
+            order.customerFirstName,
+            ticketPDFs
+          );
+          console.log(`✅ Event tickets email sent with ${ticketPDFs.length} PDF attachments`);
+        }
+      }
+    } catch (ticketError: any) {
+      console.error('❌ Failed to send event tickets email:', ticketError.message);
+      // Continue - ticket email is non-critical
+    }
+
+    return NextResponse.json({
+      success: true,
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      message: 'Bestellung erfolgreich erstellt. Bitte bezahlen Sie bei Abholung in bar.',
+    });
+  } catch (error: any) {
+    console.error('Error creating cash order:', error);
+    return NextResponse.json(
+      { error: 'Fehler beim Erstellen der Bestellung', details: error.message },
+      { status: 500 }
+    );
+  }
+}

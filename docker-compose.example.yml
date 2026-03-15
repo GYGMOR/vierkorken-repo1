@@ -1,0 +1,80 @@
+version: "3.8"
+
+services:
+  app:
+    image: ghcr.io/gygmor/vierkorken-repo1:latest
+    restart: unless-stopped
+    networks:
+      - web
+
+    environment:
+      NODE_ENV: "production"
+      PORT: "3000"
+
+      # URLs (für test.vierkorken.ch / später vierkorken.ch)
+      NEXT_PUBLIC_APP_URL: "https://test.vierkorken.ch"
+      NEXTAUTH_URL: "https://test.vierkorken.ch"
+
+      # Secrets (ERSETZE MIT DEINEN EIGENEN WERTEN!)
+      NEXTAUTH_SECRET: "YOUR_NEXTAUTH_SECRET_HERE_MIN_32_CHARS"
+      JWT_SECRET: "YOUR_JWT_SECRET_HERE_MIN_32_CHARS"
+
+      # Database (ERSETZE MIT DEINEN EIGENEN WERTEN!)
+      DATABASE_URL: "mysql://username:password@host:3306/database"
+      DATABASE_CONNECTION_TIMEOUT: "5000"
+
+      # API Timeouts (wichtig für Performance!)
+      API_TIMEOUT: "10000"
+      KLARA_API_TIMEOUT: "8000"
+      EMAIL_TIMEOUT: "8000"  # WICHTIG: Timeout für E-Mail-Versand (8 Sekunden)
+      NEXT_PUBLIC_API_TIMEOUT: "10000"
+
+      # Cache Settings
+      NEXT_PUBLIC_ENABLE_API_CACHE: "false"
+      API_CACHE_TTL: "0"
+
+      # Klara Integration (ERSETZE MIT DEINEN EIGENEN WERTEN!)
+      KLARA_API_URL: "https://api.klara.ch"
+      KLARA_API_KEY: "YOUR_KLARA_API_KEY"
+      KLARA_API_SECRET: "YOUR_KLARA_API_SECRET"
+      USE_MOCK_KLARA: "false"
+
+      # Stripe Payment (ERSETZE MIT DEINEN EIGENEN WERTEN!)
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "pk_test_YOUR_STRIPE_KEY"
+      STRIPE_SECRET_KEY: "sk_test_YOUR_STRIPE_SECRET"
+      STRIPE_WEBHOOK_SECRET: "whsec_YOUR_WEBHOOK_SECRET"
+
+      # Microsoft Graph API (E-Mail System) (ERSETZE MIT DEINEN EIGENEN WERTEN!)
+      MS_TENANT_ID: "YOUR_MS_TENANT_ID"
+      MS_CLIENT_ID: "YOUR_MS_CLIENT_ID"
+      MS_CLIENT_SECRET: "YOUR_MS_CLIENT_SECRET"
+
+      # E-Mail Absender (Shared Mailboxes)
+      MAIL_FROM_INFO: "info@vierkorken.ch"
+      MAIL_FROM_NOREPLY: "no-reply@vierkorken.ch"
+      ADMIN_EMAIL: "admin@vierkorken.ch"
+
+      # App Settings
+      MAINTENANCE_MODE: "false"
+
+      # Nexi Payment (optional)
+      NEXI_API_KEY: ""
+      NEXI_MERCHANT_ID: ""
+
+    volumes:
+      - ./uploads:/app/public/uploads
+
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider --timeout=3 http://$(hostname -i):3000/ || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 10
+      start_period: 120s
+
+    labels:
+      caddy: "test.vierkorken.ch"
+      com.centurylinklabs.watchtower.enable: "true"
+
+networks:
+  web:
+    external: true
