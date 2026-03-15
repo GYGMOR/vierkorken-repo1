@@ -840,6 +840,9 @@ model News {
   isPinned        Boolean  @default(false)
   sortOrder       Int      @default(0)
 
+  // Newsletter tracking
+  newsletterSentAt DateTime?
+
   // Integration with Events
   type            String   @default("NEWS") // "NEWS" or "EVENT"
   eventId         String?  @unique

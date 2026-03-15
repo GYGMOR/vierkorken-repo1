@@ -119,6 +119,7 @@ export async function PUT(
       // Wait for notifications to complete so the serverless function doesn't terminate early
       try {
         await notifyNewsletterSubscribers({
+          id: news.id,
           title: news.title,
           excerpt: news.excerpt || undefined,
           slug: news.slug,

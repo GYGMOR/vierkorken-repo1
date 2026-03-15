@@ -7,6 +7,7 @@ import { prisma } from './prisma';
 import { sendNewsNotificationEmail } from './email';
 
 interface NewsItem {
+  id?: string;
   title: string;
   excerpt?: string;
   slug: string;
@@ -88,6 +89,15 @@ export async function notifyNewsletterSubscribers(newsItem: NewsItem) {
     }
 
     console.log(`✅ Newsletter sent: ${successCount} success, ${failCount} failed, ${allSubscribers.length} total`);
+
+    // Update the news item to mark as sent if it has an ID
+    if (newsItem.id && successCount > 0) {
+      await prisma.news.update({
+        where: { id: newsItem.id },
+        data: { newsletterSentAt: new Date() }
+      });
+      console.log(`📝 News ${newsItem.id} marked as newsletter sent.`);
+    }
 
     return {
       success: successCount,

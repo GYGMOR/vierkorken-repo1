@@ -151,6 +151,26 @@ export default function EmailTestPage() {
                             >
                                 7. Vorschau: Neuester Event
                             </Button>
+
+                            <Button
+                                onClick={async () => {
+                                    if (!confirm('Möchten Sie alle veröffentlichten News ohne Newsletter jetzt nachsenden?')) return;
+                                    setLoading(true);
+                                    try {
+                                        const res = await fetch('/api/admin/news/resend-pending', { method: 'POST' });
+                                        const data = await res.json();
+                                        setResult(data);
+                                    } catch (error) {
+                                        setResult({ success: false, error: 'Fehler beim Nachsenden' });
+                                    } finally {
+                                        setLoading(false);
+                                    }
+                                }}
+                                disabled={loading}
+                                className="md:col-span-2 bg-wine text-white hover:bg-wine-dark"
+                            >
+                                8. Fehlende Newsletter nachsenden (Catch-up)
+                            </Button>
                         </div>
                     </CardContent>
                 </Card>
