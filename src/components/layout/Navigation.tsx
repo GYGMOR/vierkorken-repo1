@@ -375,10 +375,10 @@ function SearchModal({ onClose }: { onClose: () => void }) {
         const wines = (klaraData.data || []).slice(0, 5).map((w: any) => ({
           id: w.id,
           name: w.name,
-          slug: w.articleNumber,
           type: w.wineType || '',
           region: w.region || w.country || '',
           price: w.price ?? null,
+          imageUrl: w.imageUrl || (w.images && w.images.length > 0 ? w.images[0] : null),
         }));
 
         const lowercaseQuery = searchQuery.toLowerCase();
@@ -476,18 +476,29 @@ function SearchModal({ onClose }: { onClose: () => void }) {
                         {searchResults.wines.map((wine) => (
                           <Link
                             key={wine.id}
-                            href={`/weine/${wine.slug}`}
+                            href={`/weine/${wine.id}`}
                             onClick={onClose}
                             className="block p-3 rounded-lg hover:bg-wood-lightest/30 transition-colors"
                           >
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="font-medium text-wine-dark">{wine.name}</p>
-                                <p className="text-sm text-graphite/60">
-                                  {wine.type} • {wine.region}
+                            <div className="flex items-center gap-3">
+                              {wine.imageUrl ? (
+                                <img
+                                  src={wine.imageUrl}
+                                  alt={wine.name}
+                                  className="w-10 h-14 object-contain flex-shrink-0 rounded"
+                                />
+                              ) : (
+                                <div className="w-10 h-14 bg-taupe-light/30 rounded flex-shrink-0" />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-wine-dark truncate">{wine.name}</p>
+                                <p className="text-sm text-graphite/60 truncate">
+                                  {[wine.type, wine.region].filter(Boolean).join(' • ')}
                                 </p>
                               </div>
-                              <p className="font-serif text-wine">CHF {wine.price}</p>
+                              {wine.price && (
+                                <p className="font-serif text-wine flex-shrink-0">CHF {wine.price}</p>
+                              )}
                             </div>
                           </Link>
                         ))}
