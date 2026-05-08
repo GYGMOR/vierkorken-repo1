@@ -330,6 +330,17 @@ function SearchModal({ onClose }: { onClose: () => void }) {
   }>({ wines: [], events: [], pages: [] });
   const [isSearching, setIsSearching] = useState(false);
 
+  const allPages = [
+    { title: 'Weine', url: '/weine', description: 'Entdecken Sie unsere Weinauswahl' },
+    { title: 'Events', url: '/events', description: 'Exklusive Weinerlebnisse' },
+    { title: 'Loyalty Club', url: '/club', description: 'Punkte sammeln und Vorteile genießen' },
+    { title: 'Über uns', url: '/uber-uns', description: 'Erfahren Sie mehr über Vier Korken Wein-Boutique' },
+    { title: 'Kontakt', url: '/kontakt', description: 'Nehmen Sie Kontakt mit uns auf' },
+    { title: 'News', url: '/news', description: 'Aktuelle Neuigkeiten' },
+    { title: 'Weinwissen', url: '/blog', description: 'Alles rund um das Thema Wein' },
+    { title: 'Dein Event', url: '/dein-event', description: 'Buchen Sie Ihren privaten Event' },
+  ];
+
   // Close on ESC key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -341,60 +352,73 @@ function SearchModal({ onClose }: { onClose: () => void }) {
     return () => window.removeEventListener('keydown', handleEscape);
   }, [onClose]);
 
-  // Mock data - in real app, fetch from API
-  const allWines = [
-    { id: '1', name: 'Château Margaux 2015', type: 'Rotwein', region: 'Bordeaux', price: 450 },
-    { id: '2', name: 'Sassicaia 2018', type: 'Rotwein', region: 'Toskana', price: 280 },
-    { id: '3', name: 'Meursault Premier Cru', type: 'Weisswein', region: 'Burgund', price: 120 },
-  ];
-
-  const allEvents = [
-    { id: '1', slug: 'burgundy-tasting-november', title: 'Burgunderweine Verkostung', type: 'Verkostung' },
-    { id: '2', slug: 'italian-wine-dinner', title: 'Italienisches Weindinner', type: 'Wine Dinner' },
-    { id: '3', slug: 'champagne-masterclass', title: 'Champagner Masterclass', type: 'Masterclass' },
-  ];
-
-  const allPages = [
-    { title: 'Weine', url: '/weine', description: 'Entdecken Sie unsere Weinauswahl' },
-    { title: 'Events', url: '/events', description: 'Exklusive Weinerlebnisse' },
-    { title: 'Loyalty Club', url: '/club', description: 'Punkte sammeln und Vorteile genießen' },
-    { title: 'Über uns', url: '/uber-uns', description: 'Erfahren Sie mehr über Vier Korken Wein-Boutique' },
-    { title: 'Kontakt', url: '/kontakt', description: 'Nehmen Sie Kontakt mit uns auf' },
-  ];
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-
-    if (query.length < 2) {
+  useEffect(() => {
+    if (searchQuery.length < 2) {
       setSearchResults({ wines: [], events: [], pages: [] });
       return;
     }
 
+    const controller = new AbortController();
     setIsSearching(true);
 
-    // Simulate API delay
-    setTimeout(() => {
-      const lowercaseQuery = query.toLowerCase();
+    const fetchResults = async () => {
+      try {
+        const [winesRes, eventsRes] = await Promise.all([
+          fetch(`/api/wines?search=${encodeURIComponent(searchQuery)}&limit=5`, { signal: controller.signal }),
+          fetch('/api/events', { signal: controller.signal }),
+        ]);
 
-      const wines = allWines.filter(wine =>
-        wine.name.toLowerCase().includes(lowercaseQuery) ||
-        wine.type.toLowerCase().includes(lowercaseQuery) ||
-        wine.region.toLowerCase().includes(lowercaseQuery)
-      );
+        const winesData = await winesRes.json();
+        const eventsData = await eventsRes.json();
 
-      const events = allEvents.filter(event =>
-        event.title.toLowerCase().includes(lowercaseQuery) ||
-        event.type.toLowerCase().includes(lowercaseQuery)
-      );
+        const wines = (winesData.wines || []).map((w: any) => ({
+          id: w.id,
+          name: w.name,
+          slug: w.slug,
+          type: w.wineType,
+          region: w.region || w.country || '',
+          price: w.variants?.[0]?.price ?? null,
+        }));
 
-      const pages = allPages.filter(page =>
-        page.title.toLowerCase().includes(lowercaseQuery) ||
-        page.description.toLowerCase().includes(lowercaseQuery)
-      );
+        const lowercaseQuery = searchQuery.toLowerCase();
+        const events = (eventsData.events || [])
+          .filter((e: any) =>
+            e.title?.toLowerCase().includes(lowercaseQuery) ||
+            e.eventType?.toLowerCase().includes(lowercaseQuery) ||
+            e.subtitle?.toLowerCase().includes(lowercaseQuery)
+          )
+          .slice(0, 5)
+          .map((e: any) => ({
+            id: e.id,
+            slug: e.slug,
+            title: e.title,
+            type: e.eventType,
+          }));
 
-      setSearchResults({ wines, events, pages });
-      setIsSearching(false);
-    }, 300);
+        const pages = allPages.filter(page =>
+          page.title.toLowerCase().includes(lowercaseQuery) ||
+          page.description.toLowerCase().includes(lowercaseQuery)
+        );
+
+        setSearchResults({ wines, events, pages });
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          setSearchResults({ wines: [], events: [], pages: [] });
+        }
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    const timer = setTimeout(fetchResults, 300);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [searchQuery]);
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
   };
 
   return (
@@ -451,7 +475,7 @@ function SearchModal({ onClose }: { onClose: () => void }) {
                         {searchResults.wines.map((wine) => (
                           <Link
                             key={wine.id}
-                            href={`/weine/${wine.id}`}
+                            href={`/weine/${wine.slug}`}
                             onClick={onClose}
                             className="block p-3 rounded-lg hover:bg-wood-lightest/30 transition-colors"
                           >

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
 export interface FooterProps {
@@ -149,6 +150,24 @@ export function Footer({ className }: FooterProps) {
 
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-warmwhite/60">
           <p>&copy; {currentYear} Vier Korken Wein-Boutique. Alle Rechte vorbehalten.</p>
+          <div className="flex items-center gap-6">
+            <a
+              href="https://hed-it.ch"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              aria-label="Created by Hed-IT"
+            >
+              <span className="text-warmwhite/70 text-sm">Created by</span>
+              <Image
+                src="/web-owner/hedit_logo_2_transparent.png"
+                alt="Hed-IT"
+                width={100}
+                height={40}
+                className="h-10 w-auto opacity-80 hover:opacity-100 transition-opacity"
+              />
+            </a>
+          </div>
           <div className="flex items-center gap-6">
             <a
               href="https://www.instagram.com/vier.korken.wein.boutique"
