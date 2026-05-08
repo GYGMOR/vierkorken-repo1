@@ -328,6 +328,7 @@ function SearchModal({ onClose }: { onClose: () => void }) {
     events: any[];
     pages: any[];
   }>({ wines: [], events: [], pages: [] });
+
   const [isSearching, setIsSearching] = useState(false);
 
   const allPages = [
@@ -363,21 +364,21 @@ function SearchModal({ onClose }: { onClose: () => void }) {
 
     const fetchResults = async () => {
       try {
-        const [winesRes, eventsRes] = await Promise.all([
-          fetch(`/api/wines?search=${encodeURIComponent(searchQuery)}&limit=5`, { signal: controller.signal }),
+        const [klaraRes, eventsRes] = await Promise.all([
+          fetch(`/api/klara/articles?search=${encodeURIComponent(searchQuery)}&onlyActive=true`, { signal: controller.signal }),
           fetch('/api/events', { signal: controller.signal }),
         ]);
 
-        const winesData = await winesRes.json();
+        const klaraData = await klaraRes.json();
         const eventsData = await eventsRes.json();
 
-        const wines = (winesData.wines || []).map((w: any) => ({
+        const wines = (klaraData.data || []).slice(0, 5).map((w: any) => ({
           id: w.id,
           name: w.name,
-          slug: w.slug,
-          type: w.wineType,
+          slug: w.articleNumber,
+          type: w.wineType || '',
           region: w.region || w.country || '',
-          price: w.variants?.[0]?.price ?? null,
+          price: w.price ?? null,
         }));
 
         const lowercaseQuery = searchQuery.toLowerCase();
