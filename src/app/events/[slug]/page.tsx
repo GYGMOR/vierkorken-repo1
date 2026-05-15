@@ -19,6 +19,7 @@ interface Event {
   date: string;
   time: string;
   duration: number;
+  endTime: string;
   venue: string;
   type: string;
   price: number;
@@ -27,6 +28,7 @@ interface Event {
   booked: number;
   image: string;
   description: string;
+  venueAddress: { street?: string; zip?: string; city?: string } | null;
   minLoyaltyLevel: number | null;
   includeTax: boolean;
 }
@@ -86,6 +88,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
               subtitle: data.event.subtitle || '',
               date: new Date(data.event.startDateTime).toISOString().split('T')[0],
               time: new Date(data.event.startDateTime).toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' }),
+              endTime: new Date(data.event.endDateTime).toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' }),
               duration: data.event.duration || 0,
               venue: data.event.venue,
               type: data.event.eventType,
@@ -95,6 +98,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
               booked: data.event.currentCapacity,
               image: data.event.featuredImage || '/events/default.jpg',
               description: data.event.description,
+              venueAddress: data.event.venueAddress || null,
               minLoyaltyLevel: data.event.minLoyaltyLevel,
               includeTax: data.event.includeTax ?? true,
             };
@@ -324,7 +328,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
                           year: 'numeric'
                         })}
                       </p>
-                      <p className="text-sm text-graphite/60">{event.time} Uhr ({event.duration} Min)</p>
+                      <p className="text-sm text-graphite/60">{event.time} – {event.endTime} Uhr</p>
                     </div>
                   </div>
 
@@ -338,6 +342,11 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
                     <div>
                       <p className="font-medium">Veranstaltungsort</p>
                       <p className="text-sm text-graphite/60">{event.venue}</p>
+                      {event.venueAddress && (event.venueAddress.street || event.venueAddress.city) && (
+                        <p className="text-sm text-graphite/60">
+                          {[event.venueAddress.street, [event.venueAddress.zip, event.venueAddress.city].filter(Boolean).join(' ')].filter(Boolean).join(', ')}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>

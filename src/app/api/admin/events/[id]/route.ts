@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
+import { sendEventNotificationEmail } from '@/lib/email';
 
 // Force Node.js runtime (required for Prisma)
 export const runtime = 'nodejs';
@@ -166,6 +167,70 @@ export async function PUT(
       where: { id },
       data: updateData,
     });
+
+    // Trigger news upsert + newsletter when event is published for the first time
+    const beingPublished = status === 'PUBLISHED' && existingEvent.status !== 'PUBLISHED';
+    if (beingPublished) {
+      try {
+        const newsSlug = `event-${event.slug}`;
+        const currentDescription = description ?? existingEvent.description;
+        const plainDesc = currentDescription.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+        const newsExcerpt = plainDesc.length > 150 ? plainDesc.substring(0, 150) + '...' : plainDesc;
+
+        await prisma.news.upsert({
+          where: { slug: newsSlug },
+          update: {
+            title: event.title,
+            excerpt: newsExcerpt,
+            content: currentDescription,
+            featuredImage: event.featuredImage,
+            status: 'PUBLISHED',
+            publishedAt: new Date(),
+            type: 'EVENT',
+            eventId: event.id,
+            isPinned: true,
+          },
+          create: {
+            slug: newsSlug,
+            title: event.title,
+            excerpt: newsExcerpt,
+            content: currentDescription,
+            featuredImage: event.featuredImage,
+            status: 'PUBLISHED',
+            publishedAt: new Date(),
+            type: 'EVENT',
+            eventId: event.id,
+            isPinned: true,
+          },
+        });
+
+        const subscribedUsers = await prisma.user.findMany({
+          where: { newsletterSubscribed: true, email: { not: undefined } },
+          select: { email: true, firstName: true },
+        });
+        const newsletterSubscribers = await prisma.newsletterSubscriber.findMany({
+          where: { isActive: true },
+          select: { email: true, firstName: true },
+        });
+
+        const emailMap = new Map<string, { email: string; firstName?: string }>();
+        subscribedUsers.forEach((u: any) => emailMap.set(u.email, { email: u.email, firstName: u.firstName || undefined }));
+        newsletterSubscribers.forEach((s: any) => {
+          if (!emailMap.has(s.email)) emailMap.set(s.email, { email: s.email, firstName: s.firstName || undefined });
+        });
+
+        const allEmails = Array.from(emailMap.values());
+        const chunkSize = 10;
+        for (let i = 0; i < allEmails.length; i += chunkSize) {
+          const chunk = allEmails.slice(i, i + chunkSize);
+          await Promise.all(chunk.map((emailObj) => sendEventNotificationEmail(emailObj.email, event, emailObj.firstName)));
+        }
+
+        console.log('✅ News upserted and newsletter sent on publish');
+      } catch (newsError) {
+        console.error('⚠️ Error in news/newsletter on publish:', newsError);
+      }
+    }
 
     return NextResponse.json({
       success: true,

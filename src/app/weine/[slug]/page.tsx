@@ -396,21 +396,6 @@ export default function WineDetailPage({ params }: { params: Promise<{ slug: str
               )}
             </div>
 
-            <div className="border-t border-taupe-light pt-6 space-y-3">
-              <h3 className="font-semibold text-graphite-dark">Produktinformationen</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-graphite">Verfügbarkeit:</span>
-                  <span className="text-graphite-dark font-medium">
-                    {wine.stock > 0 ? 'Auf Lager' : 'Nicht verfügbar'}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-graphite">Lieferzeit:</span>
-                  <span className="text-graphite-dark font-medium">3-5 Werktage</span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 

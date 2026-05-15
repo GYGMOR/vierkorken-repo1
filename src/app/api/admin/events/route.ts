@@ -170,25 +170,36 @@ export async function POST(req: NextRequest) {
       console.log('📰 Creating automatic news item for event:', event.id);
 
       const newsSlug = `event-${slug}`;
-      const newsTitle = title; // Same title
-      // Create a short excerpt from description (first 150 chars)
-      const newsExcerpt = description.length > 150
-        ? description.substring(0, 150) + '...'
-        : description;
+      const newsTitle = title;
+      // Strip HTML tags for plain-text excerpt
+      const plainDesc = description.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+      const newsExcerpt = plainDesc.length > 150 ? plainDesc.substring(0, 150) + '...' : plainDesc;
 
-      await prisma.news.create({
-        data: {
+      await prisma.news.upsert({
+        where: { slug: newsSlug },
+        update: {
+          title: newsTitle,
+          excerpt: newsExcerpt,
+          content: description,
+          featuredImage: featuredImage,
+          status: status as any,
+          publishedAt: status === 'PUBLISHED' ? new Date() : null,
+          type: 'EVENT',
+          eventId: event.id,
+          isPinned: true,
+        },
+        create: {
           slug: newsSlug,
           title: newsTitle,
           excerpt: newsExcerpt,
-          content: description, // Full description
+          content: description,
           featuredImage: featuredImage,
-          status: status as any, // Sync status with event
+          status: status as any,
           publishedAt: status === 'PUBLISHED' ? new Date() : null,
-          type: 'EVENT', // New field
+          type: 'EVENT',
           eventId: event.id,
-          isPinned: true, // Pin events by default? Or maybe not. Let's say yes for visibility.
-        }
+          isPinned: true,
+        },
       });
       console.log('✅ News item created successfully');
 

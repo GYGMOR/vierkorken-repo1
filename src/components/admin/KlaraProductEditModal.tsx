@@ -151,9 +151,9 @@ export function KlaraProductEditModal({
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          customName: customName !== article.name ? customName : null,
-          customDescription: customDescription !== article.description ? customDescription : null,
-          customPrice: parseFloat(customPrice) !== article.price ? parseFloat(customPrice) : null,
+          customName: customName || null,
+          customDescription: customDescription || null,
+          customPrice: customPrice ? parseFloat(customPrice) : null,
           customImages,
           customData: {
             grapes,

@@ -244,6 +244,21 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
           console.log('✅ Existing order updated:', order.orderNumber);
           console.log('🎫 Order has', order.tickets?.length || 0, 'tickets');
 
+          // Increment event capacity now that payment is confirmed
+          if (order.tickets && order.tickets.length > 0) {
+            const eventCapacityMap = new Map<string, number>();
+            for (const ticket of order.tickets) {
+              eventCapacityMap.set(ticket.eventId, (eventCapacityMap.get(ticket.eventId) || 0) + 1);
+            }
+            for (const [eventId, count] of eventCapacityMap.entries()) {
+              await prisma.event.update({
+                where: { id: eventId },
+                data: { currentCapacity: { increment: count } },
+              });
+            }
+            console.log(`✅ Event capacity incremented for ${eventCapacityMap.size} event(s)`);
+          }
+
           // Process the coupon now that payment is securely successful
           if (order.coupon) {
             console.log(`🎫 Processing successful coupon usage: ${order.coupon.code}`);
@@ -524,6 +539,8 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
               console.log(`🎫 Found ${order.tickets.length} event tickets for order`);
               for (const ticket of order.tickets) {
                 try {
+                  const _addr1 = ticket.event.venueAddress as any;
+                  const _addrLine1 = [_addr1?.zip, _addr1?.city].filter(Boolean).join(' ');
                   const pdfBuffer = await generateTicketPDFBuffer({
                     ticketNumber: ticket.ticketNumber,
                     qrCode: ticket.qrCode, // Same QR code as in User Portal!
@@ -534,7 +551,7 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
                     event: {
                       title: ticket.event.title,
                       subtitle: ticket.event.subtitle || undefined,
-                      venue: ticket.event.venue,
+                      venue: [ticket.event.venue, _addr1?.street, _addrLine1].filter(Boolean).join(', '),
                       startDateTime: ticket.event.startDateTime.toISOString(),
                       duration: ticket.event.duration || undefined,
                     },
@@ -613,6 +630,25 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
           });
 
           console.log('✅ Order marked as PAID and CONFIRMED');
+
+          // Increment event capacity for tickets in this TWINT order
+          const twintTickets = await prisma.eventTicket.findMany({
+            where: { orderId: order.id },
+            select: { eventId: true },
+          });
+          if (twintTickets.length > 0) {
+            const eventCapacityMap = new Map<string, number>();
+            for (const ticket of twintTickets) {
+              eventCapacityMap.set(ticket.eventId, (eventCapacityMap.get(ticket.eventId) || 0) + 1);
+            }
+            for (const [eventId, count] of eventCapacityMap.entries()) {
+              await prisma.event.update({
+                where: { id: eventId },
+                data: { currentCapacity: { increment: count } },
+              });
+            }
+            console.log(`✅ Event capacity incremented for ${eventCapacityMap.size} event(s) (TWINT)`);
+          }
 
           // Update user loyalty points if user exists
           if (order.userId) {
@@ -728,6 +764,8 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
                 const ticketPDFs = [];
                 for (const ticket of orderWithItems.tickets) {
                   try {
+                    const _addr2 = ticket.event.venueAddress as any;
+                    const _addrLine2 = [_addr2?.zip, _addr2?.city].filter(Boolean).join(' ');
                     const pdfBuffer = await generateTicketPDFBuffer({
                       ticketNumber: ticket.ticketNumber,
                       qrCode: ticket.qrCode,
@@ -738,7 +776,7 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
                       event: {
                         title: ticket.event.title,
                         subtitle: ticket.event.subtitle || undefined,
-                        venue: ticket.event.venue,
+                        venue: [ticket.event.venue, _addr2?.street, _addrLine2].filter(Boolean).join(', '),
                         startDateTime: ticket.event.startDateTime.toISOString(),
                         duration: ticket.event.duration || undefined,
                       },

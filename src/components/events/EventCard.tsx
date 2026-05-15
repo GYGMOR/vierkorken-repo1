@@ -86,12 +86,15 @@ export function EventCard({ event, isAdmin, onEdit }: { event: any; isAdmin?: bo
     const spotsLeft = event.capacity - event.booked;
     const isAlmostFull = spotsLeft <= 5;
 
-    // Description truncation logic
+    // Strip HTML tags for plain-text card preview
+    const plainDescription = event.description
+        ? event.description.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+        : '';
     const maxLength = 150;
-    const shouldTruncate = event.description && event.description.length > maxLength;
+    const shouldTruncate = plainDescription.length > maxLength;
     const displayText = isExpanded || !shouldTruncate
-        ? event.description
-        : event.description?.slice(0, maxLength) + '...';
+        ? plainDescription
+        : plainDescription.slice(0, maxLength) + '...';
 
     const handleBooking = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -225,7 +228,7 @@ export function EventCard({ event, isAdmin, onEdit }: { event: any; isAdmin?: bo
                             </div>
                             <div className="flex items-center gap-2">
                                 <ClockIcon className="w-4 h-4 text-wine" />
-                                <span>{event.time} Uhr ({event.duration} Min)</span>
+                                <span>{event.time} – {event.endTime || event.time} Uhr</span>
                             </div>
                             <div className="flex items-start gap-2">
                                 <LocationIcon className="w-4 h-4 text-wine mt-1 flex-shrink-0" />

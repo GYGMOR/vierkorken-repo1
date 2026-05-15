@@ -579,17 +579,7 @@ export async function POST(req: NextRequest) {
             }
           }
 
-          // Update event capacity
-          await prisma.event.update({
-            where: { id: event.id },
-            data: {
-              currentCapacity: {
-                increment: requestedQuantity,
-              },
-            },
-          });
-
-          console.log(`✅ Event capacity updated: ${event.currentCapacity} -> ${event.currentCapacity + requestedQuantity}`);
+          // Capacity is incremented in the Stripe webhook after payment confirmation
         }
         console.log(`✅ Total event tickets created: ${ticketCount}`);
       } catch (eventError: any) {
@@ -599,10 +589,13 @@ export async function POST(req: NextRequest) {
       console.log('ℹ️  No event items to process');
     }
 
-    // Reload order with items
+    // Reload order with items and tickets
     const orderWithItems = await prisma.order.findUnique({
       where: { id: order.id },
-      include: { items: true },
+      include: {
+        items: true,
+        tickets: { include: { event: true } },
+      },
     });
 
     console.log('📦 Order items:', orderWithItems?.items?.length || 0);
@@ -624,9 +617,24 @@ export async function POST(req: NextRequest) {
         },
       });
 
+      // Increment event capacity for tickets in this 0 CHF order (Stripe webhook is bypassed)
+      if (orderWithItems?.tickets && orderWithItems.tickets.length > 0) {
+        const eventCapacityMap = new Map<string, number>();
+        for (const ticket of orderWithItems.tickets) {
+          eventCapacityMap.set(ticket.eventId, (eventCapacityMap.get(ticket.eventId) || 0) + 1);
+        }
+        for (const [eventId, count] of eventCapacityMap.entries()) {
+          await prisma.event.update({
+            where: { id: eventId },
+            data: { currentCapacity: { increment: count } },
+          });
+        }
+        console.log(`✅ Event capacity incremented for ${eventCapacityMap.size} event(s) in 0 CHF order`);
+      }
+
       // Update user loyalty points if logged in
       if (user) {
-        // Link event tickets to user if missing 
+        // Link event tickets to user if missing
         try {
           await prisma.eventTicket.updateMany({
             where: { orderId: order.id, userId: null },

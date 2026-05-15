@@ -92,6 +92,10 @@ export default function EventsPage() {
               hour: "2-digit",
               minute: "2-digit",
             }),
+            endTime: new Date(event.endDateTime).toLocaleTimeString("de-CH", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
             duration: event.duration || 0,
             venue: event.venue,
             type: event.eventType,

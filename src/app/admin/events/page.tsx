@@ -5,6 +5,7 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { ImageUploader } from '@/components/admin/ImageUploader';
+import { RichTextEditor } from '@/components/admin/RichTextEditor';
 
 interface Event {
   id: string;
@@ -54,6 +55,13 @@ const STATUS_OPTIONS = [
   { value: 'COMPLETED', label: 'Abgeschlossen', color: 'bg-blue-200 text-blue-800' },
 ];
 
+// Converts a UTC ISO string to a local datetime-local input value (YYYY-MM-DDTHH:mm)
+function toLocalDateTimeInput(isoString: string): string {
+  const d = new Date(isoString);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 export default function AdminEvents() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,7 +80,9 @@ export default function AdminEvents() {
     description: '',
     eventType: 'TASTING',
     venue: '',
-    venueAddress: '',
+    venueStreet: '',
+    venueZip: '',
+    venueCity: '',
     startDateTime: '',
     endDateTime: '',
     duration: '',
@@ -122,7 +132,11 @@ export default function AdminEvents() {
         maxCapacity: parseInt(formData.maxCapacity),
         price: parseFloat(formData.price),
         memberPrice: formData.memberPrice ? parseFloat(formData.memberPrice) : null,
-        venueAddress: formData.venueAddress ? JSON.parse(formData.venueAddress) : {},
+        venueAddress: {
+          street: formData.venueStreet || '',
+          zip: formData.venueZip || '',
+          city: formData.venueCity || '',
+        },
         galleryImages: [],
       };
 
@@ -163,9 +177,11 @@ export default function AdminEvents() {
       description: event.description,
       eventType: event.eventType,
       venue: event.venue,
-      venueAddress: JSON.stringify(event.venueAddress),
-      startDateTime: event.startDateTime.slice(0, 16),
-      endDateTime: event.endDateTime.slice(0, 16),
+      venueStreet: (event.venueAddress as any)?.street || '',
+      venueZip: (event.venueAddress as any)?.zip || '',
+      venueCity: (event.venueAddress as any)?.city || '',
+      startDateTime: toLocalDateTimeInput(event.startDateTime),
+      endDateTime: toLocalDateTimeInput(event.endDateTime),
       duration: event.duration?.toString() || '',
       maxCapacity: event.maxCapacity.toString(),
       price: event.price.toString(),
@@ -229,7 +245,9 @@ export default function AdminEvents() {
       description: '',
       eventType: 'TASTING',
       venue: '',
-      venueAddress: '',
+      venueStreet: '',
+      venueZip: '',
+      venueCity: '',
       startDateTime: '',
       endDateTime: '',
       duration: '',
@@ -326,14 +344,12 @@ export default function AdminEvents() {
                   <label className="block text-sm font-medium text-graphite mb-1">
                     Beschreibung *
                   </label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    required
-                    rows={4}
-                    className="w-full px-3 py-2 border border-taupe-light rounded focus:outline-none focus:ring-2 focus:ring-burgundy"
-                  />
+                  <div className="border border-taupe-light rounded focus-within:ring-2 focus-within:ring-burgundy">
+                    <RichTextEditor
+                      content={formData.description}
+                      onChange={(html) => setFormData((prev) => ({ ...prev, description: html }))}
+                    />
+                  </div>
                 </div>
 
                 {/* Event Details */}
@@ -396,21 +412,50 @@ export default function AdminEvents() {
 
                   <div>
                     <label className="block text-sm font-medium text-graphite mb-1">
-                      Adresse (JSON)
+                      Strasse &amp; Nr.
                     </label>
                     <input
                       type="text"
-                      name="venueAddress"
-                      value={formData.venueAddress}
+                      name="venueStreet"
+                      value={formData.venueStreet}
                       onChange={handleInputChange}
-                      placeholder='{"street": "Musterstr. 1", "city": "Zürich"}'
+                      placeholder="z.B. Steinbrunnengasse 3a"
+                      className="w-full px-3 py-2 border border-taupe-light rounded focus:outline-none focus:ring-2 focus:ring-burgundy"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-graphite mb-1">
+                      PLZ
+                    </label>
+                    <input
+                      type="text"
+                      name="venueZip"
+                      value={formData.venueZip}
+                      onChange={handleInputChange}
+                      placeholder="z.B. 5707"
+                      className="w-full px-3 py-2 border border-taupe-light rounded focus:outline-none focus:ring-2 focus:ring-burgundy"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-graphite mb-1">
+                      Ortschaft
+                    </label>
+                    <input
+                      type="text"
+                      name="venueCity"
+                      value={formData.venueCity}
+                      onChange={handleInputChange}
+                      placeholder="z.B. Seengen AG"
                       className="w-full px-3 py-2 border border-taupe-light rounded focus:outline-none focus:ring-2 focus:ring-burgundy"
                     />
                   </div>
                 </div>
 
                 {/* Date & Time */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-graphite mb-1">
                       Start-Datum & Zeit *
@@ -439,19 +484,6 @@ export default function AdminEvents() {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-graphite mb-1">
-                      Dauer (Minuten)
-                    </label>
-                    <input
-                      type="number"
-                      name="duration"
-                      value={formData.duration}
-                      onChange={handleInputChange}
-                      placeholder="120"
-                      className="w-full px-3 py-2 border border-taupe-light rounded focus:outline-none focus:ring-2 focus:ring-burgundy"
-                    />
-                  </div>
                 </div>
 
                 {/* Capacity & Pricing */}
