@@ -2045,7 +2045,7 @@ export async function sendEventNotificationEmail(to: string, event: any, firstNa
                         <h2 style="color: #333; margin-top: 0; font-size: 20px;"> ${event.subtitle || 'Erleben Sie Wein neu'} </h2>
 
                           <div style="color: #555; margin-bottom: 30px; line-height: 1.8;">
-                            ${event.description ? event.description.substring(0, 300) + '...' : ''}
+                            ${event.description ? event.description.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().substring(0, 300) + '...' : ''}
 </div>
 
   <div style="text-align: center; margin: 30px 0;">

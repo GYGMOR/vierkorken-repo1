@@ -25,6 +25,12 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
             attributes: {
                 class: 'prose prose-sm max-w-none focus:outline-none min-h-[200px] p-4',
             },
+            transformPastedHTML(html: string) {
+                // AI tools (ChatGPT etc.) often use <div> instead of <p> — convert for proper paragraph breaks
+                return html
+                    .replace(/<div[^>]*>/gi, '<p>')
+                    .replace(/<\/div>/gi, '</p>');
+            },
             handleDrop: (view, event, slice, moved) => {
                 if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length > 0) {
                     event.preventDefault();
