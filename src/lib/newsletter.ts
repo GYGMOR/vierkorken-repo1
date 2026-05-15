@@ -23,7 +23,7 @@ interface NewsItem {
 export async function notifyNewsletterSubscribers(newsItem: NewsItem) {
   try {
     // Get all active newsletter subscribers
-    const [newsletterSubscribers, registeredUsers] = await Promise.all([
+    const [newsletterSubscribers, registeredUsers, maintenanceSubscribers] = await Promise.all([
       // Standalone newsletter subscribers
       prisma.newsletterSubscriber.findMany({
         where: { isActive: true },
@@ -33,6 +33,11 @@ export async function notifyNewsletterSubscribers(newsItem: NewsItem) {
       prisma.user.findMany({
         where: { newsletterSubscribed: true },
         select: { email: true, firstName: true },
+      }),
+      // Maintenance mode subscribers
+      prisma.maintenanceModeSubscriber.findMany({
+        where: { isActive: true },
+        select: { email: true },
       }),
     ]);
 
@@ -46,6 +51,12 @@ export async function notifyNewsletterSubscribers(newsItem: NewsItem) {
     registeredUsers.forEach((user: any) => {
       if (!emailMap.has(user.email)) {
         emailMap.set(user.email, { email: user.email, firstName: user.firstName || undefined });
+      }
+    });
+
+    maintenanceSubscribers.forEach((sub: any) => {
+      if (!emailMap.has(sub.email)) {
+        emailMap.set(sub.email, { email: sub.email, firstName: undefined });
       }
     });
 
@@ -124,7 +135,7 @@ export async function getNewsletterSubscriberCount(): Promise<number> {
   ]);
 
   // Get unique count (some users might have both records)
-  const [newsletterSubscribers, registeredUsers] = await Promise.all([
+  const [newsletterSubscribers, registeredUsers, maintenanceSubscribers] = await Promise.all([
     prisma.newsletterSubscriber.findMany({
       where: { isActive: true },
       select: { email: true },
@@ -133,11 +144,16 @@ export async function getNewsletterSubscriberCount(): Promise<number> {
       where: { newsletterSubscribed: true },
       select: { email: true },
     }),
+    prisma.maintenanceModeSubscriber.findMany({
+      where: { isActive: true },
+      select: { email: true },
+    }),
   ]);
 
   const uniqueEmails = new Set([
     ...newsletterSubscribers.map((s: any) => s.email),
     ...registeredUsers.map((u: any) => u.email),
+    ...maintenanceSubscribers.map((m: any) => m.email),
   ]);
 
   return uniqueEmails.size;

@@ -212,11 +212,18 @@ export async function PUT(
           where: { isActive: true },
           select: { email: true, firstName: true },
         });
+        const maintenanceSubscribers = await prisma.maintenanceModeSubscriber.findMany({
+          where: { isActive: true },
+          select: { email: true },
+        });
 
         const emailMap = new Map<string, { email: string; firstName?: string }>();
         subscribedUsers.forEach((u: any) => emailMap.set(u.email, { email: u.email, firstName: u.firstName || undefined }));
         newsletterSubscribers.forEach((s: any) => {
           if (!emailMap.has(s.email)) emailMap.set(s.email, { email: s.email, firstName: s.firstName || undefined });
+        });
+        maintenanceSubscribers.forEach((s: any) => {
+          if (!emailMap.has(s.email)) emailMap.set(s.email, { email: s.email, firstName: undefined });
         });
 
         const allEmails = Array.from(emailMap.values());

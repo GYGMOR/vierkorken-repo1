@@ -18,7 +18,7 @@ export const runtime = 'nodejs';
 export async function POST(request: NextRequest) {
   try {
     // Apply rate limiting: 5 registration attempts per hour per IP
-    const rateLimitResponse = await applyRateLimit(request, 5, 60 * 60 * 1000);
+    const rateLimitResponse = await applyRateLimit(request, 20, 60 * 60 * 1000);
     if (rateLimitResponse) return rateLimitResponse;
 
     const body = await request.json();

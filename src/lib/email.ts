@@ -1119,12 +1119,20 @@ Newsletter abbestellen: ${unsubscribeUrl}
 info@vierkorken.ch
     `.trim();
 
-  await sendInfoMail({
-    to,
-    subject: 'Willkommen beim Vier Korken Wein-Boutique Newsletter',
-    html,
-    text,
-  });
+  console.log(`📧 [Newsletter] Attempting to send confirmation to: ${to}`);
+  try {
+    const result = await sendInfoMail({
+      to,
+      subject: 'Willkommen beim Vier Korken Wein-Boutique Newsletter',
+      html,
+      text,
+    });
+    console.log(`✅ [Newsletter] Confirmation sent successfully to: ${to}`);
+    return result;
+  } catch (error: any) {
+    console.error(`❌ [Newsletter] Failed to send confirmation to: ${to}`, error.message);
+    throw error;
+  }
 }
 
 /**

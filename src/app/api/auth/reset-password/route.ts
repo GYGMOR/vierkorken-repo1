@@ -10,7 +10,7 @@ export const runtime = 'nodejs';
 export async function POST(req: NextRequest) {
   try {
     // Rate limiting: 10 requests per hour per IP
-    const rateLimitResponse = await applyRateLimit(req, 10, 60 * 60 * 1000);
+    const rateLimitResponse = await applyRateLimit(req, 30, 60 * 60 * 1000);
     if (rateLimitResponse) return rateLimitResponse;
 
     const body = await req.json();

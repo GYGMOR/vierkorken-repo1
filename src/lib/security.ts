@@ -201,7 +201,7 @@ setInterval(() => {
 export function checkRateLimit(
   identifier: string,
   maxRequests: number = 100,
-  windowMs: number = 60 * 1000 // 1 minute
+  windowMs: number = 60 * 60 * 1000 // Default to 1 hour
 ): { allowed: boolean; remaining: number; resetTime: number } {
   const now = Date.now();
   const entry = rateLimitStore.get(identifier);
@@ -220,6 +220,10 @@ export function checkRateLimit(
   const allowed = entry.count <= maxRequests;
   const remaining = Math.max(0, maxRequests - entry.count);
 
+  if (!allowed) {
+    console.warn(`[SECURITY] Rate limit exceeded for ${identifier}. Count: ${entry.count}/${maxRequests}, Window: ${windowMs}ms`);
+  }
+
   return { allowed, remaining, resetTime: entry.resetTime };
 }
 
@@ -234,7 +238,20 @@ export function getRateLimitIdentifier(req: NextRequest, session?: any): string 
 
   // Otherwise use IP address
   const forwarded = req.headers.get('x-forwarded-for');
-  const ip = forwarded ? forwarded.split(',')[0] : req.headers.get('x-real-ip') || 'unknown';
+  const realIp = req.headers.get('x-real-ip');
+  
+  // Clean up IPv6 localhost or loopback if needed
+  let ip = forwarded ? forwarded.split(',')[0].trim() : realIp || 'unknown';
+  
+  if (ip === '::1' || ip === '127.0.0.1') {
+    ip = 'localhost';
+  }
+
+  // For debugging, log the identifier if it's unknown
+  if (ip === 'unknown') {
+    console.warn('[SECURITY] Rate limit identifier is "unknown". Request headers:', Object.fromEntries(req.headers.entries()));
+  }
+
   return `ip:${ip}`;
 }
 
