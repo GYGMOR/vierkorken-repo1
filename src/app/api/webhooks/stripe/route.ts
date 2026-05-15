@@ -245,7 +245,8 @@ Kaufdatum: ${new Date().toLocaleString('de-CH')}
           console.log('🎫 Order has', order.tickets?.length || 0, 'tickets');
 
           // Increment event capacity now that payment is confirmed
-          if (order.tickets && order.tickets.length > 0) {
+          // Guard: skip if already PAID (prevents double-increment when TWINT fires both payment_intent.succeeded + checkout.session.completed)
+          if (order.tickets && order.tickets.length > 0 && existingOrder?.paymentStatus !== 'PAID') {
             const eventCapacityMap = new Map<string, number>();
             for (const ticket of order.tickets) {
               eventCapacityMap.set(ticket.eventId, (eventCapacityMap.get(ticket.eventId) || 0) + 1);
