@@ -133,6 +133,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Check for slug uniqueness
+    const existingSlug = await prisma.event.findUnique({
+      where: { slug },
+    });
+
+    if (existingSlug) {
+      return NextResponse.json(
+        { error: 'Dieser Slug wird bereits für ein anderes Event verwendet.' },
+        { status: 400 }
+      );
+    }
+
     const event = await prisma.event.create({
       data: {
         slug,

@@ -130,6 +130,19 @@ export async function PUT(
       return NextResponse.json({ error: 'Event nicht gefunden' }, { status: 404 });
     }
 
+    // Check for slug uniqueness if it's being changed
+    if (slug !== undefined && slug !== existingEvent.slug) {
+      const slugExists = await prisma.event.findUnique({
+        where: { slug },
+      });
+      if (slugExists) {
+        return NextResponse.json(
+          { error: 'Dieser Slug wird bereits für ein anderes Event verwendet.' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Prepare update data
     const updateData: any = {};
     if (slug !== undefined) updateData.slug = slug;
@@ -168,12 +181,14 @@ export async function PUT(
       data: updateData,
     });
 
-    // Trigger news upsert + newsletter when event is published for the first time
-    const beingPublished = status === 'PUBLISHED' && existingEvent.status !== 'PUBLISHED';
-    if (beingPublished) {
+    // -------------------------------------------------------------
+    // AUTOMATIC NEWS SYNC & NOTIFICATION
+    // -------------------------------------------------------------
+    // We update the news item if the event is published (or becoming published)
+    if (status === 'PUBLISHED' || event.status === 'PUBLISHED') {
       try {
         const newsSlug = `event-${event.slug}`;
-        const currentDescription = description ?? existingEvent.description;
+        const currentDescription = description ?? event.description;
         const plainDesc = currentDescription.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
         const newsExcerpt = plainDesc.length > 150 ? plainDesc.substring(0, 150) + '...' : plainDesc;
 
@@ -185,7 +200,7 @@ export async function PUT(
             content: currentDescription,
             featuredImage: event.featuredImage,
             status: 'PUBLISHED',
-            publishedAt: new Date(),
+            // Only update publishedAt if it wasn't already set on the news item
             type: 'EVENT',
             eventId: event.id,
             isPinned: true,
@@ -204,38 +219,43 @@ export async function PUT(
           },
         });
 
-        const subscribedUsers = await prisma.user.findMany({
-          where: { newsletterSubscribed: true, email: { not: undefined } },
-          select: { email: true, firstName: true },
-        });
-        const newsletterSubscribers = await prisma.newsletterSubscriber.findMany({
-          where: { isActive: true },
-          select: { email: true, firstName: true },
-        });
-        const maintenanceSubscribers = await prisma.maintenanceModeSubscriber.findMany({
-          where: { isActive: true },
-          select: { email: true },
-        });
+        // ONLY send newsletter if it's being published for the FIRST time
+        const beingPublishedFirstTime = status === 'PUBLISHED' && existingEvent.status !== 'PUBLISHED';
+        if (beingPublishedFirstTime) {
+          const subscribedUsers = await prisma.user.findMany({
+            where: { newsletterSubscribed: true, email: { not: undefined } },
+            select: { email: true, firstName: true },
+          });
+          const newsletterSubscribers = await prisma.newsletterSubscriber.findMany({
+            where: { isActive: true },
+            select: { email: true, firstName: true },
+          });
+          const maintenanceSubscribers = await prisma.maintenanceModeSubscriber.findMany({
+            where: { isActive: true },
+            select: { email: true },
+          });
 
-        const emailMap = new Map<string, { email: string; firstName?: string }>();
-        subscribedUsers.forEach((u: any) => emailMap.set(u.email, { email: u.email, firstName: u.firstName || undefined }));
-        newsletterSubscribers.forEach((s: any) => {
-          if (!emailMap.has(s.email)) emailMap.set(s.email, { email: s.email, firstName: s.firstName || undefined });
-        });
-        maintenanceSubscribers.forEach((s: any) => {
-          if (!emailMap.has(s.email)) emailMap.set(s.email, { email: s.email, firstName: undefined });
-        });
+          const emailMap = new Map<string, { email: string; firstName?: string }>();
+          subscribedUsers.forEach((u: any) => emailMap.set(u.email, { email: u.email, firstName: u.firstName || undefined }));
+          newsletterSubscribers.forEach((s: any) => {
+            if (!emailMap.has(s.email)) emailMap.set(s.email, { email: s.email, firstName: s.firstName || undefined });
+          });
+          maintenanceSubscribers.forEach((s: any) => {
+            if (!emailMap.has(s.email)) emailMap.set(s.email, { email: s.email, firstName: undefined });
+          });
 
-        const allEmails = Array.from(emailMap.values());
-        const chunkSize = 10;
-        for (let i = 0; i < allEmails.length; i += chunkSize) {
-          const chunk = allEmails.slice(i, i + chunkSize);
-          await Promise.all(chunk.map((emailObj) => sendEventNotificationEmail(emailObj.email, event, emailObj.firstName)));
+          const allEmails = Array.from(emailMap.values());
+          const chunkSize = 10;
+          for (let i = 0; i < allEmails.length; i += chunkSize) {
+            const chunk = allEmails.slice(i, i + chunkSize);
+            await Promise.all(chunk.map((emailObj) => sendEventNotificationEmail(emailObj.email, event, emailObj.firstName)));
+          }
+          console.log(`✅ Newsletter sent to ${allEmails.length} recipients on first publish`);
         }
 
-        console.log('✅ News upserted and newsletter sent on publish');
+        console.log('✅ News synced successfully for event:', event.id);
       } catch (newsError) {
-        console.error('⚠️ Error in news/newsletter on publish:', newsError);
+        console.error('⚠️ Error in news/newsletter sync:', newsError);
       }
     }
 

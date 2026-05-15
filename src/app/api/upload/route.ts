@@ -9,6 +9,25 @@ export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
+    // SECURITY CHECK: Only Admins can upload files
+    const { getServerSession } = await import('next-auth');
+    const { authOptions } = await import('@/lib/auth-options');
+    const { prisma } = await import('@/lib/prisma');
+    
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ success: false, error: 'Nicht autorisiert' }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { role: true }
+    });
+
+    if (user?.role !== 'ADMIN') {
+      return NextResponse.json({ success: false, error: 'Keine Berechtigung' }, { status: 403 });
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
 

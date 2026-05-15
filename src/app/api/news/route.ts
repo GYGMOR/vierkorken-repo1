@@ -105,6 +105,18 @@ export async function POST(request: NextRequest) {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
 
+    // Check for slug uniqueness
+    const existingNews = await prisma.news.findUnique({
+      where: { slug },
+    });
+
+    if (existingNews) {
+      return NextResponse.json(
+        { error: 'Ein Beitrag mit diesem Titel existiert bereits. Bitte wählen Sie einen anderen Titel.' },
+        { status: 400 }
+      );
+    }
+
     const news = await prisma.news.create({
       data: {
         title,
