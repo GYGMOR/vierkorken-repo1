@@ -20,7 +20,12 @@ export async function POST(
     // Check current order status first
     const existingOrder = await prisma.order.findUnique({
       where: { id },
-      select: { paymentStatus: true, orderNumber: true },
+      select: { 
+        paymentStatus: true, 
+        orderNumber: true,
+        paymentMethod: true,
+        paymentIntentId: true
+      },
     });
 
     if (!existingOrder) {
@@ -28,6 +33,32 @@ export async function POST(
         { success: false, error: 'Order not found' },
         { status: 404 }
       );
+    }
+
+    // SECURITY CHECK: If it's a Stripe-based payment, verify with Stripe API
+    // This prevents malicious users from manually calling /confirm to get free products
+    if (existingOrder.paymentMethod === 'stripe' || existingOrder.paymentMethod === 'twint') {
+      if (existingOrder.paymentIntentId && existingOrder.paymentIntentId.startsWith('cs_')) {
+        try {
+          const { stripe } = await import('@/lib/stripe');
+          const session = await stripe.checkout.sessions.retrieve(existingOrder.paymentIntentId);
+          
+          if (session.payment_status !== 'paid') {
+            console.log('❌ Security violation: Attempted to confirm unpaid Stripe session:', existingOrder.paymentIntentId);
+            return NextResponse.json(
+              { success: false, error: 'Zahlung wurde noch nicht bestätigt.' },
+              { status: 400 }
+            );
+          }
+          console.log('✅ Stripe session verified as PAID:', existingOrder.paymentIntentId);
+        } catch (stripeError: any) {
+          console.error('❌ Error verifying Stripe session:', stripeError.message);
+          return NextResponse.json(
+            { success: false, error: 'Fehler bei der Zahlungsverifizierung.' },
+            { status: 500 }
+          );
+        }
+      }
     }
 
     // If already paid, don't send email again
