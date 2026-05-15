@@ -88,11 +88,11 @@ export default function EventsPage() {
             title: event.title,
             subtitle: event.subtitle || "",
             date: new Date(event.startDateTime).toISOString().split("T")[0],
-            time: new Date(event.startDateTime).toLocaleTimeString("de-CH", {
+            time: event.timeDisplay || new Date(event.startDateTime).toLocaleTimeString("de-CH", {
               hour: "2-digit",
               minute: "2-digit",
             }),
-            endTime: new Date(event.endDateTime).toLocaleTimeString("de-CH", {
+            endTime: event.endTimeDisplay || new Date(event.endDateTime).toLocaleTimeString("de-CH", {
               hour: "2-digit",
               minute: "2-digit",
             }),

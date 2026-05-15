@@ -91,6 +91,8 @@ export default function AdminEvents() {
     memberPrice: '',
     featuredImage: '',
     status: 'DRAFT',
+    timeDisplay: '',
+    endTimeDisplay: '',
   });
 
   useEffect(() => {
@@ -138,6 +140,8 @@ export default function AdminEvents() {
           city: formData.venueCity || '',
         },
         galleryImages: [],
+        timeDisplay: formData.timeDisplay || null,
+        endTimeDisplay: formData.endTimeDisplay || null,
       };
 
       const url = editingEvent
@@ -188,6 +192,8 @@ export default function AdminEvents() {
       memberPrice: event.memberPrice?.toString() || '',
       featuredImage: event.featuredImage || '',
       status: event.status,
+      timeDisplay: (event as any).timeDisplay || '',
+      endTimeDisplay: (event as any).endTimeDisplay || '',
     });
     setShowForm(true);
   };
@@ -256,6 +262,8 @@ export default function AdminEvents() {
       memberPrice: '',
       featuredImage: '',
       status: 'DRAFT',
+      timeDisplay: '',
+      endTimeDisplay: '',
     });
   };
 
@@ -483,7 +491,36 @@ export default function AdminEvents() {
                       className="w-full px-3 py-2 border border-taupe-light rounded focus:outline-none focus:ring-2 focus:ring-burgundy"
                     />
                   </div>
+                </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-graphite mb-1">
+                      Anzeige-Zeit Start (Manuell, z.B. "18:00")
+                    </label>
+                    <input
+                      type="text"
+                      name="timeDisplay"
+                      value={formData.timeDisplay}
+                      onChange={handleInputChange}
+                      placeholder="z.B. 18:30"
+                      className="w-full px-3 py-2 border border-taupe-light rounded focus:outline-none focus:ring-2 focus:ring-burgundy"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-graphite mb-1">
+                      Anzeige-Zeit Ende (Manuell, z.B. "21:00")
+                    </label>
+                    <input
+                      type="text"
+                      name="endTimeDisplay"
+                      value={formData.endTimeDisplay}
+                      onChange={handleInputChange}
+                      placeholder="z.B. 21:00"
+                      className="w-full px-3 py-2 border border-taupe-light rounded focus:outline-none focus:ring-2 focus:ring-burgundy"
+                    />
+                  </div>
                 </div>
 
                 {/* Capacity & Pricing */}

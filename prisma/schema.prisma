@@ -662,6 +662,10 @@ model Event {
   startDateTime   DateTime
   endDateTime     DateTime
   duration        Int?     // in minutes
+  
+  // Manual time override for consistent display
+  timeDisplay     String?  // e.g. "18:30"
+  endTimeDisplay  String?  // e.g. "21:00"
 
   // Capacity
   maxCapacity     Int

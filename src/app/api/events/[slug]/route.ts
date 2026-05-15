@@ -67,6 +67,8 @@ export async function GET(
         followUpOffer: event.followUpOffer,
         followUpDuration: event.followUpDuration,
         includeTax: (event as any).includeTax,
+        timeDisplay: (event as any).timeDisplay || null,
+        endTimeDisplay: (event as any).endTimeDisplay || null,
       },
     });
   } catch (error: any) {
