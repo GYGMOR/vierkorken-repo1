@@ -128,7 +128,9 @@ export function EventCard({ event, isAdmin, onEdit }: { event: any; isAdmin?: bo
                 price: event.memberPrice || event.price,
                 type: 'event',
                 slug: event.slug,
-                eventDate: `${event.date} ${event.time}`,
+                eventDate: event.date === event.endDate 
+                    ? `${new Date(event.date).toLocaleDateString('de-CH')} ${event.time}`
+                    : `${new Date(event.date).toLocaleDateString('de-CH')} – ${new Date(event.endDate).toLocaleDateString('de-CH')} ${event.time}`,
                 imageUrl: event.image,
                 maxCapacity: event.capacity,
                 currentCapacity: event.booked
@@ -218,12 +220,16 @@ export function EventCard({ event, isAdmin, onEdit }: { event: any; isAdmin?: bo
                             <div className="flex items-center gap-2">
                                 <CalendarIcon className="w-4 h-4 text-wine" />
                                 <span>
-                                    {new Date(event.date).toLocaleDateString('de-CH', {
-                                        weekday: 'short',
-                                        day: '2-digit',
-                                        month: 'long',
-                                        year: 'numeric'
-                                    })}
+                                    {event.date === event.endDate ? (
+                                        new Date(event.date).toLocaleDateString('de-CH', {
+                                            weekday: 'short',
+                                            day: '2-digit',
+                                            month: 'long',
+                                            year: 'numeric'
+                                        })
+                                    ) : (
+                                        `${new Date(event.date).toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit' })} – ${new Date(event.endDate).toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit', year: 'numeric' })}`
+                                    )}
                                 </span>
                             </div>
                             <div className="flex items-center gap-2">

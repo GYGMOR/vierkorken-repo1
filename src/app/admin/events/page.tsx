@@ -130,7 +130,9 @@ export default function AdminEvents() {
       const payload: any = {
         ...formData,
         startDateTime: formData.startDateTime ? new Date(`${formData.startDateTime}T12:00:00`).toISOString() : undefined,
-        endDateTime: formData.endDateTime ? new Date(`${formData.endDateTime}T12:00:00`).toISOString() : undefined,
+        endDateTime: formData.endDateTime 
+          ? new Date(`${formData.endDateTime}T12:00:00`).toISOString() 
+          : (formData.startDateTime ? new Date(`${formData.startDateTime}T12:00:00`).toISOString() : undefined),
         duration: formData.duration ? parseInt(formData.duration) : null,
         maxCapacity: parseInt(formData.maxCapacity),
         price: parseFloat(formData.price),
@@ -488,14 +490,13 @@ export default function AdminEvents() {
 
                   <div>
                     <label className="block text-sm font-medium text-graphite mb-1">
-                      Anzeige-Datum Ende *
+                      Anzeige-Datum Ende (Optional, nur bei mehrtägigen Events)
                     </label>
                     <input
                       type="date"
                       name="endDateTime"
                       value={formData.endDateTime}
                       onChange={handleInputChange}
-                      required
                       className="w-full px-3 py-2 border border-taupe-light rounded focus:outline-none focus:ring-2 focus:ring-burgundy"
                     />
                   </div>

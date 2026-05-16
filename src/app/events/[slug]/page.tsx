@@ -17,6 +17,7 @@ interface Event {
   title: string;
   subtitle: string;
   date: string;
+  endDate: string;
   time: string;
   duration: number;
   endTime: string;
@@ -87,6 +88,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
               title: data.event.title,
               subtitle: data.event.subtitle || '',
               date: new Date(data.event.startDateTime).toISOString().split('T')[0],
+              endDate: new Date(data.event.endDateTime).toISOString().split('T')[0],
               time: data.event.timeDisplay || new Date(data.event.startDateTime).toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' }),
               endTime: data.event.endTimeDisplay || new Date(data.event.endDateTime).toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' }),
               duration: data.event.duration || 0,
@@ -180,7 +182,9 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
         imageUrl: event.image,
         type: 'event',
         slug: event.slug,
-        eventDate: `${event.date} ${event.time}`,
+        eventDate: event.date === event.endDate 
+          ? `${new Date(event.date).toLocaleDateString('de-CH')} ${event.time}`
+          : `${new Date(event.date).toLocaleDateString('de-CH')} – ${new Date(event.endDate).toLocaleDateString('de-CH')} ${event.time}`,
         maxCapacity: event.capacity,
         currentCapacity: event.booked
       });
@@ -321,12 +325,16 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
                     </div>
                     <div>
                       <p className="font-medium">
-                        {new Date(event.date).toLocaleDateString('de-CH', {
-                          weekday: 'long',
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric'
-                        })}
+                        {event.date === event.endDate ? (
+                          new Date(event.date).toLocaleDateString('de-CH', {
+                            weekday: 'long',
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                          })
+                        ) : (
+                          `${new Date(event.date).toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit' })} – ${new Date(event.endDate).toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit', year: 'numeric' })}`
+                        )}
                       </p>
                       <p className="text-sm text-graphite/60">{event.time} – {event.endTime} Uhr</p>
                     </div>
