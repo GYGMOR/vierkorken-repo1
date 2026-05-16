@@ -64,8 +64,8 @@ export async function GET(
         followUpDuration: event.followUpDuration,
         status: event.status,
         publishedAt: event.publishedAt?.toISOString(),
-        timeDisplay: (event as any).timeDisplay || null,
-        endTimeDisplay: (event as any).endTimeDisplay || null,
+        timeDisplay: (event.venueAddress as any)?.timeDisplay || null,
+        endTimeDisplay: (event.venueAddress as any)?.endTimeDisplay || null,
       },
     });
   } catch (error: any) {
@@ -170,8 +170,15 @@ export async function PUT(
     if (requiresApproval !== undefined) updateData.requiresApproval = requiresApproval;
     if (followUpOffer !== undefined) updateData.followUpOffer = followUpOffer;
     if (followUpDuration !== undefined) updateData.followUpDuration = followUpDuration;
-    if (timeDisplay !== undefined) updateData.timeDisplay = timeDisplay || null;
-    if (endTimeDisplay !== undefined) updateData.endTimeDisplay = endTimeDisplay || null;
+
+    // Handle manual time storage in venueAddress
+    if (timeDisplay !== undefined || endTimeDisplay !== undefined || venueAddress !== undefined) {
+      updateData.venueAddress = {
+        ...(venueAddress || (event.venueAddress as any) || {}),
+        ...(timeDisplay !== undefined ? { timeDisplay: timeDisplay || null } : {}),
+        ...(endTimeDisplay !== undefined ? { endTimeDisplay: endTimeDisplay || null } : {}),
+      };
+    }
 
     // Handle status changes
     if (status !== undefined) {

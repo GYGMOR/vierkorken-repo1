@@ -60,8 +60,8 @@ export async function GET(req: NextRequest) {
         followUpDuration: event.followUpDuration,
         status: event.status,
         publishedAt: event.publishedAt?.toISOString(),
-        timeDisplay: (event as any).timeDisplay || null,
-        endTimeDisplay: (event as any).endTimeDisplay || null,
+        timeDisplay: (event.venueAddress as any)?.timeDisplay || null,
+        endTimeDisplay: (event.venueAddress as any)?.endTimeDisplay || null,
         createdAt: event.createdAt.toISOString(),
         updatedAt: event.updatedAt.toISOString(),
       })),
@@ -175,8 +175,11 @@ export async function POST(req: NextRequest) {
         followUpDuration: followUpDuration || null,
         status: status || 'DRAFT',
         publishedAt: status === 'PUBLISHED' ? new Date() : null,
-        timeDisplay: timeDisplay || null,
-        endTimeDisplay: endTimeDisplay || null,
+        venueAddress: {
+          ...(venueAddress || {}),
+          timeDisplay: timeDisplay || null,
+          endTimeDisplay: endTimeDisplay || null,
+        },
       },
     });
 

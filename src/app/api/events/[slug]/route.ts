@@ -67,8 +67,8 @@ export async function GET(
         followUpOffer: event.followUpOffer,
         followUpDuration: event.followUpDuration,
         includeTax: (event as any).includeTax,
-        timeDisplay: (event as any).timeDisplay || null,
-        endTimeDisplay: (event as any).endTimeDisplay || null,
+        timeDisplay: (event.venueAddress as any)?.timeDisplay || null,
+        endTimeDisplay: (event.venueAddress as any)?.endTimeDisplay || null,
       },
     });
   } catch (error: any) {

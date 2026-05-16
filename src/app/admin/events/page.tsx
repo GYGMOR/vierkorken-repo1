@@ -55,11 +55,10 @@ const STATUS_OPTIONS = [
   { value: 'COMPLETED', label: 'Abgeschlossen', color: 'bg-blue-200 text-blue-800' },
 ];
 
-// Converts a UTC ISO string to a local datetime-local input value (YYYY-MM-DDTHH:mm)
-function toLocalDateTimeInput(isoString: string): string {
+function toLocalDateInput(isoString: string): string {
   const d = new Date(isoString);
   const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
 export default function AdminEvents() {
@@ -128,8 +127,10 @@ export default function AdminEvents() {
     e.preventDefault();
 
     try {
-      const payload = {
+      const payload: any = {
         ...formData,
+        startDateTime: formData.startDateTime ? new Date(`${formData.startDateTime}T12:00:00`).toISOString() : undefined,
+        endDateTime: formData.endDateTime ? new Date(`${formData.endDateTime}T12:00:00`).toISOString() : undefined,
         duration: formData.duration ? parseInt(formData.duration) : null,
         maxCapacity: parseInt(formData.maxCapacity),
         price: parseFloat(formData.price),
@@ -138,11 +139,18 @@ export default function AdminEvents() {
           street: formData.venueStreet || '',
           zip: formData.venueZip || '',
           city: formData.venueCity || '',
+          timeDisplay: formData.timeDisplay || null,
+          endTimeDisplay: formData.endTimeDisplay || null,
         },
         galleryImages: [],
-        timeDisplay: formData.timeDisplay || null,
-        endTimeDisplay: formData.endTimeDisplay || null,
       };
+
+      // Remove top-level manual time fields as they are now in venueAddress
+      delete (payload as any).timeDisplay;
+      delete (payload as any).endTimeDisplay;
+      delete (payload as any).venueStreet;
+      delete (payload as any).venueZip;
+      delete (payload as any).venueCity;
 
       const url = editingEvent
         ? `/api/admin/events/${editingEvent.id}`
@@ -184,16 +192,16 @@ export default function AdminEvents() {
       venueStreet: (event.venueAddress as any)?.street || '',
       venueZip: (event.venueAddress as any)?.zip || '',
       venueCity: (event.venueAddress as any)?.city || '',
-      startDateTime: toLocalDateTimeInput(event.startDateTime),
-      endDateTime: toLocalDateTimeInput(event.endDateTime),
+      startDateTime: toLocalDateInput(event.startDateTime),
+      endDateTime: toLocalDateInput(event.endDateTime),
       duration: event.duration?.toString() || '',
       maxCapacity: event.maxCapacity.toString(),
       price: event.price.toString(),
       memberPrice: event.memberPrice?.toString() || '',
       featuredImage: event.featuredImage || '',
       status: event.status,
-      timeDisplay: (event as any).timeDisplay || '',
-      endTimeDisplay: (event as any).endTimeDisplay || '',
+      timeDisplay: (event.venueAddress as any)?.timeDisplay || '',
+      endTimeDisplay: (event.venueAddress as any)?.endTimeDisplay || '',
     });
     setShowForm(true);
   };
@@ -466,10 +474,10 @@ export default function AdminEvents() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-graphite mb-1">
-                      Start-Datum & Zeit *
+                      Anzeige-Datum Start *
                     </label>
                     <input
-                      type="datetime-local"
+                      type="date"
                       name="startDateTime"
                       value={formData.startDateTime}
                       onChange={handleInputChange}
@@ -480,10 +488,10 @@ export default function AdminEvents() {
 
                   <div>
                     <label className="block text-sm font-medium text-graphite mb-1">
-                      End-Datum & Zeit *
+                      Anzeige-Datum Ende *
                     </label>
                     <input
-                      type="datetime-local"
+                      type="date"
                       name="endDateTime"
                       value={formData.endDateTime}
                       onChange={handleInputChange}

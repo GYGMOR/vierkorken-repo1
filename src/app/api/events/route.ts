@@ -46,8 +46,8 @@ export async function GET(req: NextRequest) {
         minLoyaltyLevel: event.minLoyaltyLevel,
         isPrivate: event.isPrivate,
         status: event.status,
-        timeDisplay: (event as any).timeDisplay || null,
-        endTimeDisplay: (event as any).endTimeDisplay || null,
+        timeDisplay: (event.venueAddress as any)?.timeDisplay || null,
+        endTimeDisplay: (event.venueAddress as any)?.endTimeDisplay || null,
       })),
     });
   } catch (error: any) {
