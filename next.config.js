@@ -44,6 +44,7 @@ const nextConfig = {
     optimizeCss: true,
     optimizePackageImports: ['@microsoft/microsoft-graph-client', '@azure/identity', 'lucide-react'],
   },
+
 };
 
 module.exports = nextConfig;

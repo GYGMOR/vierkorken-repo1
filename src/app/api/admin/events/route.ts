@@ -157,7 +157,11 @@ export async function POST(req: NextRequest) {
         description: description || '',
         eventType,
         venue: venue || '',
-        venueAddress: venueAddress && Object.keys(venueAddress).length > 0 ? venueAddress : {},
+        venueAddress: {
+          ...(venueAddress && typeof venueAddress === 'object' ? venueAddress : {}),
+          timeDisplay: timeDisplay || null,
+          endTimeDisplay: endTimeDisplay || null,
+        },
         startDateTime: new Date(startDateTime),
         endDateTime: new Date(endDateTime),
         duration: duration || null,
@@ -175,11 +179,6 @@ export async function POST(req: NextRequest) {
         followUpDuration: followUpDuration || null,
         status: status || 'DRAFT',
         publishedAt: status === 'PUBLISHED' ? new Date() : null,
-        venueAddress: {
-          ...(venueAddress || {}),
-          timeDisplay: timeDisplay || null,
-          endTimeDisplay: endTimeDisplay || null,
-        },
       },
     });
 

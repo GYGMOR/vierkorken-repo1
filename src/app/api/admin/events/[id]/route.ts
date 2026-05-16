@@ -174,7 +174,7 @@ export async function PUT(
     // Handle manual time storage in venueAddress
     if (timeDisplay !== undefined || endTimeDisplay !== undefined || venueAddress !== undefined) {
       updateData.venueAddress = {
-        ...(venueAddress || (event.venueAddress as any) || {}),
+        ...(venueAddress || (existingEvent.venueAddress as any) || {}),
         ...(timeDisplay !== undefined ? { timeDisplay: timeDisplay || null } : {}),
         ...(endTimeDisplay !== undefined ? { endTimeDisplay: endTimeDisplay || null } : {}),
       };
