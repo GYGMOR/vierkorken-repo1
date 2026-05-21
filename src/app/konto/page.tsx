@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { UserAvatar } from '@/components/ui/UserAvatar';
-import { LoyaltyProgress } from '@/components/loyalty/LoyaltyProgress';
+import { CustomerCard } from '@/components/loyalty/CustomerCard';
 import { BadgeDisplay } from '@/components/loyalty/BadgeDisplay';
 import { BackButton } from '@/components/ui/BackButton';
 import { QRCodeModal } from '@/components/tickets/QRCodeModal';
@@ -370,9 +370,11 @@ export default function AccountPage() {
               <div className="space-y-4 md:space-y-6">
                 <Card>
                   <CardContent className="p-6">
-                    <LoyaltyProgress
-                      currentPoints={user.loyaltyPoints}
-                      currentLevel={user.loyaltyLevel}
+                    <CustomerCard 
+                      firstName={user.firstName}
+                      lastName={user.lastName}
+                      userId={session.user.id || 'guest'}
+                      loyaltyPoints={user.loyaltyPoints}
                     />
                     <Link href="/konto?tab=loyalty" className="block mt-4">
                       <Button variant="secondary" className="w-full" size="sm">
@@ -690,9 +692,11 @@ export default function AccountPage() {
 
               <Card>
                 <CardContent className="p-8">
-                  <LoyaltyProgress
-                    currentPoints={user.loyaltyPoints}
-                    currentLevel={user.loyaltyLevel}
+                  <CustomerCard 
+                    firstName={user.firstName}
+                    lastName={user.lastName}
+                    userId={session.user.id || 'guest'}
+                    loyaltyPoints={user.loyaltyPoints}
                   />
                 </CardContent>
               </Card>

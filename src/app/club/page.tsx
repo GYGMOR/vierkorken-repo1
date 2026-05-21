@@ -2,14 +2,11 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { Card, CardContent } from '@/components/ui/Card';
-import { LoyaltyProgress } from '@/components/loyalty/LoyaltyProgress';
 import { BadgeDisplay } from '@/components/loyalty/BadgeDisplay';
 import { BackButton } from '@/components/ui/BackButton';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { PointsGrid } from '@/components/loyalty/PointsGrid';
-import { LevelsGrid } from '@/components/loyalty/LevelsGrid';
+import { CustomerCard } from '@/components/loyalty/CustomerCard';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { EditableText } from '@/components/admin/EditableText';
 import { EditableImage } from '@/components/admin/EditableImage';
@@ -20,11 +17,11 @@ export default async function LoyaltyClubPage() {
   const session = await getServerSession(authOptions);
   const user = session?.user;
 
-  // Use session user or fallback to mock if no session (but fetch real levels)
-  // Ideally, we fetch the REAL user data from DB if session exists to get latest points
   let userData = {
+    id: 'GUEST-ID-0000',
+    firstName: 'Max',
+    lastName: 'Mustermann',
     loyaltyPoints: 0,
-    loyaltyLevel: 1,
     badges: [],
     isAdmin: false
   };
@@ -36,8 +33,10 @@ export default async function LoyaltyClubPage() {
     });
     if (dbUser) {
       userData = {
+        id: dbUser.id,
+        firstName: dbUser.firstName || user.name?.split(' ')[0] || 'Kunde',
+        lastName: dbUser.lastName || user.name?.split(' ').slice(1).join(' ') || '',
         loyaltyPoints: dbUser.loyaltyPoints,
-        loyaltyLevel: dbUser.loyaltyLevel,
         badges: dbUser.badges.map(b => ({
           ...b.badge,
           earnedAt: b.earnedAt,
@@ -47,20 +46,22 @@ export default async function LoyaltyClubPage() {
     }
   }
 
-  // Fetch Levels and Rules from DB
-  const [dbLevels, dbRules] = await Promise.all([
-    prisma.loyaltyLevel.findMany({ orderBy: { level: 'asc' } }),
-    prisma.loyaltyProgramRule.findMany({ orderBy: { updatedAt: 'asc' } }) // Or another order
-  ]);
+  // Fetch Levels to extract gifts and their point requirements (ignoring level names)
+  const dbLevels = await prisma.loyaltyLevel.findMany({
+    include: { gifts: true },
+    orderBy: { minPoints: 'asc' }
+  });
 
-  // If no rules exist (first run before migration seed), fallback to empty or ensure seed ran.
-  // We assume seed ran.
+  const allGifts = dbLevels.flatMap(level => 
+    level.gifts.map(gift => ({
+      ...gift,
+      pointsRequired: level.minPoints
+    }))
+  );
 
   return (
     <MainLayout>
-      {/* Hero mit Weingläser-Bild (gleiche Größe wie Events) */}
       <div className="relative bg-gradient-to-br from-warmwhite via-rose-light to-accent-gold/10 border-b border-taupe-light overflow-hidden">
-        {/* Hintergrundbild - transparent */}
         <div className="absolute inset-0 z-0">
           <EditableImage
             settingKey="club_page_header_image"
@@ -73,23 +74,22 @@ export default async function LoyaltyClubPage() {
           />
         </div>
 
-        {/* Content - über dem Bild */}
         <div className="container-custom py-16 relative z-10">
           <div className="max-w-3xl mx-auto text-center space-y-6">
             <BackButton href="/" className="mb-4" />
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent-gold/20 rounded-full border border-accent-gold/30 backdrop-blur-sm">
-              <span className="text-accent-burgundy font-medium text-sm">LOYALTY CLUB</span>
+              <span className="text-accent-burgundy font-medium text-sm">LOYALTY PROGRAMM</span>
             </div>
             <EditableText
               settingKey="club_page_header_title"
-              defaultValue="Ihr Vierkorken Club"
+              defaultValue="Ihr Vierkorken Treueprogramm"
               isAdmin={userData.isAdmin}
               as="h1"
               className="text-4xl md:text-5xl lg:text-6xl font-serif font-light text-graphite-dark"
             />
             <EditableText
               settingKey="club_page_header_subtitle"
-              defaultValue="Sammeln Sie Punkte mit jedem Einkauf und genießen Sie exklusive Vorteile"
+              defaultValue="Sammeln Sie Punkte mit jedem Einkauf und tauschen Sie diese gegen exklusive Geschenke ein."
               isAdmin={userData.isAdmin}
               as="p"
               className="text-lg text-graphite max-w-2xl mx-auto"
@@ -100,145 +100,124 @@ export default async function LoyaltyClubPage() {
       </div>
 
       <div className="container-custom py-12 space-y-16 bg-gradient-to-b from-warmwhite to-warmwhite-light">
-        {/* User Progress */}
+        
+        {/* Customer Card Section */}
         <section>
-          <div className="max-w-2xl mx-auto">
-            <Card className="p-8 border-2 border-taupe-light shadow-lg">
-              <LoyaltyProgress
-                currentPoints={userData.loyaltyPoints}
-                currentLevel={userData.loyaltyLevel}
-              />
-
-              <div className="mt-8 pt-6 border-t border-taupe-light">
-                <h3 className="font-serif text-h4 text-graphite-dark mb-4">
-                  Punkte sammeln
-                </h3>
-
-                {/* Interactive Points Grid */}
-                <PointsGrid rules={dbRules} isAdmin={userData.isAdmin} />
-
-              </div>
-            </Card>
+          <div className="max-w-4xl mx-auto flex flex-col items-center">
+            <div className="w-full flex justify-end mb-4 pr-4">
+              <InfoTooltip />
+            </div>
+            
+            {user ? (
+               <CustomerCard 
+                 firstName={userData.firstName}
+                 lastName={userData.lastName}
+                 userId={userData.id}
+                 loyaltyPoints={userData.loyaltyPoints}
+               />
+            ) : (
+               <div className="text-center p-12 bg-white rounded-xl shadow-lg border-2 border-taupe-light max-w-md w-full">
+                 <h3 className="font-serif text-2xl text-graphite-dark mb-4">Digitale Kundenkarte</h3>
+                 <p className="text-graphite mb-6">Bitte melden Sie sich an, um Ihre persönliche Kundenkarte zu sehen und Punkte zu sammeln.</p>
+                 <Link href="/login">
+                   <Button>Jetzt Anmelden</Button>
+                 </Link>
+               </div>
+            )}
+            
+            <p className="text-center mt-6 text-sm text-graphite/60 max-w-md">
+              Scannen Sie Ihre Karte bei Ihrem nächsten Besuch im Geschäft, um automatisch Punkte gutgeschrieben zu bekommen.
+            </p>
           </div>
         </section>
 
-        {/* All Levels */}
+        {/* Rewards / Gifts */}
         <section>
           <div className="text-center mb-12">
             <h2 className="text-h2 font-serif font-light text-graphite-dark mb-4">
-              Die 7 Level
+              Verfügbare Prämien
             </h2>
             <p className="text-body-lg text-graphite">
-              Steigen Sie auf und profitieren Sie von immer besseren Vorteilen
+              Tauschen Sie Ihre gesammelten Punkte gegen fantastische Prämien ein.
             </p>
           </div>
-
-          {/* Interactive Levels Grid */}
-          <LevelsGrid
-            levels={dbLevels}
-            currentLevel={userData.loyaltyLevel}
-            isAdmin={userData.isAdmin}
-          />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {allGifts.map((gift) => {
+              const canAfford = userData.loyaltyPoints >= gift.pointsRequired;
+              
+              return (
+                <Card key={gift.id} className="overflow-hidden border-2 hover:border-accent-gold transition-colors flex flex-col">
+                  {gift.image && (
+                    <div className="w-full h-48 bg-taupe-light/30 relative">
+                      <img src={gift.image} alt={gift.name} className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  <CardContent className="p-6 flex-1 flex flex-col">
+                    <div className="flex justify-between items-start mb-4">
+                      <h3 className="font-semibold text-lg text-graphite-dark">{gift.name}</h3>
+                      <span className="bg-accent-gold/10 text-accent-gold-dark px-3 py-1 rounded-full text-sm font-semibold whitespace-nowrap">
+                        {gift.pointsRequired} PTS
+                      </span>
+                    </div>
+                    <p className="text-sm text-graphite/70 mb-6 flex-1">{gift.description}</p>
+                    
+                    <Button 
+                      variant={canAfford ? 'primary' : 'secondary'} 
+                      className="w-full"
+                      disabled={!canAfford || !user}
+                      onClick={() => {/* In a real implementation this would trigger an exchange */}}
+                    >
+                      {canAfford ? 'Prämie einlösen' : 'Nicht genügend Punkte'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
         </section>
 
         {/* Badges */}
-        <section>
-          <div className="text-center mb-12">
-            <h2 className="text-h2 font-serif font-light text-graphite-dark mb-4">
-              Ihre Badges
-            </h2>
-            <p className="text-body-lg text-graphite">
-              Sammeln Sie stilvolle Badges durch Käufe und besondere Aktionen
-            </p>
-          </div>
-
-          <BadgeDisplay badges={userData.badges} />
-        </section>
-
-        {/* CTA */}
-        <section className="max-w-3xl mx-auto text-center">
-          <Card className="p-12 bg-gradient-to-br from-warmwhite via-rose-light to-warmwhite border-2 border-taupe-light shadow-lg">
-            <h2 className="text-h2 font-serif font-light text-graphite-dark mb-4">
-              Bereit zu starten?
-            </h2>
-            <p className="text-body-lg text-graphite mb-8">
-              Erstellen Sie jetzt ein Konto und beginnen Sie Punkte zu sammeln
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-4">
-              <Link href="/registrieren">
-                <Button size="lg">Jetzt registrieren</Button>
-              </Link>
-              <Link href="/weine">
-                <Button variant="secondary" size="lg">
-                  Weine entdecken
-                </Button>
-              </Link>
+        {userData.badges.length > 0 && (
+          <section>
+            <div className="text-center mb-12">
+              <h2 className="text-h2 font-serif font-light text-graphite-dark mb-4">
+                Ihre Badges
+              </h2>
+              <p className="text-body-lg text-graphite">
+                Sammeln Sie stilvolle Badges durch Käufe und besondere Aktionen
+              </p>
             </div>
-          </Card>
-        </section>
+            <BadgeDisplay badges={userData.badges} />
+          </section>
+        )}
+
       </div>
     </MainLayout>
   );
 }
-function PointsCard({ iconType, label, points }: { iconType: string; label: string; points: string }) {
-  const icons: Record<string, React.ReactNode> = {
-    cart: <CartIcon />,
-    review: <ReviewIcon />,
-    event: <EventIcon />,
-    referral: <ReferralIcon />,
-  };
 
+function InfoTooltip() {
   return (
-    <div className="p-4 bg-warmwhite-light rounded-lg border-2 border-taupe-light shadow-md">
-      <div className="flex items-center gap-3">
-        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-rose-light text-graphite-dark">
-          {icons[iconType]}
-        </div>
-        <div>
-          <p className="text-body-sm text-graphite/60">{label}</p>
-          <p className="font-medium text-graphite-dark">{points}</p>
-        </div>
+    <div className="relative group inline-block z-20">
+      <div className="w-8 h-8 bg-warmwhite-dark rounded-full flex items-center justify-center text-graphite font-serif font-bold cursor-help shadow-sm border border-taupe-light hover:bg-accent-burgundy hover:text-white transition-colors">
+        i
+      </div>
+      <div className="absolute right-0 bottom-full mb-2 w-64 p-4 bg-graphite-dark text-white text-sm rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none transform translate-y-2 group-hover:translate-y-0">
+        <h4 className="font-semibold mb-2 text-accent-gold">So funktioniert's</h4>
+        <ul className="space-y-2">
+          <li className="flex gap-2">
+            <span className="text-accent-gold">•</span>
+            <span><strong>1 CHF = 1 Punkt.</strong> Bei jedem Einkauf (auch Bruchteile werden mathematisch abgerundet, z.B. 86.99 CHF = 86 Punkte).</span>
+          </li>
+          <li className="flex gap-2">
+            <span className="text-accent-gold">•</span>
+            <span>Punkte können im Geschäft oder online gegen Prämien eingelöst werden.</span>
+          </li>
+        </ul>
+        {/* Triangle pointer */}
+        <div className="absolute top-full right-3 border-8 border-transparent border-t-graphite-dark"></div>
       </div>
     </div>
-  );
-}
-
-function CartIcon() {
-  return (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-    </svg>
-  );
-}
-
-function ReviewIcon() {
-  return (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-    </svg>
-  );
-}
-
-function EventIcon() {
-  return (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
-    </svg>
-  );
-}
-
-function ReferralIcon() {
-  return (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-    </svg>
-  );
-}
-
-function CheckIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-    </svg>
   );
 }
