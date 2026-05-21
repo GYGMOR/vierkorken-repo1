@@ -114,5 +114,6 @@ export function CustomerCard({ firstName, lastName, userId, loyaltyPoints }: Cus
         </div>
       </div>
     </div>
+  </div>
   );
 }
