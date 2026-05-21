@@ -16,9 +16,6 @@ export async function POST(req: NextRequest) {
             where: {
                 status: 'PUBLISHED',
                 newsletterSentAt: null,
-                publishedAt: {
-                    lte: new Date()
-                }
             },
             orderBy: { publishedAt: 'asc' }
         });

@@ -82,6 +82,9 @@ function CheckoutPageContent() {
   const [showSaveAddressDialog, setShowSaveAddressDialog] = useState(false);
   const [saveAddressAsDefault, setSaveAddressAsDefault] = useState(false);
 
+  // Derivation for event-only carts
+  const hasOnlyEvents = items.length > 0 && items.every((item: any) => item.type === 'event');
+
   // Loyalty Settings State
   const [minOrderForGifts, setMinOrderForGifts] = useState(50);
   const hasGiftInCart = items.some(item => item.price === 0 && item.winery === 'Loyalty Gift');
@@ -97,7 +100,6 @@ function CheckoutPageContent() {
     if (deliveryMethod === 'pickup') return 0;
 
     // Events are tickets (digital/code) - no shipping needed
-    const hasOnlyEvents = items.every((item) => item.type === 'event');
     if (hasOnlyEvents) return 0;
 
     const freeShippingThreshold = 150;
@@ -484,8 +486,6 @@ function CheckoutPageContent() {
     // Bei Abholung im Laden wird das Alter vor Ort geprüft, daher kann die Online-Verifikation übersprungen werden
     
     // Skip verification if cart ONLY contains events
-    const hasOnlyEvents = items.every((item: any) => item.type === 'event');
-
     if (!isVerified && deliveryMethod !== 'pickup' && !hasOnlyEvents) {
       console.log('🔐 Identity verification required, redirecting...');
       await startIdentityVerification();
@@ -644,12 +644,12 @@ function CheckoutPageContent() {
     }
   };
 
-  // Barzahlung nur bei Abholung möglich
+  // Barzahlung nur bei Abholung möglich (und nicht für reine Ticket-Käufe)
   useEffect(() => {
-    if (deliveryMethod === 'shipping' && paymentMethod === 'cash') {
+    if ((deliveryMethod === 'shipping' || hasOnlyEvents) && paymentMethod === 'cash') {
       setPaymentMethod('card');
     }
-  }, [deliveryMethod]);
+  }, [deliveryMethod, hasOnlyEvents, paymentMethod]);
 
   return (
     <MainLayout>
@@ -669,10 +669,11 @@ function CheckoutPageContent() {
             <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
               {/* Main Content */}
               <div className="lg:col-span-2 space-y-6">
-                {/* 1. Liefermethode */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>1. Liefermethode wählen</CardTitle>
+                {/* 1. Liefermethode (Hidden for Event-Only) */}
+                {!hasOnlyEvents && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>1. Liefermethode wählen</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-3">
@@ -728,11 +729,12 @@ function CheckoutPageContent() {
                     )}
                   </CardContent>
                 </Card>
+                )}
 
                 {/* 2. Rechnungs- & Kontaktdaten */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>{deliveryMethod === 'shipping' ? '2. Rechnungsadresse' : '2. Kontaktdaten & Rechnungsadresse'}</CardTitle>
+                    <CardTitle>{hasOnlyEvents ? '1. Ihre Daten' : deliveryMethod === 'shipping' ? '2. Rechnungsadresse' : '2. Kontaktdaten & Rechnungsadresse'}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {/* Gespeicherte Adressen */}
@@ -889,8 +891,8 @@ function CheckoutPageContent() {
                   </CardContent>
                 </Card>
 
-                {/* Optionale Lieferadresse (nur bei Versand) */}
-                {deliveryMethod === 'shipping' && (
+                {/* Optionale Lieferadresse (nur bei Versand & nicht bei Events) */}
+                {!hasOnlyEvents && deliveryMethod === 'shipping' && (
                   <Card>
                     <CardHeader>
                       <CardTitle>Lieferadresse</CardTitle>
@@ -993,7 +995,7 @@ function CheckoutPageContent() {
                 {/* 3. Zahlungsmethode */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>3. Zahlungsmethode</CardTitle>
+                    <CardTitle>{hasOnlyEvents ? '2. Zahlungsmethode' : '3. Zahlungsmethode'}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <PaymentOption
@@ -1018,7 +1020,7 @@ function CheckoutPageContent() {
                         onSelect={() => setPaymentMethod('twint')}
                       />
                     )}
-                    {deliveryMethod === 'pickup' && (
+                    {!hasOnlyEvents && deliveryMethod === 'pickup' && (
                       <PaymentOption
                         id="cash"
                         label="Barzahlung"

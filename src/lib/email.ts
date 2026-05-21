@@ -139,6 +139,8 @@ export async function sendPasswordResetEmail(
       <!DOCTYPE html>
       <html>
         <head>
+            <meta name="color-scheme" content="light">
+            <meta name="supported-color-schemes" content="light">
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Passwort zurücksetzen</title>
@@ -234,6 +236,8 @@ export async function sendContactEmail(
       <!DOCTYPE html>
       <html>
         <head>
+            <meta name="color-scheme" content="light">
+            <meta name="supported-color-schemes" content="light">
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Neue Kontaktanfrage</title>
@@ -409,6 +413,8 @@ export async function sendOrderConfirmationEmail(
         <!DOCTYPE html>
         <html>
           <head>
+            <meta name="color-scheme" content="light">
+            <meta name="supported-color-schemes" content="light">
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Bestellbestätigung</title>
@@ -663,6 +669,8 @@ export async function sendNewOrderNotificationToAdmin(orderId: string, orderDeta
         <!DOCTYPE html>
         <html>
           <head>
+            <meta name="color-scheme" content="light">
+            <meta name="supported-color-schemes" content="light">
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Neue Bestellung</title>
@@ -840,6 +848,8 @@ export async function sendMaintenanceSubscriptionEmail(to: string) {
       <!DOCTYPE html>
       <html>
         <head>
+            <meta name="color-scheme" content="light">
+            <meta name="supported-color-schemes" content="light">
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Vielen Dank</title>
@@ -930,6 +940,8 @@ export async function sendLaunchNotificationEmail(to: string) {
       <!DOCTYPE html>
       <html>
         <head>
+            <meta name="color-scheme" content="light">
+            <meta name="supported-color-schemes" content="light">
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Wir sind online!</title>
@@ -1033,6 +1045,8 @@ export async function sendNewsletterConfirmationEmail(to: string) {
       <!DOCTYPE html>
       <html>
         <head>
+            <meta name="color-scheme" content="light">
+            <meta name="supported-color-schemes" content="light">
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Newsletter Bestätigung</title>
@@ -1169,6 +1183,8 @@ export async function sendNewsNotificationEmail(
       <!DOCTYPE html>
       <html>
         <head>
+            <meta name="color-scheme" content="light">
+            <meta name="supported-color-schemes" content="light">
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>${news.title}</title>
@@ -1305,6 +1321,8 @@ export async function sendOrderProcessingEmail(
       <!DOCTYPE html>
       <html>
         <head>
+            <meta name="color-scheme" content="light">
+            <meta name="supported-color-schemes" content="light">
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Bestellung in Bearbeitung</title>
@@ -1402,6 +1420,8 @@ export async function sendOrderShippedEmail(
       <!DOCTYPE html>
       <html>
         <head>
+            <meta name="color-scheme" content="light">
+            <meta name="supported-color-schemes" content="light">
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>${isPickup ? 'Bestellung abholbereit' : 'Bestellung versendet'}</title>
@@ -1530,6 +1550,8 @@ export async function sendOrderDeliveredEmail(
   <!DOCTYPE html>
     <html>
     <head>
+            <meta name="color-scheme" content="light">
+            <meta name="supported-color-schemes" content="light">
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Bestellung zugestellt </title>
@@ -1624,6 +1646,8 @@ export async function sendOrderCancelledEmail(
   <!DOCTYPE html>
     <html>
     <head>
+            <meta name="color-scheme" content="light">
+            <meta name="supported-color-schemes" content="light">
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Bestellung storniert </title>
@@ -1736,6 +1760,8 @@ export async function sendEventTicketsEmail(
             <!DOCTYPE html>
               <html>
               <head>
+            <meta name="color-scheme" content="light">
+            <meta name="supported-color-schemes" content="light">
               <meta charset="utf-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                   <title>Ihre Event - Tickets </title>
@@ -1842,6 +1868,8 @@ export async function sendGiftCardEmail(
   <!DOCTYPE html>
     <html>
     <head>
+            <meta name="color-scheme" content="light">
+            <meta name="supported-color-schemes" content="light">
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Geschenkgutschein </title>
@@ -2002,6 +2030,8 @@ export async function sendEventNotificationEmail(to: string, event: any, firstNa
   <!DOCTYPE html>
     <html>
     <head>
+            <meta name="color-scheme" content="light">
+            <meta name="supported-color-schemes" content="light">
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>${event.title} </title>

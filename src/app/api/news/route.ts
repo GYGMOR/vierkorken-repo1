@@ -20,9 +20,6 @@ export async function GET(request: NextRequest) {
       ? {}
       : {
         status: PostStatus.PUBLISHED,
-        publishedAt: {
-          lte: new Date(),
-        },
       };
 
     const news = await prisma.news.findMany({
@@ -132,7 +129,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Send newsletter notifications if publishing immediately
-    if (news.status === PostStatus.PUBLISHED && news.publishedAt && news.publishedAt <= new Date()) {
+    if (news.status === PostStatus.PUBLISHED) {
       console.log(`📰 New news published - triggering newsletter notifications for: ${news.title}`);
       // Wait for notifications to complete so the serverless function doesn't terminate early
       try {

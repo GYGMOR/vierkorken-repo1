@@ -93,6 +93,11 @@ export async function PUT(
       where: { slug },
     });
 
+    let newPublishedAt = publishedAt ? new Date(publishedAt) : undefined;
+    if (status === PostStatus.PUBLISHED && originalNews?.status !== PostStatus.PUBLISHED && !publishedAt) {
+      newPublishedAt = new Date();
+    }
+
     const news = await prisma.news.update({
       where: { slug },
       data: {
@@ -101,7 +106,7 @@ export async function PUT(
         content,
         featuredImage,
         status,
-        publishedAt: publishedAt ? new Date(publishedAt) : undefined,
+        ...(newPublishedAt && { publishedAt: newPublishedAt }),
         isPinned,
         sortOrder,
       },
@@ -111,9 +116,7 @@ export async function PUT(
     if (
       originalNews &&
       originalNews.status !== PostStatus.PUBLISHED &&
-      news.status === PostStatus.PUBLISHED &&
-      news.publishedAt &&
-      news.publishedAt <= new Date()
+      news.status === PostStatus.PUBLISHED
     ) {
       console.log(`📰 News status changed to PUBLISHED - triggering newsletter notifications for: ${news.title}`);
       // Wait for notifications to complete so the serverless function doesn't terminate early
