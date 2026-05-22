@@ -356,7 +356,12 @@ function CameraScannerModal({
           (decodedText: string) => {
             if (hasResultRef.current) return;
             hasResultRef.current = true;
-            scanner.stop().then(() => { onResult(decodedText); }).catch(() => { onResult(decodedText); });
+            scanner.stop()
+              .catch(() => {})
+              .finally(() => {
+                scannerRef.current = null; // prevent double-stop in cleanup
+                onResult(decodedText);
+              });
           },
           () => {}
         );
