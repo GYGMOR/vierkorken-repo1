@@ -185,6 +185,7 @@ model GiftActivation {
   userId      String
   giftId      String
   token       String    @unique @default(cuid())
+  redeemCode  String    @unique
   pointCost   Int
   expiresAt   DateTime
   redeemedAt  DateTime?
@@ -197,6 +198,24 @@ model GiftActivation {
   @@index([userId])
   @@index([token])
   @@map("giftactivation")
+}
+
+model MemberDeal {
+  id            String    @id @default(cuid())
+  title         String
+  description   String?   @db.Text
+  image         String?
+  originalPrice Decimal   @db.Decimal(10, 2)
+  dealPrice     Decimal   @db.Decimal(10, 2)
+  dealLabel     String    @default("Mitglieder-Angebot")
+  variantId     String?
+  isActive      Boolean   @default(true)
+  sortOrder     Int       @default(0)
+  validUntil    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("memberdeal")
 }
 
 model LoyaltyTransaction {

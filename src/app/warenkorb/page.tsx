@@ -6,11 +6,55 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/contexts/CartContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export default function CartPage() {
-  const { items, removeItem, updateQuantity, clearCart, total: subtotal } = useCart();
+  const { items, removeItem, updateQuantity, clearCart, addItem, total: subtotal } = useCart();
   const [pointsRatio, setPointsRatio] = useState(1.0);
+  const [praemienCode, setPraemienCode] = useState('');
+  const [praemienStatus, setPraemienStatus] = useState<{ type: 'idle' | 'loading' | 'success' | 'error'; message?: string; giftName?: string }>({ type: 'idle' });
+
+  const handlePraemienCode = useCallback(async () => {
+    if (!praemienCode.trim()) return;
+    setPraemienStatus({ type: 'loading' });
+
+    try {
+      const res = await fetch(`/api/loyalty/redeem-online?code=${encodeURIComponent(praemienCode.trim())}`);
+      const data = await res.json();
+
+      if (!res.ok || !data.valid) {
+        setPraemienStatus({ type: 'error', message: data.error || 'Ungültiger Code' });
+        return;
+      }
+
+      // Redeem via POST
+      const redeemRes = await fetch('/api/loyalty/redeem-online', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: praemienCode.trim() }),
+      });
+      const redeemData = await redeemRes.json();
+
+      if (!redeemRes.ok || !redeemData.success) {
+        setPraemienStatus({ type: 'error', message: redeemData.error || 'Fehler beim Einlösen' });
+        return;
+      }
+
+      // Add gift to cart at price 0
+      addItem({
+        id: `praemie-${redeemData.gift.id}-${praemienCode.trim()}`,
+        name: redeemData.gift.name,
+        price: 0,
+        imageUrl: redeemData.gift.image || undefined,
+        type: 'divers',
+      });
+
+      setPraemienStatus({ type: 'success', giftName: redeemData.gift.name });
+      setPraemienCode('');
+    } catch {
+      setPraemienStatus({ type: 'error', message: 'Verbindungsfehler' });
+    }
+  }, [praemienCode, addItem]);
 
   useEffect(() => {
     fetch('/api/loyalty/rules')
@@ -217,6 +261,50 @@ export default function CartPage() {
                 </div>
               </Card>
             )}
+
+            {/* Prämiencode */}
+            <Card className="p-4 md:p-6 bg-accent-burgundy/5 border-accent-burgundy/20">
+              <div className="flex items-start gap-3 md:gap-4">
+                <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-full bg-accent-burgundy/10 flex items-center justify-center">
+                  <svg className="w-5 h-5 md:w-6 md:h-6 text-accent-burgundy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-serif text-base md:text-lg text-graphite-dark mb-1">Prämiencode einlösen</h3>
+                  <p className="text-xs md:text-sm text-graphite/70 mb-3">Haben Sie einen PTS-Code aus Ihrem Treueprogramm? Geben Sie ihn hier ein.</p>
+                  {praemienStatus.type === 'success' ? (
+                    <div className="flex items-center gap-2 text-green-700 bg-green-50 rounded-lg p-3">
+                      <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-sm font-medium">«{praemienStatus.giftName}» wurde zum Warenkorb hinzugefügt!</span>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={praemienCode}
+                        onChange={(e) => { setPraemienCode(e.target.value.toUpperCase()); setPraemienStatus({ type: 'idle' }); }}
+                        placeholder="PTS-XXXXXX"
+                        className="flex-1 rounded-lg border border-taupe px-3 py-2 text-sm focus:border-accent-burgundy focus:outline-none focus:ring-1 focus:ring-accent-burgundy font-mono"
+                        onKeyDown={(e) => e.key === 'Enter' && handlePraemienCode()}
+                      />
+                      <button
+                        onClick={handlePraemienCode}
+                        disabled={praemienStatus.type === 'loading' || !praemienCode.trim()}
+                        className="px-4 py-2 bg-accent-burgundy text-white rounded-lg text-sm font-medium hover:bg-accent-burgundy/90 disabled:opacity-50 transition-colors whitespace-nowrap"
+                      >
+                        {praemienStatus.type === 'loading' ? '...' : 'Einlösen'}
+                      </button>
+                    </div>
+                  )}
+                  {praemienStatus.type === 'error' && (
+                    <p className="mt-2 text-xs text-red-600">{praemienStatus.message}</p>
+                  )}
+                </div>
+              </div>
+            </Card>
 
             {/* Gift Card Suggestion */}
             <Card className="p-4 md:p-6 bg-accent-gold/5 border-accent-gold/20">

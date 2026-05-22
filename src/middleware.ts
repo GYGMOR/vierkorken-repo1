@@ -127,8 +127,8 @@ function applySecurityHeaders(response: NextResponse, request: NextRequest) {
   // Control referrer information
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
-  // Disable unwanted browser features
-  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  // Disable unwanted browser features (camera allowed — needed for admin QR scanner)
+  response.headers.set('Permissions-Policy', 'microphone=(), geolocation=()');
 
   // Strict Transport Security (HTTPS only) - only in production
   if (process.env.NODE_ENV === 'production') {

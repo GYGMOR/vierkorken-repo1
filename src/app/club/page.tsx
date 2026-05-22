@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { EditableText } from '@/components/admin/EditableText';
 import { EditableImage } from '@/components/admin/EditableImage';
 import { SwipeableGiftCards } from '@/components/loyalty/SwipeableGiftCards';
+import { MemberDealsSection } from '@/components/loyalty/MemberDealsSection';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,6 +45,12 @@ export default async function LoyaltyClubPage() {
   // Fetch all gifts, sorted by pointCost ascending
   const allGiftsRaw = await prisma.levelGift.findMany({
     orderBy: { pointCost: 'asc' },
+  });
+
+  // Fetch active member deals
+  const memberDeals = await prisma.memberDeal.findMany({
+    where: { isActive: true },
+    orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
   });
 
   const allGifts = allGiftsRaw.map(gift => ({
@@ -132,6 +139,15 @@ export default async function LoyaltyClubPage() {
           userId={userData.id}
         />
 
+        {/* Member Deals */}
+        <MemberDealsSection
+          deals={memberDeals.map(d => ({
+            ...d,
+            originalPrice: Number(d.originalPrice),
+            dealPrice: Number(d.dealPrice),
+          }))}
+          isLoggedIn={!!user}
+        />
 
       </div>
     </MainLayout>

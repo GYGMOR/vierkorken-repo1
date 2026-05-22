@@ -1,27 +1,19 @@
 import { prisma } from '@/lib/prisma';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
-import { LOYALTY_LEVELS } from '@/lib/loyalty';
-import { GiftManagementSection } from '@/components/admin/loyalty/GiftManagementSection';
-import { GiftSettingsCard } from '@/components/admin/loyalty/GiftSettingsCard';
+import { GiftAdminSection } from '@/components/admin/loyalty/GiftAdminSection';
+import { MemberDealAdminSection } from '@/components/admin/loyalty/MemberDealAdminSection';
 
 export const dynamic = 'force-dynamic';
 
 export default async function LoyaltyAdminPage() {
-    let dbLevels: any[] = [];
+    let gifts: any[] = [];
     let variants: any[] = [];
+    let deals: any[] = [];
     let error = null;
 
     try {
-        dbLevels = await prisma.loyaltyLevel.findMany({
-            include: {
-                gifts: {
-                    include: {
-                        loyaltyLevel: true
-                    }
-                }
-            },
-            orderBy: { level: 'asc' },
+        gifts = await prisma.levelGift.findMany({
+            orderBy: { pointCost: 'asc' },
         });
 
         variants = await prisma.wineVariant.findMany({
@@ -29,16 +21,19 @@ export default async function LoyaltyAdminPage() {
             include: { wine: true },
             take: 100,
         });
+
+        deals = await prisma.memberDeal.findMany({
+            orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
+        });
     } catch (e) {
-        console.error('Error fetching admin loyalty data:', e);
-        error = 'Fehler beim Laden der Daten. Bitte versuchen Sie es später erneut.';
+        console.error('Error fetching loyalty admin data:', e);
+        error = 'Fehler beim Laden der Daten.';
     }
 
     if (error) {
         return (
             <AdminLayout>
                 <div className="p-8 text-center text-red-600">
-                    <h2 className="text-xl font-bold mb-2">Ein Fehler ist aufgetreten</h2>
                     <p>{error}</p>
                 </div>
             </AdminLayout>
@@ -47,46 +42,18 @@ export default async function LoyaltyAdminPage() {
 
     return (
         <AdminLayout>
-            <div className="space-y-8">
+            <div className="space-y-4">
                 <div>
                     <h1 className="text-3xl font-serif font-light text-graphite-dark">
-                        Treue-System & Geschenke
+                        Treueprogramm
                     </h1>
-                    <p className="mt-2 text-graphite">
-                        Verwalten Sie die Bedingungen und Geschenke für jedes Loyalty-Level.
+                    <p className="mt-1 text-graphite text-sm">
+                        Prämien und Aktionen für Clubmitglieder verwalten.
                     </p>
                 </div>
 
-                {/* Einstellungskarte für Minimum Betrag und Fristen */}
-                <GiftSettingsCard />
-
-                <div className="space-y-12">
-                    {LOYALTY_LEVELS.map((levelConfig) => {
-                        const dbLevel = dbLevels.find((l) => l.level === levelConfig.level);
-                        const gifts = dbLevel?.gifts || [];
-
-                        return (
-                            <Card key={levelConfig.level} className="overflow-hidden">
-                                <CardHeader className="bg-warmwhite-dark/50 border-b border-taupe-light/30">
-                                    <div className="flex justify-between items-center">
-                                        <div>
-                                            <CardTitle>Level {levelConfig.level}: {levelConfig.name}</CardTitle>
-                                            <p className="text-sm text-graphite/60 mt-1">
-                                                Ab {levelConfig.minPoints} Punkte
-                                            </p>
-                                        </div>
-                                    </div>
-                                </CardHeader>
-
-                                <GiftManagementSection
-                                    level={levelConfig}
-                                    gifts={gifts}
-                                    variants={variants}
-                                />
-                            </Card>
-                        );
-                    })}
-                </div>
+                <GiftAdminSection gifts={gifts} variants={variants} />
+                <MemberDealAdminSection deals={deals} variants={variants} />
             </div>
         </AdminLayout>
     );

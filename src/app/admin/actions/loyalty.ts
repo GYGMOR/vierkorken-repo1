@@ -3,15 +3,25 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { randomBytes } from 'crypto';
 
 const GiftSchema = z.object({
     loyaltyLevelId: z.coerce.number().min(1).max(7),
     name: z.string().min(1, 'Name is required'),
     description: z.string().optional(),
-    image: z.string().url('Invalid image URL').optional().or(z.literal('')),
+    image: z.string().optional().or(z.literal('')),
     variantId: z.string().optional(),
     pointCost: z.coerce.number().min(1, 'Mindestens 1 Punkt'),
 });
+
+function generateRedeemCode(): string {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = 'PTS-';
+    for (let i = 0; i < 6; i++) {
+        code += chars[randomBytes(1)[0] % chars.length];
+    }
+    return code;
+}
 
 export async function createGift(formData: FormData) {
     const data = Object.fromEntries(formData.entries());
@@ -238,14 +248,39 @@ export async function createGiftActivation(userId: string, giftId: string) {
         const existing = await prisma.giftActivation.findFirst({
             where: { userId, giftId, redeemedAt: null, expiresAt: { gt: new Date() } }
         });
-        if (existing) return { token: existing.token };
+        if (existing) return { token: existing.token, redeemCode: existing.redeemCode };
 
-        const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+        // Deduct points immediately
+        const newBalance = user.loyaltyPoints - pointCost;
+        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h for online use
+
+        let redeemCode = generateRedeemCode();
+        // Ensure unique
+        while (await prisma.giftActivation.findUnique({ where: { redeemCode } })) {
+            redeemCode = generateRedeemCode();
+        }
+
+        await prisma.$transaction([
+            prisma.user.update({
+                where: { id: userId },
+                data: { loyaltyPoints: { decrement: pointCost } }
+            }),
+            prisma.loyaltyTransaction.create({
+                data: {
+                    userId,
+                    points: -pointCost,
+                    reason: `Prämie aktiviert: ${gift.name}`,
+                    balanceBefore: user.loyaltyPoints,
+                    balanceAfter: newBalance,
+                }
+            }),
+        ]);
+
         const activation = await prisma.giftActivation.create({
-            data: { userId, giftId, pointCost, expiresAt }
+            data: { userId, giftId, pointCost, expiresAt, redeemCode }
         });
 
-        return { token: activation.token };
+        return { token: activation.token, redeemCode: activation.redeemCode };
     } catch (error) {
         console.error('Failed to create gift activation:', error);
         return { error: 'Fehler beim Aktivieren der Prämie' };
@@ -264,39 +299,20 @@ export async function redeemGiftActivation(token: string) {
 
         if (!activation) return { error: 'Ungültiger QR-Code' };
         if (activation.redeemedAt) return { error: 'Dieser Code wurde bereits eingelöst' };
-        if (activation.expiresAt < new Date()) return { error: 'QR-Code ist abgelaufen (30 Min.)' };
-        if (activation.user.loyaltyPoints < activation.pointCost) {
-            return { error: 'Nicht genügend Punkte auf dem Konto' };
-        }
+        if (activation.expiresAt < new Date()) return { error: 'QR-Code ist abgelaufen' };
 
-        const newBalance = activation.user.loyaltyPoints - activation.pointCost;
-
-        await prisma.$transaction([
-            prisma.user.update({
-                where: { id: activation.userId },
-                data: { loyaltyPoints: { decrement: activation.pointCost } }
-            }),
-            prisma.giftActivation.update({
-                where: { token },
-                data: { redeemedAt: new Date() }
-            }),
-            prisma.loyaltyTransaction.create({
-                data: {
-                    userId: activation.userId,
-                    points: -activation.pointCost,
-                    reason: `Prämie eingelöst: ${activation.gift.name}`,
-                    balanceBefore: activation.user.loyaltyPoints,
-                    balanceAfter: newBalance,
-                }
-            }),
-        ]);
+        // Points already deducted on activate — just mark as redeemed
+        await prisma.giftActivation.update({
+            where: { token },
+            data: { redeemedAt: new Date() }
+        });
 
         return {
             success: true,
             customerName: `${activation.user.firstName} ${activation.user.lastName}`,
             giftName: activation.gift.name,
             pointsDeducted: activation.pointCost,
-            newBalance,
+            newBalance: activation.user.loyaltyPoints,
         };
     } catch (error) {
         console.error('Failed to redeem gift activation:', error);
@@ -330,5 +346,90 @@ export async function claimGift(userId: string, level: number, giftId: string) {
     } catch (error) {
         console.error('Failed to claim gift:', error);
         return { error: 'Failed to claim gift' };
+    }
+}
+
+// ─── Member Deals ────────────────────────────────────────────
+
+export async function getMemberDeals() {
+    try {
+        const deals = await prisma.memberDeal.findMany({
+            where: { isActive: true },
+            orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
+        });
+        return { deals };
+    } catch (error) {
+        console.error('Failed to get member deals:', error);
+        return { error: 'Failed to fetch deals' };
+    }
+}
+
+export async function getAllMemberDeals() {
+    try {
+        const deals = await prisma.memberDeal.findMany({
+            orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
+        });
+        return { deals };
+    } catch (error) {
+        return { error: 'Failed to fetch deals' };
+    }
+}
+
+export async function createMemberDeal(formData: FormData) {
+    const data = Object.fromEntries(formData.entries());
+    try {
+        await prisma.memberDeal.create({
+            data: {
+                title: data.title as string,
+                description: (data.description as string) || null,
+                image: (data.image as string) || null,
+                originalPrice: parseFloat(data.originalPrice as string),
+                dealPrice: parseFloat(data.dealPrice as string),
+                dealLabel: (data.dealLabel as string) || 'Mitglieder-Angebot',
+                variantId: data.variantId && data.variantId !== 'none' ? data.variantId as string : null,
+                isActive: true,
+            }
+        });
+        revalidatePath('/admin/loyalty');
+        revalidatePath('/club');
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to create member deal:', error);
+        return { error: 'Failed to create deal' };
+    }
+}
+
+export async function updateMemberDeal(id: string, formData: FormData) {
+    const data = Object.fromEntries(formData.entries());
+    try {
+        await prisma.memberDeal.update({
+            where: { id },
+            data: {
+                title: data.title as string,
+                description: (data.description as string) || null,
+                image: (data.image as string) || null,
+                originalPrice: parseFloat(data.originalPrice as string),
+                dealPrice: parseFloat(data.dealPrice as string),
+                dealLabel: (data.dealLabel as string) || 'Mitglieder-Angebot',
+                variantId: data.variantId && data.variantId !== 'none' ? data.variantId as string : null,
+                isActive: data.isActive === 'true',
+            }
+        });
+        revalidatePath('/admin/loyalty');
+        revalidatePath('/club');
+        return { success: true };
+    } catch (error) {
+        return { error: 'Failed to update deal' };
+    }
+}
+
+export async function deleteMemberDeal(id: string) {
+    try {
+        await prisma.memberDeal.delete({ where: { id } });
+        revalidatePath('/admin/loyalty');
+        revalidatePath('/club');
+        return { success: true };
+    } catch (error) {
+        return { error: 'Failed to delete deal' };
     }
 }
