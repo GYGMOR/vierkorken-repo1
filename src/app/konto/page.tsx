@@ -11,13 +11,9 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { CustomerCard } from '@/components/loyalty/CustomerCard';
-import { BadgeDisplay } from '@/components/loyalty/BadgeDisplay';
 import { BackButton } from '@/components/ui/BackButton';
 import { QRCodeModal } from '@/components/tickets/QRCodeModal';
 import { generateTicketPDF } from '@/lib/ticket-pdf-generator';
-import { LoyaltyGiftPopup } from '@/components/loyalty/LoyaltyGiftPopup';
-import { getUnclaimedGiftsWithValidity, claimGift } from '@/app/admin/actions/loyalty';
-import { useCart } from '@/contexts/CartContext';
 import Image from 'next/image';
 
 // Mock user data
@@ -83,7 +79,6 @@ type AccountTab = 'overview' | 'orders' | 'loyalty' | 'events' | 'settings';
 export default function AccountPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { addItem } = useCart();
   const [activeTab, setActiveTab] = useState<AccountTab>('overview');
   const [orders, setOrders] = useState<any[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
@@ -93,8 +88,6 @@ export default function AccountPage() {
   const [loadingTickets, setLoadingTickets] = useState(true);
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [showQRModal, setShowQRModal] = useState(false);
-  const [unclaimedGiftsData, setUnclaimedGiftsData] = useState<any>(null);
-  const [claimingGift, setClaimingGift] = useState(false);
 
   // Handle tab from URL on mount
   useEffect(() => {
@@ -120,14 +113,6 @@ export default function AccountPage() {
         .catch(err => console.error('Error loading user profile:', err))
         .finally(() => setLoadingUser(false));
 
-      // Fetch unclaimed gifts with expiration
-      getUnclaimedGiftsWithValidity(session.user.id)
-        .then(res => {
-          if (!res.error && res.giftsByLevel && res.giftsByLevel.length > 0) {
-            setUnclaimedGiftsData(res);
-          }
-        })
-        .catch(err => console.error('Error loading unclaimed gifts:', err));
     }
   }, [session]);
 
@@ -193,42 +178,11 @@ export default function AccountPage() {
     await signOut({ callbackUrl: '/' });
   };
 
-  const handleClaimGift = async (gift: any, level: number) => {
-    if (!session?.user?.id) return;
-    setClaimingGift(true);
-    const result = await claimGift(session.user.id, level, gift.id);
-    if (result.success) {
-      addItem({
-        id: `gift-${gift.id}`,
-        name: gift.productDetails?.cartName || gift.name,
-        price: 0,
-        imageUrl: gift.image || '',
-        type: 'wine',
-        winery: gift.productDetails?.winery || 'Loyalty Gift',
-        slug: gift.productDetails?.slug,
-        vintage: gift.productDetails?.vintage,
-      });
-      alert('Geschenk wurde dem Warenkorb hinzugefügt!');
-      // Refresh gifts
-      getUnclaimedGiftsWithValidity(session.user.id).then(res => {
-        if (!res.error && res.giftsByLevel && res.giftsByLevel.length > 0) {
-          setUnclaimedGiftsData(res);
-        } else {
-          setUnclaimedGiftsData(null);
-        }
-      });
-    } else {
-      alert(result.error || 'Fehler beim Einlösen des Geschenks');
-    }
-    setClaimingGift(false);
-  };
 
   return (
     <div className="min-h-screen bg-warmwhite">
       {/* Navigation */}
       <Navigation />
-      <LoyaltyGiftPopup />
-
       <div className="container-custom py-6 md:py-8 lg:py-12">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
@@ -645,68 +599,19 @@ export default function AccountPage() {
 
           {activeTab === 'loyalty' && (
             <div className="space-y-6">
-              {unclaimedGiftsData && (
-                <Card className="border-accent-gold/40 shadow-md">
-                  <CardHeader className="bg-gradient-to-r from-accent-gold/10 to-transparent">
-                    <CardTitle className="flex items-center gap-2 text-accent-burgundy">
-                      <StarIcon />
-                      Ausstehende Belohnungen
-                    </CardTitle>
-                    <p className="text-sm text-graphite/70">
-                      Ihre Geschenke verfallen am {formatDate(unclaimedGiftsData.expiresAt)}
-                    </p>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="space-y-6">
-                      {unclaimedGiftsData.giftsByLevel.map((group: any) => (
-                        <div key={group.level}>
-                          <h4 className="font-semibold text-graphite-dark mb-3">Level {group.level} Geschenke (Wählen Sie eines)</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {group.gifts.map((gift: any) => (
-                              <div key={gift.id} className="border border-taupe-light rounded-lg p-4 flex flex-col hover:border-accent-gold transition-colors">
-                                {gift.image && (
-                                  <div className="relative w-full h-32 mb-3 rounded overflow-hidden">
-                                    <Image src={gift.image} alt={gift.name} fill className="object-cover" />
-                                  </div>
-                                )}
-                                <h5 className="font-medium text-graphite-dark mb-1">{gift.name}</h5>
-                                <p className="text-sm text-graphite/70 flex-1 mb-4">{gift.description}</p>
-                                <Button
-                                  className="w-full mt-auto"
-                                  variant="primary"
-                                  size="sm"
-                                  onClick={() => handleClaimGift(gift, group.level)}
-                                  disabled={claimingGift}
-                                >
-                                  In Warenkorb legen
-                                </Button>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
               <Card>
                 <CardContent className="p-8">
-                  <CustomerCard 
+                  <CustomerCard
                     firstName={user.firstName}
                     lastName={user.lastName}
                     userId={session.user.id || 'guest'}
                     loyaltyPoints={user.loyaltyPoints}
                   />
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Ihre Badges</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <BadgeDisplay badges={USER_BADGES} />
+                  <div className="mt-6 text-center">
+                    <Link href="/club">
+                      <Button variant="primary">Prämien einlösen</Button>
+                    </Link>
+                  </div>
                 </CardContent>
               </Card>
 
