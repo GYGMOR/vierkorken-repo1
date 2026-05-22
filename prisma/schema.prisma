@@ -150,7 +150,8 @@ model LevelGift {
   description     String?
   image           String?  // URL
   variantId       String?  // Linked product variant
-  
+  pointCost       Int      @default(0)
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

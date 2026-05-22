@@ -19,6 +19,7 @@ export function GiftEditor({ gift, levelId, variants, onCancel }: GiftEditorProp
     const [description, setDescription] = useState(gift?.description || '');
     const [image, setImage] = useState(gift?.image || '');
     const [variantId, setVariantId] = useState(gift?.variantId || 'none');
+    const [pointCost, setPointCost] = useState<number>(gift?.pointCost || 0);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -29,6 +30,7 @@ export function GiftEditor({ gift, levelId, variants, onCancel }: GiftEditorProp
         formData.append('description', description);
         formData.append('image', image);
         formData.append('variantId', variantId);
+        formData.append('pointCost', pointCost.toString());
 
         let result;
         if (gift) {
@@ -58,6 +60,25 @@ export function GiftEditor({ gift, levelId, variants, onCancel }: GiftEditorProp
                     onChange={(e) => setName(e.target.value)}
                     className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-accent-burgundy focus:outline-none focus:ring-1 focus:ring-accent-burgundy"
                 />
+            </div>
+
+            <div>
+                <label className="block text-sm font-medium text-gray-700">
+                    Punkte erforderlich <span className="text-accent-burgundy">*</span>
+                </label>
+                <div className="mt-1 relative">
+                    <input
+                        type="number"
+                        required
+                        min={1}
+                        value={pointCost || ''}
+                        onChange={(e) => setPointCost(parseInt(e.target.value) || 0)}
+                        placeholder="z.B. 500"
+                        className="w-full rounded-md border border-gray-300 px-3 py-2 pr-12 text-sm focus:border-accent-burgundy focus:outline-none focus:ring-1 focus:ring-accent-burgundy"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-graphite/50">PTS</span>
+                </div>
+                <p className="text-xs text-gray-400 mt-1">Wie viele Punkte muss der Kunde besitzen um diese Prämie einzulösen.</p>
             </div>
 
             <div>

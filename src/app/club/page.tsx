@@ -41,18 +41,15 @@ export default async function LoyaltyClubPage() {
     }
   }
 
-  // Fetch gifts and their point requirements (ignoring level names)
-  const dbLevels = await prisma.loyaltyLevel.findMany({
-    include: { gifts: true },
-    orderBy: { minPoints: 'asc' }
+  // Fetch all gifts, sorted by pointCost ascending
+  const allGiftsRaw = await prisma.levelGift.findMany({
+    orderBy: { pointCost: 'asc' },
   });
 
-  const allGifts = dbLevels.flatMap(level =>
-    level.gifts.map(gift => ({
-      ...gift,
-      pointsRequired: level.minPoints
-    }))
-  );
+  const allGifts = allGiftsRaw.map(gift => ({
+    ...gift,
+    pointsRequired: gift.pointCost,
+  }));
 
   return (
     <MainLayout>

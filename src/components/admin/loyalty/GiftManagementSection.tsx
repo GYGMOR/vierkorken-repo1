@@ -57,8 +57,13 @@ export function GiftManagementSection({ level, gifts, variants }: { level: any, 
                                 </div>
                             )}
                         </div>
-                        <h4 className="font-semibold text-graphite-dark">{gift.name}</h4>
-                        <p className="text-sm text-graphite/70 line-clamp-2">{gift.description}</p>
+                        <div className="flex items-center justify-between gap-2">
+                            <h4 className="font-semibold text-graphite-dark truncate">{gift.name}</h4>
+                            <span className="flex-shrink-0 bg-accent-gold/15 text-accent-burgundy text-xs font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
+                                {(gift.pointCost || 0).toLocaleString('de-CH')} PTS
+                            </span>
+                        </div>
+                        <p className="text-sm text-graphite/70 line-clamp-2 mt-0.5">{gift.description}</p>
                     </div>
                 ))}
 

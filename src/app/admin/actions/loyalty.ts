@@ -10,12 +10,12 @@ const GiftSchema = z.object({
     description: z.string().optional(),
     image: z.string().url('Invalid image URL').optional().or(z.literal('')),
     variantId: z.string().optional(),
+    pointCost: z.coerce.number().min(1, 'Mindestens 1 Punkt'),
 });
 
 export async function createGift(formData: FormData) {
     const data = Object.fromEntries(formData.entries());
 
-    // Find LoyaltyLevel ID by level number
     const levelNumber = parseInt(data.level as string);
     const loyaltyLevel = await prisma.loyaltyLevel.findUnique({
         where: { level: levelNumber },
@@ -31,6 +31,7 @@ export async function createGift(formData: FormData) {
         description: data.description,
         image: data.image,
         variantId: data.variantId === 'none' ? undefined : data.variantId,
+        pointCost: data.pointCost,
     });
 
     if (!validatedFields.success) {
@@ -45,6 +46,7 @@ export async function createGift(formData: FormData) {
                 description: validatedFields.data.description,
                 image: validatedFields.data.image || null,
                 variantId: validatedFields.data.variantId,
+                pointCost: validatedFields.data.pointCost,
             },
         });
 
@@ -78,6 +80,7 @@ export async function updateGift(giftId: string, formData: FormData) {
         description: data.description,
         image: data.image,
         variantId: data.variantId === 'none' ? undefined : data.variantId,
+        pointCost: data.pointCost,
     });
 
     if (!validatedFields.success) {
@@ -92,6 +95,7 @@ export async function updateGift(giftId: string, formData: FormData) {
                 description: validatedFields.data.description,
                 image: validatedFields.data.image || null,
                 variantId: validatedFields.data.variantId,
+                ...(validatedFields.data.pointCost !== undefined && { pointCost: validatedFields.data.pointCost }),
             },
         });
 
@@ -219,14 +223,13 @@ export async function createGiftActivation(userId: string, giftId: string) {
     try {
         const gift = await prisma.levelGift.findUnique({
             where: { id: giftId },
-            include: { loyaltyLevel: true }
         });
         if (!gift) return { error: 'Prämie nicht gefunden' };
 
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) return { error: 'Benutzer nicht gefunden' };
 
-        const pointCost = gift.loyaltyLevel.minPoints;
+        const pointCost = gift.pointCost;
         if (user.loyaltyPoints < pointCost) {
             return { error: 'Nicht genügend Punkte' };
         }
