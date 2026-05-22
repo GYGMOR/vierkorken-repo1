@@ -65,6 +65,7 @@ model User {
   eventTickets      EventTicket[]
   loyaltyHistory    LoyaltyTransaction[]
   giftClaims        UserLevelGiftClaim[]
+  giftActivations   GiftActivation[]
 
   @@index([email])
   @@index([loyaltyLevel])
@@ -155,6 +156,7 @@ model LevelGift {
 
   loyaltyLevel    LoyaltyLevel @relation(fields: [loyaltyLevelId], references: [id], onDelete: Cascade)
   claims          UserLevelGiftClaim[]
+  activations     GiftActivation[]
 
   @@index([loyaltyLevelId])
   @@map("levelgift")
@@ -175,6 +177,25 @@ model UserLevelGiftClaim {
   @@index([userId])
   @@index([giftId])
   @@map("userlevelgiftclaim")
+}
+
+model GiftActivation {
+  id          String    @id @default(cuid())
+  userId      String
+  giftId      String
+  token       String    @unique @default(cuid())
+  pointCost   Int
+  expiresAt   DateTime
+  redeemedAt  DateTime?
+  redeemedBy  String?
+  createdAt   DateTime  @default(now())
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gift        LevelGift @relation(fields: [giftId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("giftactivation")
 }
 
 model LoyaltyTransaction {

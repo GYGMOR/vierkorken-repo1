@@ -5,6 +5,18 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { getUserByScannerId } from '../actions/scanner';
+import { redeemGiftActivation } from '../actions/loyalty';
+
+const GIFT_QR_PREFIX = 'VIERKORKEN:GIFT:';
+
+type ScanMode = 'customer' | 'gift-success' | 'idle';
+
+interface GiftRedemptionResult {
+  customerName: string;
+  giftName: string;
+  pointsDeducted: number;
+  newBalance: number;
+}
 
 export default function LoyaltyScannerPage() {
   const [scanInput, setScanInput] = useState('');
@@ -13,51 +25,68 @@ export default function LoyaltyScannerPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [showCameraScanner, setShowCameraScanner] = useState(false);
-  
+  const [giftRedemption, setGiftRedemption] = useState<GiftRedemptionResult | null>(null);
+
   const scanInputRef = useRef<HTMLInputElement>(null);
   const amountInputRef = useRef<HTMLInputElement>(null);
 
-  // Keep focus on scan input initially and when reset
   useEffect(() => {
-    if (!customer && !showCameraScanner && scanInputRef.current) {
+    if (!customer && !showCameraScanner && !giftRedemption && scanInputRef.current) {
       scanInputRef.current.focus();
     }
-  }, [customer, showCameraScanner]);
+  }, [customer, showCameraScanner, giftRedemption]);
 
-  const lookupCustomer = useCallback(async (userId: string) => {
-    if (!userId.trim()) return;
+  const processScannedValue = useCallback(async (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return;
 
     setIsLoading(true);
     setMessage(null);
 
-    const result = await getUserByScannerId(userId.trim());
-    
-    setIsLoading(false);
-
-    if (result.error) {
-      setMessage({ text: result.error, type: 'error' });
+    if (trimmed.startsWith(GIFT_QR_PREFIX)) {
+      // Gift redemption QR code
+      const token = trimmed.slice(GIFT_QR_PREFIX.length);
+      const result = await redeemGiftActivation(token);
+      setIsLoading(false);
       setScanInput('');
-      scanInputRef.current?.focus();
-    } else if (result.user) {
-      setCustomer(result.user);
-      // Auto-focus amount input
-      setTimeout(() => {
-        amountInputRef.current?.focus();
-      }, 100);
+
+      if ('error' in result && result.error) {
+        setMessage({ text: result.error, type: 'error' });
+        scanInputRef.current?.focus();
+      } else if ('success' in result && result.success) {
+        setGiftRedemption({
+          customerName: result.customerName!,
+          giftName: result.giftName!,
+          pointsDeducted: result.pointsDeducted!,
+          newBalance: result.newBalance!,
+        });
+      }
+    } else {
+      // Customer card scan (user ID)
+      const result = await getUserByScannerId(trimmed);
+      setIsLoading(false);
+
+      if (result.error) {
+        setMessage({ text: result.error, type: 'error' });
+        setScanInput('');
+        scanInputRef.current?.focus();
+      } else if (result.user) {
+        setCustomer(result.user);
+        setTimeout(() => { amountInputRef.current?.focus(); }, 100);
+      }
     }
   }, []);
 
   const handleScanSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await lookupCustomer(scanInput);
+    await processScannedValue(scanInput);
   };
 
   const handleCameraScanResult = useCallback((scannedId: string) => {
     setShowCameraScanner(false);
     setScanInput(scannedId);
-    // Automatically look up the customer
-    lookupCustomer(scannedId);
-  }, [lookupCustomer]);
+    processScannedValue(scannedId);
+  }, [processScannedValue]);
 
   const handleAmountSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,15 +110,12 @@ export default function LoyaltyScannerPage() {
 
       const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(data.error || 'Fehler beim Verbuchen');
-      }
+      if (!res.ok) throw new Error(data.error || 'Fehler beim Verbuchen');
 
-      setMessage({ 
-        text: `Erfolgreich! ${data.pointsAdded} Punkte für ${data.customerName} verbucht. Neuer Stand: ${data.newBalance} Punkte.`, 
-        type: 'success' 
+      setMessage({
+        text: `Erfolgreich! ${data.pointsAdded} Punkte für ${data.customerName} verbucht. Neuer Stand: ${data.newBalance} Punkte.`,
+        type: 'success',
       });
-      
       handleReset();
     } catch (error: any) {
       setMessage({ text: error.message, type: 'error' });
@@ -103,8 +129,51 @@ export default function LoyaltyScannerPage() {
     setScanInput('');
     setIsLoading(false);
     setShowCameraScanner(false);
-    // Focus will be restored by the useEffect
+    setGiftRedemption(null);
   };
+
+  // Gift redemption success screen
+  if (giftRedemption) {
+    return (
+      <AdminLayout>
+        <div className="max-w-md mx-auto flex flex-col items-center justify-center py-16 text-center">
+          {/* Green checkmark */}
+          <div className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center mb-6 animate-in zoom-in duration-300">
+            <svg className="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+
+          <h2 className="text-3xl font-serif font-light text-graphite-dark mb-2">Prämie eingelöst!</h2>
+          <p className="text-graphite/70 mb-8">Die Prämie wurde erfolgreich abgebucht.</p>
+
+          <div className="w-full bg-white rounded-2xl shadow-md border border-taupe-light/50 p-6 mb-8 text-left space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-graphite/60 text-sm">Kunde</span>
+              <span className="font-semibold text-graphite-dark">{giftRedemption.customerName}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-graphite/60 text-sm">Prämie</span>
+              <span className="font-semibold text-graphite-dark">{giftRedemption.giftName}</span>
+            </div>
+            <div className="h-px bg-taupe-light/40" />
+            <div className="flex justify-between items-center">
+              <span className="text-graphite/60 text-sm">Abgezogene Punkte</span>
+              <span className="font-bold text-accent-burgundy">-{giftRedemption.pointsDeducted.toLocaleString('de-CH')} PTS</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-graphite/60 text-sm">Neuer Kontostand</span>
+              <span className="font-bold text-graphite-dark">{giftRedemption.newBalance.toLocaleString('de-CH')} PTS</span>
+            </div>
+          </div>
+
+          <Button onClick={handleReset} className="w-full">
+            Nächsten Kunden scannen
+          </Button>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -114,7 +183,7 @@ export default function LoyaltyScannerPage() {
             Treueprogramm Scanner
           </h1>
           <p className="mt-2 text-graphite">
-            Kundenkarte (QR oder Barcode) scannen und Punkte gutschreiben.
+            Kundenkarte (QR oder Barcode) scannen und Punkte gutschreiben — oder Prämien-QR einlösen.
           </p>
         </div>
 
@@ -127,17 +196,17 @@ export default function LoyaltyScannerPage() {
         <div className="grid md:grid-cols-2 gap-6">
           <Card className={!customer ? 'border-accent-burgundy shadow-md' : 'opacity-70'}>
             <CardHeader>
-              <CardTitle>1. Kundenkarte Scannen</CardTitle>
+              <CardTitle>1. Karte Scannen</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleScanSubmit}>
                 <div className="space-y-4">
                   <p className="text-sm text-graphite">
-                    Scannen Sie den QR-Code oder Barcode der Kundenkarte.
+                    Kundenkarte scannen (Punkte gutschreiben) <strong>oder</strong> Prämien-QR scannen (Prämie einlösen).
                   </p>
                   <div>
                     <label className="block text-sm font-medium text-graphite-dark mb-1">
-                      Kunden-ID (Scan)
+                      Scan-Eingabe
                     </label>
                     <div className="flex gap-2">
                       <input
@@ -150,7 +219,6 @@ export default function LoyaltyScannerPage() {
                         disabled={!!customer || isLoading}
                         autoFocus
                       />
-                      {/* Camera Scanner Button */}
                       <button
                         type="button"
                         onClick={() => setShowCameraScanner(true)}
@@ -165,18 +233,18 @@ export default function LoyaltyScannerPage() {
                       </button>
                     </div>
                   </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
+                  <Button
+                    type="submit"
+                    className="w-full"
                     disabled={!!customer || !scanInput || isLoading}
                   >
-                    {isLoading && !customer ? 'Wird gesucht...' : 'Kunde suchen'}
+                    {isLoading && !customer ? 'Wird verarbeitet...' : 'Scannen / Suchen'}
                   </Button>
                   {customer && (
-                    <Button 
-                      type="button" 
-                      variant="secondary" 
-                      className="w-full mt-2" 
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="w-full mt-2"
                       onClick={handleReset}
                     >
                       Anderen Kunden scannen
@@ -229,9 +297,9 @@ export default function LoyaltyScannerPage() {
                         Punkte werden abgerundet (z.B. 86.99 CHF = 86 Punkte).
                       </p>
                     </div>
-                    <Button 
-                      type="submit" 
-                      className="w-full py-6 text-lg" 
+                    <Button
+                      type="submit"
+                      className="w-full py-6 text-lg"
                       disabled={!amount || isLoading}
                     >
                       {isLoading ? 'Wird verbucht...' : 'Punkte gutschreiben'}
@@ -251,7 +319,6 @@ export default function LoyaltyScannerPage() {
         </div>
       </div>
 
-      {/* Camera Scanner Modal */}
       {showCameraScanner && (
         <CameraScannerModal
           onResult={handleCameraScanResult}
@@ -262,9 +329,6 @@ export default function LoyaltyScannerPage() {
   );
 }
 
-// ─────────────────────────────────────────────────────
-// Camera Scanner Modal using html5-qrcode
-// ─────────────────────────────────────────────────────
 function CameraScannerModal({
   onResult,
   onClose,
@@ -282,45 +346,28 @@ function CameraScannerModal({
 
     const startScanner = async () => {
       try {
-        // Dynamic import to avoid SSR issues
         const { Html5Qrcode } = await import('html5-qrcode');
-
         scanner = new Html5Qrcode('camera-scanner-region');
         scannerRef.current = scanner;
 
         await scanner.start(
-          { facingMode: 'environment' }, // Use rear camera
-          {
-            fps: 10,
-            qrbox: { width: 250, height: 250 },
-            aspectRatio: 1.0,
-          },
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 },
           (decodedText: string) => {
-            // Prevent multiple results
             if (hasResultRef.current) return;
             hasResultRef.current = true;
-
-            // Stop scanner and return result
-            scanner.stop().then(() => {
-              onResult(decodedText);
-            }).catch(() => {
-              // Even if stop fails, still return the result
-              onResult(decodedText);
-            });
+            scanner.stop().then(() => { onResult(decodedText); }).catch(() => { onResult(decodedText); });
           },
-          () => {
-            // QR code not found in frame - ignore silently
-          }
+          () => {}
         );
 
         setIsStarting(false);
       } catch (err: any) {
-        console.error('Camera scanner error:', err);
         setIsStarting(false);
         if (err?.toString().includes('NotAllowedError')) {
           setError('Kamerazugriff wurde verweigert. Bitte erlauben Sie den Zugriff in Ihren Browser-Einstellungen.');
         } else if (err?.toString().includes('NotFoundError')) {
-          setError('Keine Kamera gefunden. Bitte stellen Sie sicher, dass eine Kamera angeschlossen ist.');
+          setError('Keine Kamera gefunden.');
         } else {
           setError(`Kamera konnte nicht gestartet werden: ${err?.message || err}`);
         }
@@ -330,7 +377,6 @@ function CameraScannerModal({
     startScanner();
 
     return () => {
-      // Cleanup on unmount
       if (scannerRef.current) {
         scannerRef.current.stop().catch(() => {});
         scannerRef.current = null;
@@ -349,7 +395,6 @@ function CameraScannerModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
       <div className="bg-warmwhite rounded-xl shadow-2xl max-w-lg w-full overflow-hidden">
-        {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-taupe-light">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-accent-burgundy/10 rounded-full flex items-center justify-center">
@@ -360,7 +405,7 @@ function CameraScannerModal({
             </div>
             <div>
               <h2 className="font-semibold text-graphite-dark">Kamera-Scanner</h2>
-              <p className="text-xs text-graphite/60">QR-Code oder Barcode scannen</p>
+              <p className="text-xs text-graphite/60">Kundenkarte oder Prämien-QR scannen</p>
             </div>
           </div>
           <button
@@ -373,7 +418,6 @@ function CameraScannerModal({
           </button>
         </div>
 
-        {/* Scanner Region */}
         <div className="p-4">
           {error ? (
             <div className="p-6 text-center">
@@ -389,7 +433,7 @@ function CameraScannerModal({
             <>
               {isStarting && (
                 <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-burgundy mr-3"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-burgundy mr-3" />
                   <span className="text-graphite">Kamera wird gestartet...</span>
                 </div>
               )}
@@ -402,10 +446,9 @@ function CameraScannerModal({
           )}
         </div>
 
-        {/* Footer */}
         <div className="p-4 border-t border-taupe-light bg-warmwhite-light/50">
           <p className="text-xs text-graphite/60 text-center">
-            Halten Sie den QR-Code oder Barcode der Kundenkarte vor die Kamera.
+            Halten Sie die Kundenkarte <strong>oder</strong> den Prämien-QR-Code vor die Kamera.
           </p>
         </div>
       </div>

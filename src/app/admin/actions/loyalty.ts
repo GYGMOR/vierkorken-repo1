@@ -215,6 +215,92 @@ export async function getUnclaimedGiftsWithValidity(userId: string) {
     }
 }
 
+export async function createGiftActivation(userId: string, giftId: string) {
+    try {
+        const gift = await prisma.levelGift.findUnique({
+            where: { id: giftId },
+            include: { loyaltyLevel: true }
+        });
+        if (!gift) return { error: 'Prämie nicht gefunden' };
+
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) return { error: 'Benutzer nicht gefunden' };
+
+        const pointCost = gift.loyaltyLevel.minPoints;
+        if (user.loyaltyPoints < pointCost) {
+            return { error: 'Nicht genügend Punkte' };
+        }
+
+        // Return existing active activation if one exists
+        const existing = await prisma.giftActivation.findFirst({
+            where: { userId, giftId, redeemedAt: null, expiresAt: { gt: new Date() } }
+        });
+        if (existing) return { token: existing.token };
+
+        const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+        const activation = await prisma.giftActivation.create({
+            data: { userId, giftId, pointCost, expiresAt }
+        });
+
+        return { token: activation.token };
+    } catch (error) {
+        console.error('Failed to create gift activation:', error);
+        return { error: 'Fehler beim Aktivieren der Prämie' };
+    }
+}
+
+export async function redeemGiftActivation(token: string) {
+    try {
+        const activation = await prisma.giftActivation.findUnique({
+            where: { token },
+            include: {
+                user: { select: { id: true, firstName: true, lastName: true, loyaltyPoints: true } },
+                gift: true,
+            }
+        });
+
+        if (!activation) return { error: 'Ungültiger QR-Code' };
+        if (activation.redeemedAt) return { error: 'Dieser Code wurde bereits eingelöst' };
+        if (activation.expiresAt < new Date()) return { error: 'QR-Code ist abgelaufen (30 Min.)' };
+        if (activation.user.loyaltyPoints < activation.pointCost) {
+            return { error: 'Nicht genügend Punkte auf dem Konto' };
+        }
+
+        const newBalance = activation.user.loyaltyPoints - activation.pointCost;
+
+        await prisma.$transaction([
+            prisma.user.update({
+                where: { id: activation.userId },
+                data: { loyaltyPoints: { decrement: activation.pointCost } }
+            }),
+            prisma.giftActivation.update({
+                where: { token },
+                data: { redeemedAt: new Date() }
+            }),
+            prisma.loyaltyTransaction.create({
+                data: {
+                    userId: activation.userId,
+                    points: -activation.pointCost,
+                    reason: `Prämie eingelöst: ${activation.gift.name}`,
+                    balanceBefore: activation.user.loyaltyPoints,
+                    balanceAfter: newBalance,
+                }
+            }),
+        ]);
+
+        return {
+            success: true,
+            customerName: `${activation.user.firstName} ${activation.user.lastName}`,
+            giftName: activation.gift.name,
+            pointsDeducted: activation.pointCost,
+            newBalance,
+        };
+    } catch (error) {
+        console.error('Failed to redeem gift activation:', error);
+        return { error: 'Fehler beim Einlösen' };
+    }
+}
+
 export async function claimGift(userId: string, level: number, giftId: string) {
     try {
         const user = await prisma.user.findUnique({

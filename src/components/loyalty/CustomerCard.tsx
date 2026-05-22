@@ -19,9 +19,9 @@ export function CustomerCard({ firstName, lastName, userId, loyaltyPoints }: Cus
     if (!isFlipped && canvasRef.current) {
       QRCode.toCanvas(
         canvasRef.current,
-        userId, // The content of the QR code is the User ID
+        userId,
         {
-          width: 120,
+          width: 80,
           margin: 1,
           color: {
             dark: '#6B1B29', // Burgundy
@@ -39,7 +39,7 @@ export function CustomerCard({ firstName, lastName, userId, loyaltyPoints }: Cus
     <div className="w-full max-w-sm mx-auto">
       <div
         className="relative w-full transition-transform duration-700 transform-style-3d cursor-pointer"
-        style={{ height: '200px', perspective: '1000px' }}
+        style={{ perspective: '1000px', aspectRatio: '85.6 / 54' }}
         onClick={() => setIsFlipped(!isFlipped)}
       >
         {/* Rotate inner wrapper */}
@@ -47,69 +47,69 @@ export function CustomerCard({ firstName, lastName, userId, loyaltyPoints }: Cus
           className={`relative w-full h-full transform-style-3d transition-transform duration-700 ${isFlipped ? 'rotate-y-180' : ''}`}
         >
           {/* Front of Card */}
-          <div className="absolute w-full h-full backface-hidden rounded-xl shadow-2xl overflow-hidden bg-gradient-to-br from-warmwhite via-rose-light to-accent-gold/20 border-2 border-accent-gold/30 flex flex-col justify-between p-5">
+          <div className="absolute w-full h-full backface-hidden rounded-xl shadow-2xl overflow-hidden bg-gradient-to-br from-warmwhite via-rose-light to-accent-gold/20 border-2 border-accent-gold/30 flex flex-col justify-between p-3 sm:p-5">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-xs font-semibold tracking-widest text-graphite/60 uppercase">Vierkorken Club</p>
-              <h3 className="text-xl font-serif text-graphite-dark mt-1">{firstName} {lastName}</h3>
+              <p className="text-[10px] sm:text-xs font-semibold tracking-widest text-graphite/60 uppercase">Vierkorken Club</p>
+              <h3 className="text-base sm:text-xl font-serif text-graphite-dark mt-0.5">{firstName} {lastName}</h3>
             </div>
-            <div className="bg-white/80 p-1.5 rounded-lg backdrop-blur-sm">
+            <div className="bg-white/80 p-1 rounded-lg backdrop-blur-sm">
               <Image
                 src="/images/layout/Wein Boutique_edited.png"
                 alt="VIER KORKEN Logo"
-                width={120}
-                height={40}
-                className="h-5 w-auto"
+                width={100}
+                height={34}
+                className="h-4 sm:h-5 w-auto"
               />
             </div>
           </div>
           <div className="flex justify-between items-end">
             <div>
-              <p className="text-xs text-graphite/60 uppercase tracking-wider mb-0.5">Punktestand</p>
+              <p className="text-[10px] sm:text-xs text-graphite/60 uppercase tracking-wider mb-0.5">Punktestand</p>
               <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-serif text-accent-burgundy font-medium">{loyaltyPoints.toLocaleString('de-CH')}</span>
-                <span className="text-xs font-medium text-graphite/60">PTS</span>
+                <span className="text-xl sm:text-2xl font-serif text-accent-burgundy font-medium">{loyaltyPoints.toLocaleString('de-CH')}</span>
+                <span className="text-[10px] sm:text-xs font-medium text-graphite/60">PTS</span>
               </div>
             </div>
 
-            <div className="bg-white p-1 rounded-lg shadow-sm border border-taupe-light/50">
-               <canvas ref={canvasRef} className="max-w-full h-auto rounded" />
+            <div className="bg-white p-0.5 rounded-lg shadow-sm border border-taupe-light/50">
+               <canvas ref={canvasRef} className="max-w-full h-auto rounded" style={{ maxHeight: '70px' }} />
             </div>
           </div>
 
           <div className="text-center">
-            <p className="text-xs text-graphite/40 italic">Klicken zum Wenden</p>
+            <p className="text-[10px] sm:text-xs text-graphite/40 italic">Klicken zum Wenden</p>
           </div>
         </div>
 
           {/* Back of Card */}
-          <div className="absolute w-full h-full backface-hidden rotate-y-180 rounded-xl shadow-2xl overflow-hidden bg-graphite-dark border-2 border-graphite flex flex-col justify-between p-5">
+          <div className="absolute w-full h-full backface-hidden rotate-y-180 rounded-xl shadow-2xl overflow-hidden bg-graphite-dark border-2 border-graphite flex flex-col justify-between p-3 sm:p-5">
           <div className="flex justify-between items-start w-full">
-            <p className="text-xs font-semibold tracking-widest text-warmwhite/50 uppercase">Kundenkarte scannen</p>
+            <p className="text-[10px] sm:text-xs font-semibold tracking-widest text-warmwhite/50 uppercase">Kundenkarte scannen</p>
             <Image
                 src="/images/layout/Wein Boutique_edited.png"
                 alt="VIER KORKEN Logo"
-                width={100}
-                height={35}
-                className="h-5 w-auto brightness-0 invert opacity-80"
+                width={80}
+                height={28}
+                className="h-4 sm:h-5 w-auto brightness-0 invert opacity-80"
               />
           </div>
-          <div className="flex-1 flex items-center justify-center bg-white my-2 rounded-lg px-2 py-1">
-             <Barcode 
-               value={userId} 
-               format="CODE128" 
-               width={1.5} 
-               height={50} 
-               displayValue={false} 
-               background="#ffffff" 
-               lineColor="#000000" 
+          <div className="flex-1 flex items-center justify-center bg-white my-1.5 rounded-lg px-1 py-0.5">
+             <Barcode
+               value={userId}
+               format="CODE128"
+               width={1.2}
+               height={40}
+               displayValue={false}
+               background="#ffffff"
+               lineColor="#000000"
                margin={0}
              />
           </div>
 
           <div className="text-center">
-            <p className="text-xs font-mono text-warmwhite/60 tracking-widest truncate">{userId}</p>
-            <p className="text-xs text-warmwhite/40 italic mt-1">Klicken zum Wenden</p>
+            <p className="text-[9px] sm:text-xs font-mono text-warmwhite/60 tracking-widest truncate">{userId}</p>
+            <p className="text-[10px] sm:text-xs text-warmwhite/40 italic mt-0.5">Klicken zum Wenden</p>
           </div>
         </div>
       </div>

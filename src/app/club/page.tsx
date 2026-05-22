@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { EditableText } from '@/components/admin/EditableText';
 import { EditableImage } from '@/components/admin/EditableImage';
-import { GiftRedemptionSection } from '@/components/loyalty/GiftRedemptionSection';
+import { SwipeableGiftCards } from '@/components/loyalty/SwipeableGiftCards';
 
 export const dynamic = 'force-dynamic';
 
@@ -132,11 +132,12 @@ export default async function LoyaltyClubPage() {
           </div>
         </section>
 
-        {/* Rewards / Gifts — client component handles onClick */}
-        <GiftRedemptionSection
+        {/* Rewards / Gifts — McDonald's-style swipeable cards */}
+        <SwipeableGiftCards
           gifts={allGifts}
           userPoints={userData.loyaltyPoints}
           isLoggedIn={!!user}
+          userId={userData.id}
         />
 
         {/* Badges */}
