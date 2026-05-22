@@ -1,7 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
-import { BadgeDisplay } from '@/components/loyalty/BadgeDisplay';
 import { BackButton } from '@/components/ui/BackButton';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { CustomerCard } from '@/components/loyalty/CustomerCard';
@@ -29,7 +28,6 @@ export default async function LoyaltyClubPage() {
   if (user?.email) {
     const dbUser = await prisma.user.findUnique({
       where: { email: user.email },
-      include: { badges: { include: { badge: true } } }
     });
     if (dbUser) {
       userData = {
@@ -37,10 +35,7 @@ export default async function LoyaltyClubPage() {
         firstName: dbUser.firstName || user.name?.split(' ')[0] || 'Kunde',
         lastName: dbUser.lastName || user.name?.split(' ').slice(1).join(' ') || '',
         loyaltyPoints: dbUser.loyaltyPoints,
-        badges: dbUser.badges.map(b => ({
-          ...b.badge,
-          earnedAt: b.earnedAt,
-        })),
+        badges: [],
         isAdmin: dbUser.role === 'ADMIN'
       };
     }
@@ -140,20 +135,6 @@ export default async function LoyaltyClubPage() {
           userId={userData.id}
         />
 
-        {/* Badges */}
-        {userData.badges.length > 0 && (
-          <section>
-            <div className="text-center mb-12">
-              <h2 className="text-h2 font-serif font-light text-graphite-dark mb-4">
-                Ihre Badges
-              </h2>
-              <p className="text-body-lg text-graphite">
-                Sammeln Sie stilvolle Badges durch Käufe und besondere Aktionen
-              </p>
-            </div>
-            <BadgeDisplay badges={userData.badges} />
-          </section>
-        )}
 
       </div>
     </MainLayout>

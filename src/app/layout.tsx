@@ -5,7 +5,6 @@ import { CartProvider } from '@/contexts/CartContext';
 import { SeasonalEffects } from '@/components/effects/SeasonalEffects';
 import { MaintenanceGuard } from '@/components/maintenance/MaintenanceGuard';
 import '@/styles/globals.css';
-import { LoyaltyGiftPopup } from '@/components/loyalty/LoyaltyGiftPopup';
 
 // Fonts
 const inter = Inter({
@@ -87,7 +86,6 @@ export default function RootLayout({
             <CartProvider>
               {children}
               <SeasonalEffects />
-              <LoyaltyGiftPopup />
             </CartProvider>
           </MaintenanceGuard>
         </SessionProvider>
