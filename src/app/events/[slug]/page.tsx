@@ -56,6 +56,8 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [showClubPrompt, setShowClubPrompt] = useState(false);
+  const [userSkippedLogin, setUserSkippedLogin] = useState(false);
   const [ticketCount, setTicketCount] = useState(1);
   const [selectedAddress, setSelectedAddress] = useState<number | 'new'>('new');
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -71,6 +73,8 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
   const [showToast, setShowToast] = useState(false);
 
   const isLoggedIn = !!session;
+  const hasClubPrice = !!(event && event.memberPrice && Number(event.memberPrice) < Number(event.price));
+  const effectiveUnitPrice = (isLoggedIn && hasClubPrice && event) ? Number(event.memberPrice) : Number(event?.price || 0);
 
   useEffect(() => {
     // Load event from API
@@ -89,8 +93,8 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
               subtitle: data.event.subtitle || '',
               date: new Date(data.event.startDateTime).toISOString().split('T')[0],
               endDate: new Date(data.event.endDateTime).toISOString().split('T')[0],
-              time: data.event.timeDisplay || new Date(data.event.startDateTime).toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' }),
-              endTime: data.event.endTimeDisplay || new Date(data.event.endDateTime).toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' }),
+              time: data.event.timeDisplay || new Date(data.event.startDateTime).toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Zurich' }),
+              endTime: data.event.endTimeDisplay || new Date(data.event.endDateTime).toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Zurich' }),
               duration: data.event.duration || 0,
               venue: data.event.venue,
               type: data.event.eventType,
@@ -105,15 +109,10 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
               includeTax: data.event.includeTax ?? true,
             };
             setEvent(transformedEvent);
-            console.log('✅ Loaded event from database:', transformedEvent.title, 'Capacity:', transformedEvent.booked, '/', transformedEvent.capacity);
-            console.log('📸 Event image:', transformedEvent.image);
-            console.log('📸 Raw featuredImage from API:', data.event.featuredImage);
           } else {
-            console.log('⚠️ Event not found in database');
             setEvent(null);
           }
         } else {
-          console.log('⚠️ API error');
           setEvent(null);
         }
       } catch (error) {
@@ -126,10 +125,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
 
     fetchEvent();
 
-    // Load user addresses if logged in
     if (isLoggedIn) {
-      // TODO: Load from API
-      // For now, load from mock data
       const mockAddresses: Address[] = [
         {
           id: 1,
@@ -154,37 +150,33 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
   const handleBookTickets = () => {
     // Check if event requires a specific loyalty level (which requires login)
     if (event && event.minLoyaltyLevel && event.minLoyaltyLevel > 1 && !isLoggedIn) {
-      // Store current URL to redirect back after login
       sessionStorage.setItem('redirectAfterLogin', `/events/${event.slug}`);
       router.push('/login');
       return;
     }
-    setShowBookingModal(true);
+
+    if (!isLoggedIn && hasClubPrice && !userSkippedLogin) {
+      setShowClubPrompt(true);
+    } else {
+      setShowBookingModal(true);
+    }
   };
 
   const handleConfirmBooking = () => {
     if (!event) return;
 
-    // Get address data
-    let addressData;
-    if (selectedAddress === 'new') {
-      addressData = newAddress;
-    } else {
-      addressData = addresses.find(a => a.id === selectedAddress);
-    }
-
-    // Add to cart with capacity information
+    // Add to cart with capacity information and effective unit price
     for (let i = 0; i < ticketCount; i++) {
       addItem({
-        id: event.id,
-        name: `${event.title} - Ticket`,
-        price: event.price,
+        id: `${event.id}-${Date.now()}-${i}`,
+        name: event.title,
+        price: effectiveUnitPrice,
         imageUrl: event.image,
         type: 'event',
         slug: event.slug,
         eventDate: event.date === event.endDate 
-          ? `${new Date(event.date).toLocaleDateString('de-CH')} ${event.time}`
-          : `${new Date(event.date).toLocaleDateString('de-CH')} – ${new Date(event.endDate).toLocaleDateString('de-CH')} ${event.time}`,
+          ? `${new Date(`${event.date}T12:00:00`).toLocaleDateString('de-CH', { timeZone: 'Europe/Zurich' })} ${event.time}`
+          : `${new Date(`${event.date}T12:00:00`).toLocaleDateString('de-CH', { timeZone: 'Europe/Zurich' })} – ${new Date(`${event.endDate}T12:00:00`).toLocaleDateString('de-CH', { timeZone: 'Europe/Zurich' })} ${event.time}`,
         maxCapacity: event.capacity,
         currentCapacity: event.booked
       });
@@ -303,16 +295,27 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
                 <div className="flex items-baseline justify-between">
                   <div className="flex flex-col">
                     <span className="text-sm text-graphite/40 uppercase tracking-widest font-medium">Preis pro Ticket</span>
-                    <div className="flex items-baseline gap-3">
-                      <span className="text-4xl font-serif text-wine">
-                        {formatPrice(event.memberPrice || event.price)}
-                      </span>
-                      {event.memberPrice && event.memberPrice < event.price && (
-                        <span className="text-lg text-graphite/30 line-through">
+                    {isLoggedIn && hasClubPrice ? (
+                      <div className="flex flex-col">
+                        <span className="text-4xl font-serif text-wine">
+                          {formatPrice(event.memberPrice)}
+                        </span>
+                        <span className="text-xs text-accent-gold uppercase tracking-wider font-semibold mt-1">Dein Club-Preis</span>
+                        <span className="text-sm text-graphite/40 line-through">Regulär {formatPrice(event.price)}</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col">
+                        <span className="text-4xl font-serif text-wine">
                           {formatPrice(event.price)}
                         </span>
-                      )}
-                    </div>
+                        <span className="text-xs text-graphite/60 font-medium mt-1">Regulärer Preis</span>
+                        {hasClubPrice && (
+                          <span className="text-xs text-accent-gold font-medium mt-0.5">
+                            Club-Preis: {formatPrice(event.memberPrice)} (mit Login)
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -395,6 +398,56 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
           </div>
         </div>
       </div>
+
+      {/* Club Login Prompt Modal (Popup 1) */}
+      {showClubPrompt && event && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowClubPrompt(false)}>
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 border border-taupe-light/40"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 text-center space-y-4">
+              <div className="w-12 h-12 rounded-full bg-accent-gold/15 text-accent-gold mx-auto flex items-center justify-center">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                </svg>
+              </div>
+
+              <h3 className="text-xl font-serif font-bold text-graphite-dark">
+                Sparen Sie mit dem VIER KORKEN Club!
+              </h3>
+
+              <p className="text-sm text-graphite/80 leading-relaxed">
+                Als registriertes Club-Mitglied buchen Sie dieses Event zum Vorzugspreis von{' '}
+                <strong className="text-accent-burgundy font-bold">{formatPrice(event.memberPrice)}</strong>{' '}
+                statt <span className="line-through">{formatPrice(event.price)}</span>.
+              </p>
+
+              <div className="space-y-2 pt-2">
+                <button
+                  onClick={() => {
+                    sessionStorage.setItem('redirectAfterLogin', `/events/${event.slug}`);
+                    router.push('/login');
+                  }}
+                  className="w-full py-3 px-4 bg-accent-burgundy hover:bg-accent-burgundy/90 text-white font-medium rounded-xl transition-colors shadow-md"
+                >
+                  Jetzt Anmelden / Konto erstellen
+                </button>
+                <button
+                  onClick={() => {
+                    setShowClubPrompt(false);
+                    setUserSkippedLogin(true);
+                    setShowBookingModal(true);
+                  }}
+                  className="w-full py-2.5 px-4 bg-transparent hover:bg-taupe-light/30 text-graphite/70 text-sm font-medium rounded-xl transition-colors border border-taupe-light"
+                >
+                  Als Gast fortfahren (regulär {formatPrice(event.price)})
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Booking Modal */}
       {showBookingModal && (
@@ -528,7 +581,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ slug: st
                 <div className="flex justify-between items-center mb-6">
                   <span className="text-graphite/60 italic">Gesamtbetrag (wird in den Warenkorb gelegt)</span>
                   <span className="text-2xl font-serif text-wine">
-                    {formatPrice((event.memberPrice || event.price) * ticketCount)}
+                    {formatPrice(effectiveUnitPrice * ticketCount)}
                   </span>
                 </div>
 

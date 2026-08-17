@@ -14,6 +14,7 @@ interface EventTicketData {
     venue: string;
     startDateTime: string;
     duration?: number;
+    venueAddress?: any;
   };
 }
 
@@ -41,17 +42,29 @@ export async function buildTicketDoc(ticket: EventTicketData): Promise<jsPDF> {
   });
 
   // Format date
+  const vAddr = ticket.event.venueAddress || {};
+  const dateObj = new Date(ticket.event.startDateTime);
+
   const eventDate = new Intl.DateTimeFormat('de-CH', {
     weekday: 'long',
     day: '2-digit',
     month: 'long',
     year: 'numeric',
-  }).format(new Date(ticket.event.startDateTime));
+    timeZone: 'Europe/Zurich',
+  }).format(dateObj);
 
-  const eventTime = new Intl.DateTimeFormat('de-CH', {
+  const fallbackTime = new Intl.DateTimeFormat('de-CH', {
     hour: '2-digit',
     minute: '2-digit',
-  }).format(new Date(ticket.event.startDateTime));
+    timeZone: 'Europe/Zurich',
+  }).format(dateObj);
+
+  const startT = (vAddr as any).timeDisplay || fallbackTime;
+  const endT = (vAddr as any).endTimeDisplay;
+
+  const eventTime = (endT && endT !== startT)
+    ? `${startT} – ${endT}`
+    : startT;
 
   const formatPrice = (price: number): string => {
     return new Intl.NumberFormat('de-CH', {

@@ -1322,3 +1322,30 @@ model DiversProduct {
   
   @@map("diversproduct")
 }
+
+// ============================================================
+// WEB ANALYTICS & LIVE VISITORS
+// ============================================================
+
+model PageVisit {
+  id            String   @id @default(cuid())
+  sessionId     String
+  path          String
+  title         String?
+  referrer      String?
+  ipAddress     String?
+  country       String   @default("Schweiz")
+  city          String?
+  device        String?
+  userAgent     String?  @db.Text
+  durationSec   Int      @default(0)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([sessionId])
+  @@index([createdAt])
+  @@index([path])
+  @@index([country])
+  @@map("pagevisit")
+}

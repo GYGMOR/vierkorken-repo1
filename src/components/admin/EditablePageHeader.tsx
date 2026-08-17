@@ -133,7 +133,7 @@ export function EditablePageHeader({
 
             {/* Content */}
             <div className="container-custom relative z-10 text-center text-white px-4">
-                <h1 className="text-display font-serif font-light mb-4">{title}</h1>
+                <h1 className="text-display font-serif font-light mb-4 break-words max-w-full">{title}</h1>
                 {subtitle && (
                     <p className="text-body-lg text-white/90 max-w-2xl mx-auto mb-8">
                         {subtitle}

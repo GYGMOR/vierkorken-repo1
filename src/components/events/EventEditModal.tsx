@@ -67,9 +67,13 @@ export function EventEditModal({ event, onClose, onSave }: EventEditModalProps) 
         description: '',
         eventType: 'TASTING',
         venue: '',
-        venueAddress: '',
+        venueStreet: '',
+        venueZip: '',
+        venueCity: '',
         startDateTime: '',
         endDateTime: '',
+        timeDisplay: '',
+        endTimeDisplay: '',
         duration: '',
         maxCapacity: '',
         price: '',
@@ -80,6 +84,7 @@ export function EventEditModal({ event, onClose, onSave }: EventEditModalProps) 
 
     useEffect(() => {
         if (event) {
+            const vAddr = event.venueAddress || {};
             setFormData({
                 slug: event.slug,
                 title: event.title,
@@ -87,9 +92,13 @@ export function EventEditModal({ event, onClose, onSave }: EventEditModalProps) 
                 description: event.description,
                 eventType: event.eventType,
                 venue: event.venue,
-                venueAddress: JSON.stringify(event.venueAddress || {}),
-                startDateTime: event.startDateTime ? event.startDateTime.slice(0, 16) : '',
-                endDateTime: event.endDateTime ? event.endDateTime.slice(0, 16) : '',
+                venueStreet: (vAddr as any).street || '',
+                venueZip: (vAddr as any).zip || '',
+                venueCity: (vAddr as any).city || '',
+                startDateTime: event.startDateTime ? event.startDateTime.slice(0, 10) : '',
+                endDateTime: event.endDateTime ? event.endDateTime.slice(0, 10) : '',
+                timeDisplay: (vAddr as any).timeDisplay || '',
+                endTimeDisplay: (vAddr as any).endTimeDisplay || '',
                 duration: event.duration?.toString() || '',
                 maxCapacity: event.maxCapacity.toString(),
                 price: event.price.toString(),
@@ -111,15 +120,38 @@ export function EventEditModal({ event, onClose, onSave }: EventEditModalProps) 
         setLoading(true);
 
         try {
-            const payload = {
+            const startTimeStr = formData.timeDisplay && /^\d{1,2}:\d{2}$/.test(formData.timeDisplay.trim())
+                ? (formData.timeDisplay.trim().length === 4 ? `0${formData.timeDisplay.trim()}` : formData.timeDisplay.trim())
+                : '12:00';
+            const endTimeStr = formData.endTimeDisplay && /^\d{1,2}:\d{2}$/.test(formData.endTimeDisplay.trim())
+                ? (formData.endTimeDisplay.trim().length === 4 ? `0${formData.endTimeDisplay.trim()}` : formData.endTimeDisplay.trim())
+                : startTimeStr;
+
+            const payload: any = {
                 ...formData,
+                startDateTime: formData.startDateTime
+                    ? new Date(`${formData.startDateTime}T${startTimeStr}:00`).toISOString()
+                    : undefined,
+                endDateTime: formData.endDateTime
+                    ? new Date(`${formData.endDateTime}T${endTimeStr}:00`).toISOString()
+                    : (formData.startDateTime ? new Date(`${formData.startDateTime}T${endTimeStr}:00`).toISOString() : undefined),
                 duration: formData.duration ? parseInt(formData.duration) : null,
                 maxCapacity: parseInt(formData.maxCapacity),
                 price: parseFloat(formData.price),
                 memberPrice: formData.memberPrice ? parseFloat(formData.memberPrice) : null,
-                venueAddress: formData.venueAddress ? JSON.parse(formData.venueAddress) : {},
+                venueAddress: {
+                    street: formData.venueStreet || '',
+                    zip: formData.venueZip || '',
+                    city: formData.venueCity || '',
+                    timeDisplay: formData.timeDisplay || null,
+                    endTimeDisplay: formData.endTimeDisplay || null,
+                },
                 galleryImages: [],
             };
+
+            delete payload.venueStreet;
+            delete payload.venueZip;
+            delete payload.venueCity;
 
             const url = event
                 ? `/api/admin/events/${event.id}`
@@ -270,79 +302,150 @@ export function EventEditModal({ event, onClose, onSave }: EventEditModalProps) 
                         </div>
 
                         {/* Venue */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-graphite mb-1">
-                                    Veranstaltungsort *
+                                    Strasse &amp; Nr.
                                 </label>
                                 <input
                                     type="text"
-                                    name="venue"
-                                    value={formData.venue}
+                                    name="venueStreet"
+                                    value={formData.venueStreet}
                                     onChange={handleInputChange}
-                                    required
-                                    placeholder="z.B. Vier Korken Wein-Boutique"
+                                    placeholder="z.B. Steinbrunnengasse 3a"
                                     className="w-full px-3 py-2 border border-taupe-light rounded focus:outline-none focus:ring-2 focus:ring-burgundy"
                                 />
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-graphite mb-1">
-                                    Adresse (JSON)
+                                    PLZ
                                 </label>
                                 <input
                                     type="text"
-                                    name="venueAddress"
-                                    value={formData.venueAddress}
+                                    name="venueZip"
+                                    value={formData.venueZip}
                                     onChange={handleInputChange}
-                                    placeholder='{"street": "Musterstr. 1", "city": "Zürich"}'
+                                    placeholder="z.B. 5707"
+                                    className="w-full px-3 py-2 border border-taupe-light rounded focus:outline-none focus:ring-2 focus:ring-burgundy"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-graphite mb-1">
+                                    Ortschaft
+                                </label>
+                                <input
+                                    type="text"
+                                    name="venueCity"
+                                    value={formData.venueCity}
+                                    onChange={handleInputChange}
+                                    placeholder="z.B. Seengen AG"
                                     className="w-full px-3 py-2 border border-taupe-light rounded focus:outline-none focus:ring-2 focus:ring-burgundy"
                                 />
                             </div>
                         </div>
 
                         {/* Date & Time */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-graphite mb-1">
-                                    Start-Datum & Zeit *
-                                </label>
-                                <input
-                                    type="datetime-local"
-                                    name="startDateTime"
-                                    value={formData.startDateTime}
-                                    onChange={handleInputChange}
-                                    required
-                                    className="w-full px-3 py-2 border border-taupe-light rounded focus:outline-none focus:ring-2 focus:ring-burgundy"
-                                />
+                        <div className="bg-warmwhite-light/50 p-4 rounded-lg border border-taupe-light space-y-4">
+                            <h4 className="font-serif font-semibold text-graphite-dark text-md border-b border-taupe-light pb-2">
+                                Datum &amp; Uhrzeit
+                            </h4>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-graphite mb-1">
+                                        Datum Start *
+                                    </label>
+                                    <input
+                                        type="date"
+                                        name="startDateTime"
+                                        value={formData.startDateTime}
+                                        onChange={handleInputChange}
+                                        required
+                                        className="w-full px-3 py-2 border border-taupe-light rounded focus:outline-none focus:ring-2 focus:ring-burgundy bg-white"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-graphite mb-1">
+                                        Datum Ende (Optional)
+                                    </label>
+                                    <input
+                                        type="date"
+                                        name="endDateTime"
+                                        value={formData.endDateTime}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2 border border-taupe-light rounded focus:outline-none focus:ring-2 focus:ring-burgundy bg-white"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-graphite mb-1">
+                                        Startzeit (z.B. "17:30")
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="timeDisplay"
+                                        value={formData.timeDisplay}
+                                        onChange={handleInputChange}
+                                        placeholder="z.B. 17:30"
+                                        className="w-full px-3 py-2 border border-taupe-light rounded focus:outline-none focus:ring-2 focus:ring-burgundy bg-white"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-graphite mb-1">
+                                        Endzeit (z.B. "21:00")
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="endTimeDisplay"
+                                        value={formData.endTimeDisplay}
+                                        onChange={handleInputChange}
+                                        placeholder="z.B. 21:00"
+                                        className="w-full px-3 py-2 border border-taupe-light rounded focus:outline-none focus:ring-2 focus:ring-burgundy bg-white"
+                                    />
+                                </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-graphite mb-1">
-                                    End-Datum & Zeit *
-                                </label>
-                                <input
-                                    type="datetime-local"
-                                    name="endDateTime"
-                                    value={formData.endDateTime}
-                                    onChange={handleInputChange}
-                                    required
-                                    className="w-full px-3 py-2 border border-taupe-light rounded focus:outline-none focus:ring-2 focus:ring-burgundy"
-                                />
+                                <span className="block text-xs text-taupe-dark font-medium mb-1.5">Schnellauswahl Uhrzeit:</span>
+                                <div className="flex flex-wrap gap-2">
+                                    {[
+                                        { label: '17:00 – 19:30', start: '17:00', end: '19:30' },
+                                        { label: '18:00 – 21:00', start: '18:00', end: '21:00' },
+                                        { label: '19:00 – 22:00', start: '19:00', end: '22:00' },
+                                        { label: '17:30 – 20:30', start: '17:30', end: '20:30' },
+                                        { label: 'Ganztägig', start: '10:00', end: '18:00' },
+                                    ].map((preset) => (
+                                        <button
+                                            key={preset.label}
+                                            type="button"
+                                            onClick={() => setFormData((prev) => ({ ...prev, timeDisplay: preset.start, endTimeDisplay: preset.end }))}
+                                            className="px-3 py-1 text-xs rounded bg-white hover:bg-accent-burgundy hover:text-white border border-taupe-light transition-colors text-graphite"
+                                        >
+                                            {preset.label}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-graphite mb-1">
-                                    Dauer (Minuten)
-                                </label>
-                                <input
-                                    type="number"
-                                    name="duration"
-                                    value={formData.duration}
-                                    onChange={handleInputChange}
-                                    placeholder="120"
-                                    className="w-full px-3 py-2 border border-taupe-light rounded focus:outline-none focus:ring-2 focus:ring-burgundy"
-                                />
+                            <div className="p-3 bg-accent-burgundy/5 rounded border border-accent-burgundy/20 text-xs text-graphite">
+                                <span className="font-semibold text-accent-burgundy">Kunden-Vorschau: </span>
+                                {formData.startDateTime ? (
+                                    <span>
+                                        {new Date(`${formData.startDateTime}T12:00:00`).toLocaleDateString('de-CH', { weekday: 'short', day: '2-digit', month: 'long', year: 'numeric' })}
+                                        {' • '}
+                                        {formData.timeDisplay || '12:00'}
+                                        {formData.endTimeDisplay && formData.endTimeDisplay !== formData.timeDisplay ? ` – ${formData.endTimeDisplay}` : ''}
+                                        {' Uhr'}
+                                    </span>
+                                ) : (
+                                    <span className="text-taupe-dark italic">Bitte Wählen Sie ein Datum aus</span>
+                                )}
                             </div>
                         </div>
 

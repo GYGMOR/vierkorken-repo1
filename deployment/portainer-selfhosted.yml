@@ -1,0 +1,267 @@
+# ============================================================
+# VIERKORKEN – Portainer Stack (Self-Hosted, kein GitHub)
+# Alles auf einer Maschine: App + DB + Backup + Registry
+# ============================================================
+#
+# 📋 ANLEITUNG:
+# 1. In Portainer → Stacks → "Add Stack"
+# 2. Diese Datei einkopieren
+# 3. Nur die ⚠️ markierten Werte anpassen (Stripe + Azure)
+# 4. "Deploy the stack" klicken → fertig!
+#
+# 🔄 UPDATE der App:
+# Auf deinem PC: docker build + docker push → Watchtower deployed automatisch
+# ODER: In Portainer → Stack → "Update the stack"
+#
+# 🗄️ DATENBANK:
+# MariaDB läuft im gleichen Stack, Hostname = "mariadb"
+# Kein VLAN, keine externe IP nötig!
+# ============================================================
+
+version: "3.8"
+
+networks:
+  web:
+    external: true
+  internal:
+    driver: bridge
+
+services:
+
+  # ============================================================
+  # 🗃️ MARIADB DATENBANK
+  # Läuft direkt im Stack – intern erreichbar als "mariadb"
+  # Daten werden persistent auf dem Host gespeichert
+  # ============================================================
+  mariadb:
+    image: mariadb:11
+    container_name: vierkorken-mariadb
+    restart: unless-stopped
+    networks:
+      - internal
+    environment:
+      MYSQL_ROOT_PASSWORD: "RootPass2024!Vierkorken"   # Root-Passwort (für Admin-Zugang)
+      MYSQL_DATABASE: "vierkorken"                      # DB wird automatisch erstellt
+      MYSQL_USER: "vierkorken_app"                      # App-Benutzer
+      MYSQL_PASSWORD: "FGDN8YEH1IiRei8"                # ✅ Passwort aus Projekt
+    volumes:
+      - mariadb_data:/var/lib/mysql                     # Daten persistent speichern
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # ============================================================
+  # 🐳 LOKALE DOCKER REGISTRY
+  # Speichert deine App-Images lokal (kein GitHub nötig!)
+  # API intern erreichbar auf Port 5000
+  # ============================================================
+  registry:
+    image: registry:2
+    container_name: vierkorken-registry
+    restart: unless-stopped
+    networks:
+      - internal
+    ports:
+      - "5000:5000"
+    volumes:
+      - registry_data:/var/lib/registry
+    environment:
+      REGISTRY_STORAGE_DELETE_ENABLED: "true"       # Images löschen erlauben
+      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Origin: "['*']"
+      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods: "['HEAD', 'GET', 'OPTIONS', 'DELETE']"
+      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Headers: "['Authorization', 'Accept', 'Cache-Control']"
+      REGISTRY_HTTP_HEADERS_Access-Control-Expose-Headers: "['Docker-Content-Digest']"
+
+  # ============================================================
+  # 🖥️ REGISTRY UI – Grafische Oberfläche für die Registry
+  # Zeigt alle Images, Tags, Grössen, erlaubt löschen
+  # Zugriff: https://registry.vierkorken.ch  (via Caddy)
+  #       ODER direkt: http://SERVER-IP:8088
+  # ============================================================
+  registry-ui:
+    image: joxit/docker-registry-ui:latest
+    container_name: vierkorken-registry-ui
+    restart: unless-stopped
+    networks:
+      - web
+      - internal
+    ports:
+      - "8088:80"
+    environment:
+      REGISTRY_TITLE: "Vierkorken Registry"
+      REGISTRY_URL: "http://registry:5000"           # Intern via Container-Name
+      SINGLE_REGISTRY: "true"                        # Nur eine Registry anzeigen
+      DELETE_IMAGES: "true"                          # Images löschen erlauben
+      SHOW_CONTENT_DIGEST: "true"                    # Digest anzeigen
+      NGINX_PROXY_PASS_URL: "http://registry:5000"   # Proxy für CORS
+      SHOW_CATALOG_NB_TAGS: "true"                   # Tag-Anzahl in Übersicht
+      CATALOG_MIN_BRANCHES: "1"
+      CATALOG_MAX_BRANCHES: "1"
+      TAGLIST_PAGE_SIZE: "100"
+      CATALOG_ELEMENTS_LIMIT: "1000"
+    labels:
+      caddy: "registry.vierkorken.ch"               # Subdomain via Caddy
+      caddy.reverse_proxy: "{{upstreams 80}}"
+    depends_on:
+      - registry
+
+  # ============================================================
+  # 🌐 VIERKORKEN APP (Next.js)
+  # Wartet auf MariaDB (depends_on + healthcheck)
+  # ⚠️ SERVER-IP im Image-Namen anpassen!
+  # ============================================================
+  app:
+    image: DEINE-SERVER-IP:5000/vierkorken:latest       # ⚠️ SERVER-IP anpassen!
+    container_name: vierkorken-app
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - web
+      - internal
+    environment:
+      # ──────────────────────────────────────────
+      # APP
+      # ──────────────────────────────────────────
+      NODE_ENV: "production"
+      PORT: "3000"
+      NEXT_PUBLIC_APP_URL: "https://vierkorken.ch"
+      NEXT_PUBLIC_SITE_NAME: "VIERKORKEN"
+      NEXT_PUBLIC_CURRENCY: "CHF"
+
+      # ──────────────────────────────────────────
+      # DATENBANK
+      # ✅ Hostname = Container-Name "mariadb" (kein IP nötig!)
+      # ──────────────────────────────────────────
+      DATABASE_URL: "mysql://vierkorken_app:FGDN8YEH1IiRei8@mariadb:3306/vierkorken"
+      DB_HOST: "mariadb"
+      DB_PORT: "3306"
+      DB_NAME: "vierkorken"
+      DB_USER: "vierkorken_app"
+      DB_PASSWORD: "FGDN8YEH1IiRei8"
+
+      # ──────────────────────────────────────────
+      # AUTHENTICATION (NextAuth.js)
+      # ✅ Secret aus Projekt übernommen
+      # ──────────────────────────────────────────
+      NEXTAUTH_URL: "https://vierkorken.ch"
+      NEXTAUTH_SECRET: "a6c9e17ed75401e1d98b0048d65153e30fc46f2ef4617aa92475e46e591aa400"
+      JWT_SECRET: "a6c9e17ed75401e1d98b0048d65153e30fc46f2ef4617aa92475e46e591aa400"
+
+      # ──────────────────────────────────────────
+      # STRIPE PAYMENT
+      # ⚠️ Aus deinem Stripe-Dashboard holen:
+      # → https://dashboard.stripe.com/apikeys
+      # ──────────────────────────────────────────
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "pk_live_DEIN_STRIPE_PUBLISHABLE_KEY"  # ⚠️
+      STRIPE_SECRET_KEY: "sk_live_DEIN_STRIPE_SECRET_KEY"                        # ⚠️
+      STRIPE_WEBHOOK_SECRET: "whsec_DEIN_STRIPE_WEBHOOK_SECRET"                  # ⚠️
+
+      # ──────────────────────────────────────────
+      # MICROSOFT GRAPH API (E-Mail)
+      # ⚠️ Aus Azure Portal holen
+      # Anleitung: docs/AZURE-APP-REGISTRATION.md
+      # ──────────────────────────────────────────
+      MS_TENANT_ID: "DEINE-AZURE-TENANT-ID"             # ⚠️
+      MS_CLIENT_ID: "DEINE-AZURE-CLIENT-ID"             # ⚠️
+      MS_CLIENT_SECRET: "DEIN-AZURE-CLIENT-SECRET"      # ⚠️
+      MAIL_FROM_INFO: "info@vierkorken.ch"
+      MAIL_FROM_NOREPLY: "no-reply@vierkorken.ch"
+      ADMIN_EMAIL: "admin@vierkorken.ch"
+
+      # ──────────────────────────────────────────
+      # KLARA INTEGRATION (Produktdatenbank)
+      # ✅ Echte Keys aus Projekt übernommen
+      # ──────────────────────────────────────────
+      KLARA_API_URL: "https://api.klara.ch"
+      KLARA_API_KEY: "01c11c3e-c484-4ce7-bca0-3f52eb3772af"
+      KLARA_API_SECRET: "uq1USSOdDZnCJKMFwEApTkUPwsgHYK9xmHbhfCp/6Ez7Ywpd30j2i3rw1jIXoD3hsv+6ih6YPRqHYfpvsemnTw=="
+      USE_MOCK_KLARA: "false"
+
+      # ──────────────────────────────────────────
+      # SONSTIGES
+      # ──────────────────────────────────────────
+      MAINTENANCE_MODE: "false"
+      NEXI_API_KEY: ""
+      NEXI_MERCHANT_ID: ""
+      API_TIMEOUT: "10000"
+      KLARA_API_TIMEOUT: "8000"
+      EMAIL_TIMEOUT: "8000"
+      NEXT_PUBLIC_API_TIMEOUT: "10000"
+
+    volumes:
+      - uploads_data:/app/public/uploads
+
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider --timeout=3 http://localhost:3000/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    labels:
+      caddy: "vierkorken.ch"
+      caddy.reverse_proxy: "{{upstreams 3000}}"
+      com.centurylinklabs.watchtower.enable: "true"
+
+  # ============================================================
+  # 🔄 WATCHTOWER – Automatische Updates (alle 5 Minuten)
+  # Erkennt neue Images und startet App automatisch neu
+  # ============================================================
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: vierkorken-watchtower
+    restart: unless-stopped
+    networks:
+      - internal
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      WATCHTOWER_LABEL_ENABLE: "true"      # Nur Container mit Label updaten
+      WATCHTOWER_POLL_INTERVAL: "300"      # Alle 5 Minuten prüfen
+      WATCHTOWER_CLEANUP: "true"           # Alte Images automatisch löschen
+      TZ: "Europe/Zurich"
+      WATCHTOWER_DEBUG: "false"
+
+  # ============================================================
+  # 🗄️ DB-BACKUP – SQL Dump alle 2h, 3 Wochen aufbewahren
+  # Verbindet sich mit dem "mariadb" Container direkt
+  # ============================================================
+  db-backup:
+    build:
+      context: ./db-backup
+    container_name: vierkorken-db-backup
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - internal
+    environment:
+      DB_HOST: "mariadb"                   # ✅ Container-Name, keine IP!
+      DB_PORT: "3306"
+      DB_NAME: "vierkorken"
+      DB_USER: "vierkorken_app"
+      DB_PASSWORD: "FGDN8YEH1IiRei8"      # ✅ Aus Projekt übernommen
+      BACKUP_DIR: "/backups"
+      RETENTION_DAYS: "21"                 # 3 Wochen aufbewahren
+      TZ: "Europe/Zurich"
+    volumes:
+      # ⚠️ NAS-Pfad anpassen! NAS muss auf dem Host gemountet sein.
+      # Anleitung in BUILD-AND-PUSH.md
+      - /mnt/nas/vierkorken-backups:/backups
+
+# ============================================================
+# 📦 VOLUMES – Persistent auf dem Docker-Host
+# ============================================================
+volumes:
+  mariadb_data:
+    driver: local                          # DB-Daten bleiben bei Updates erhalten
+  registry_data:
+    driver: local
+  uploads_data:
+    driver: local

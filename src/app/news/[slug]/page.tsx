@@ -117,7 +117,7 @@ export default function NewsDetailPage() {
               </div>
             )}
 
-            <h1 className="text-display font-serif font-light text-graphite-dark">
+            <h1 className="text-display font-serif font-light text-graphite-dark break-words max-w-full">
               {news.title}
             </h1>
 

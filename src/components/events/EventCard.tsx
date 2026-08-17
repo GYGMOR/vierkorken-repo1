@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -71,17 +72,24 @@ const UserGroupIcon = ({ className }: { className?: string }) => (
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={2}
-            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20H2v-2a3 3 0 015.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
         />
     </svg>
 );
 
 export function EventCard({ event, isAdmin, onEdit }: { event: any; isAdmin?: boolean; onEdit?: (e: React.MouseEvent) => void }) {
+    const { data: session } = useSession();
     const { addItem } = useCart();
     const [showBookingModal, setShowBookingModal] = useState(false);
+    const [showClubPrompt, setShowClubPrompt] = useState(false);
+    const [userSkippedLogin, setUserSkippedLogin] = useState(false);
     const [ticketQuantity, setTicketQuantity] = useState(1);
     const [error, setError] = useState<string | null>(null);
     const [isExpanded, setIsExpanded] = useState(false);
+
+    const isLoggedIn = !!session?.user;
+    const hasClubPrice = event.memberPrice && Number(event.memberPrice) < Number(event.price);
+    const effectiveUnitPrice = (isLoggedIn && hasClubPrice) ? Number(event.memberPrice) : Number(event.price);
 
     const spotsLeft = event.capacity - event.booked;
     const isAlmostFull = spotsLeft <= 5;
@@ -99,8 +107,14 @@ export function EventCard({ event, isAdmin, onEdit }: { event: any; isAdmin?: bo
     const handleBooking = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        setShowBookingModal(true);
         setError(null);
+
+        // If user is not logged in and event has a cheaper club price and user hasn't skipped prompt yet
+        if (!isLoggedIn && hasClubPrice && !userSkippedLogin) {
+            setShowClubPrompt(true);
+        } else {
+            setShowBookingModal(true);
+        }
     };
 
     const toggleDescription = (e: React.MouseEvent) => {
@@ -125,7 +139,7 @@ export function EventCard({ event, isAdmin, onEdit }: { event: any; isAdmin?: bo
             addItem({
                 id: `${event.id}-${Date.now()}-${i}`,
                 name: event.title,
-                price: event.memberPrice || event.price,
+                price: effectiveUnitPrice,
                 type: 'event',
                 slug: event.slug,
                 eventDate: event.date === event.endDate 
@@ -221,20 +235,25 @@ export function EventCard({ event, isAdmin, onEdit }: { event: any; isAdmin?: bo
                                 <CalendarIcon className="w-4 h-4 text-wine" />
                                 <span>
                                     {event.date === event.endDate ? (
-                                        new Date(event.date).toLocaleDateString('de-CH', {
+                                        new Date(`${event.date}T12:00:00`).toLocaleDateString('de-CH', {
                                             weekday: 'short',
                                             day: '2-digit',
                                             month: 'long',
-                                            year: 'numeric'
+                                            year: 'numeric',
+                                            timeZone: 'Europe/Zurich',
                                         })
                                     ) : (
-                                        `${new Date(event.date).toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit' })} – ${new Date(event.endDate).toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit', year: 'numeric' })}`
+                                        `${new Date(`${event.date}T12:00:00`).toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit', timeZone: 'Europe/Zurich' })} – ${new Date(`${event.endDate}T12:00:00`).toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Zurich' })}`
                                     )}
                                 </span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <ClockIcon className="w-4 h-4 text-wine" />
-                                <span>{event.time} – {event.endTime || event.time} Uhr</span>
+                                <span>
+                                    {event.endTime && event.endTime !== event.time
+                                        ? `${event.time} – ${event.endTime} Uhr`
+                                        : `${event.time} Uhr`}
+                                </span>
                             </div>
                             <div className="flex items-start gap-2">
                                 <LocationIcon className="w-4 h-4 text-wine mt-1 flex-shrink-0" />
@@ -254,14 +273,22 @@ export function EventCard({ event, isAdmin, onEdit }: { event: any; isAdmin?: bo
 
                         <div className="pt-4 border-t border-taupe-light/50 flex items-center justify-between">
                             <div className="flex flex-col">
-                                {event.memberPrice && event.memberPrice < event.price ? (
+                                {isLoggedIn && hasClubPrice ? (
                                     <>
-                                        <span className="text-xs text-graphite/60 line-through">CHF {event.price.toFixed(2)}</span>
-                                        <span className="text-h4 font-serif text-wine">CHF {event.memberPrice.toFixed(2)}</span>
-                                        <span className="text-[10px] text-accent-gold uppercase tracking-wider font-medium">Club Preis</span>
+                                        <span className="text-h4 font-serif text-wine">CHF {Number(event.memberPrice).toFixed(2)}</span>
+                                        <span className="text-[10px] text-accent-gold uppercase tracking-wider font-semibold">Dein Club-Preis</span>
+                                        <span className="text-[11px] text-graphite/50 line-through">Regulär CHF {Number(event.price).toFixed(2)}</span>
                                     </>
                                 ) : (
-                                    <span className="text-h4 font-serif text-wine">CHF {event.price.toFixed(2)}</span>
+                                    <>
+                                        <span className="text-h4 font-serif text-wine">CHF {Number(event.price).toFixed(2)}</span>
+                                        <span className="text-[11px] text-graphite/60 font-medium">Regulärer Preis</span>
+                                        {hasClubPrice && (
+                                            <span className="text-[11px] text-accent-gold font-medium">
+                                                Club-Preis: CHF {Number(event.memberPrice).toFixed(2)}
+                                            </span>
+                                        )}
+                                    </>
                                 )}
                             </div>
                             <Button
@@ -281,6 +308,55 @@ export function EventCard({ event, isAdmin, onEdit }: { event: any; isAdmin?: bo
                     </CardContent>
                 </Card>
             </Link>
+
+            {/* Club Login Prompt Modal (Popup 1) */}
+            {showClubPrompt && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div
+                        className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 border border-taupe-light/40"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="p-6 text-center space-y-4">
+                            <div className="w-12 h-12 rounded-full bg-accent-gold/15 text-accent-gold mx-auto flex items-center justify-center">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                                </svg>
+                            </div>
+
+                            <h3 className="text-xl font-serif font-bold text-graphite-dark">
+                                Sparen Sie mit dem VIER KORKEN Club!
+                            </h3>
+
+                            <p className="text-sm text-graphite/80 leading-relaxed">
+                                Als registriertes Club-Mitglied buchen Sie dieses Event zum Vorzugspreis von{' '}
+                                <strong className="text-accent-burgundy font-bold">CHF {Number(event.memberPrice).toFixed(2)}</strong>{' '}
+                                statt <span className="line-through">CHF {Number(event.price).toFixed(2)}</span>.
+                            </p>
+
+                            <div className="space-y-2 pt-2">
+                                <button
+                                    onClick={() => {
+                                        window.location.href = `/login?callbackUrl=${encodeURIComponent(`/events/${event.slug}`)}`;
+                                    }}
+                                    className="w-full py-3 px-4 bg-accent-burgundy hover:bg-accent-burgundy/90 text-white font-medium rounded-xl transition-colors shadow-md"
+                                >
+                                    Jetzt Anmelden / Konto erstellen
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setShowClubPrompt(false);
+                                        setUserSkippedLogin(true);
+                                        setShowBookingModal(true);
+                                    }}
+                                    className="w-full py-2.5 px-4 bg-transparent hover:bg-taupe-light/30 text-graphite/70 text-sm font-medium rounded-xl transition-colors border border-taupe-light"
+                                >
+                                    Als Gast fortfahren (regulär CHF {Number(event.price).toFixed(2)})
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Booking Modal (In-line) */}
             {showBookingModal && (
@@ -324,9 +400,9 @@ export function EventCard({ event, isAdmin, onEdit }: { event: any; isAdmin?: bo
                                 </div>
 
                                 <div className="flex justify-between items-center text-lg font-medium pt-2">
-                                    <span>Total</span>
+                                    <span>Total ({isLoggedIn && hasClubPrice ? 'Club-Preis' : 'Regulär'})</span>
                                     <span className="text-wine">
-                                        CHF {((event.memberPrice || event.price) * ticketQuantity).toFixed(2)}
+                                        CHF {(effectiveUnitPrice * ticketQuantity).toFixed(2)}
                                     </span>
                                 </div>
 

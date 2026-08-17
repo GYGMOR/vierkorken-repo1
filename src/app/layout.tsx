@@ -73,6 +73,8 @@ export const metadata: Metadata = {
   manifest: '/site.webmanifest',
 };
 
+import { AnalyticsTracker } from '@/components/analytics/AnalyticsTracker';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -84,6 +86,7 @@ export default function RootLayout({
         <SessionProvider>
           <MaintenanceGuard>
             <CartProvider>
+              <AnalyticsTracker />
               {children}
               <SeasonalEffects />
             </CartProvider>

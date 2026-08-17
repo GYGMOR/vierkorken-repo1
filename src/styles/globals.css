@@ -13,6 +13,12 @@
 
   * {
     @apply border-taupe-light;
+    max-width: 100%;
+  }
+
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
   }
 
   body {
@@ -20,8 +26,11 @@
     @apply text-body leading-relaxed;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1, h2, h3, h4, h5, h6, .text-display, .text-h1, .text-h2, .text-h3, .text-h4 {
     @apply font-serif text-graphite-dark;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    hyphens: auto;
   }
 
   h1 {

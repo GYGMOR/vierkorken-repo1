@@ -1,0 +1,275 @@
+# ============================================================
+# VIERKORKEN â€“ KOMPLETTER STACK
+# App + Datenbank + Gitea (Self-Hosted Git + Registry) + Backup
+# ============================================================
+#
+# ðŸ“‹ SETUP ANLEITUNG:
+#
+# 1. Datei + db-backup Ordner auf den Server kopieren:
+#    scp -r deployment/ user@SERVER-IP:~/vierkorken/
+#
+# 2. Server-IP eintragen (suche nach 10.0.20.30):
+#    sed -i 's/10.0.20.30/192.168.1.100/g' docker-compose.KOMPLETT.yml
+#
+# 3. Backups-Verzeichnis anlegen:
+#    mkdir -p ~/vierkorken/backups
+#
+# 4. Stack starten:
+#    cd ~/vierkorken && docker compose -f docker-compose.KOMPLETT.yml up -d
+#
+# 5. Gitea einrichten (NUR ERSTER START):
+#    â†’ http://SERVER-IP:3001
+#    â†’ Installer Ã¶ffnet sich automatisch
+#    â†’ Datenbank: SQLite (Standard lassen)
+#    â†’ App-URL: http://SERVER-IP:3001
+#    â†’ Admin-Account anlegen (z.B. joel / dein-passwort)
+#    â†’ "Installieren" klicken â€“ fertig!
+#
+# 6. Repo anlegen + App-Image pushen:
+#    â†’ In Gitea: "+" â†’ New Repository â†’ "vierkorken/app"
+#    â†’ Lokal (auf deinem PC):
+#       docker login SERVER-IP:3001 -u joel
+#       docker build -t SERVER-IP:3001/joel/app:latest .
+#       docker push SERVER-IP:3001/joel/app:latest
+#
+# 7. App-Image im Stack eintragen:
+#    â†’ Zeile "image:" unter "app:" anpassen:
+#       image: SERVER-IP:3001/joel/app:latest
+#    â†’ Stack neu starten: docker compose ... up -d app
+#
+# ðŸ”’ PORTS:
+#    :3000 â†’ Vierkorken Website
+#    :3001 â†’ Gitea (Git Web UI + Docker Registry)
+#    :222  â†’ Gitea SSH (git clone/push via SSH)
+#    :3306 â†’ MariaDB (INTERN ONLY, kein Zugriff von auÃŸen!)
+#
+# âš ï¸ NUR DIESE STELLEN MÃœSSEN ANGEPASST WERDEN:
+#    10.0.20.30       â†’ Deine Server-IP
+#    REPLACE_ME_STRIPE_*        â†’ Stripe Dashboard Keys
+#    REPLACE_ME_AZURE_*         â†’ Azure Portal Keys
+# ============================================================
+
+version: "3.8"
+
+networks:
+  internal:
+    driver: bridge
+
+volumes:
+  mariadb_data:     # MariaDB Datenbankdateien
+  uploads_data:     # App-Uploads (Bilder, PDFs etc.)
+  gitea_data:       # Gitea Repos + Config + SQLite DB
+
+services:
+
+  # ============================================================
+  # ðŸ—ƒï¸ MARIADB DATENBANK
+  # Intern als "mariadb" erreichbar â€“ KEIN externer Port!
+  # ============================================================
+  mariadb:
+    image: mariadb:11
+    container_name: vierkorken-mariadb
+    restart: unless-stopped
+    networks:
+      - internal
+    environment:
+      MYSQL_ROOT_PASSWORD: "RootPass2024!Vierkorken"
+      MYSQL_DATABASE: "vierkorken"
+      MYSQL_USER: "vierkorken_app"
+      MYSQL_PASSWORD: "FGDN8YEH1IiRei8"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # ============================================================
+  # ðŸ™ GITEA â€“ Self-Hosted Git Server + Docker Registry
+  #
+  # SETUP (Erster Start):
+  #   http://SERVER-IP:3001 â†’ Installer Ã¶ffnet sich
+  #   Datenbank: SQLite (Standard lassen!)
+  #   App URL: http://SERVER-IP:3001
+  #   Admin anlegen â†’ fertig!
+  #
+  # Docker Registry nutzen:
+  #   docker login SERVER-IP:3001 -u DEIN_GITEA_USER
+  #   docker push SERVER-IP:3001/DEIN_GITEA_USER/app:latest
+  # ============================================================
+  gitea:
+    image: gitea/gitea:latest
+    container_name: vierkorken-gitea
+    restart: unless-stopped
+    networks:
+      - internal
+    ports:
+      - "3001:3000"   # Web UI â†’ http://SERVER-IP:3001
+      - "222:22"      # SSH Git â†’ ssh://git@SERVER-IP:222/user/repo.git
+    environment:
+      USER_UID: "1000"
+      USER_GID: "1000"
+      GITEA__DEFAULT__APP_NAME: "Vierkorken Git"
+
+      # Server
+      GITEA__server__DOMAIN: "10.0.20.30"
+      GITEA__server__ROOT_URL: "http://10.0.20.30:3001/"
+      GITEA__server__HTTP_PORT: "3000"
+      GITEA__server__SSH_DOMAIN: "10.0.20.30"
+      GITEA__server__SSH_PORT: "222"
+      GITEA__server__START_SSH_SERVER: "true"
+
+      # Datenbank â†’ SQLite (kein extra Container, perfekt fÃ¼r Self-Hosting)
+      GITEA__database__DB_TYPE: "sqlite3"
+      GITEA__database__PATH: "/data/gitea/gitea.db"
+
+      # Sicherheit â€“ BITTE Ã„NDERN vor dem Start!
+      GITEA__security__SECRET_KEY: "Vierkorken2024GitSecret!XyZ9mN3pQ7rT1vW5"
+      GITEA__security__INTERNAL_TOKEN: "Vierkorken2024Internal!AbC8kL2vW5qR9"
+      GITEA__security__INSTALL_LOCK: "false"
+
+      # Container Registry (Docker Images direkt in Gitea pushen)
+      GITEA__packages__ENABLED: "true"
+
+      # Registrierung (nach Setup auf "true" setzen um fremde Registrierungen zu sperren)
+      GITEA__service__DISABLE_REGISTRATION: "false"
+      GITEA__service__REQUIRE_SIGNIN_VIEW: "false"
+
+      GITEA__log__LEVEL: "Warn"
+
+    volumes:
+      - gitea_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ============================================================
+  # ðŸŒ VIERKORKEN APP (Next.js)
+  # Wartet auf: MariaDB (healthcheck) + Gitea
+  # âš ï¸ IMAGE-PFAD nach Gitea-Setup anpassen!
+  # ============================================================
+  app:
+    # âš ï¸ Erst leer lassen, nach Gitea-Setup und erstem push:
+    # image: 10.0.20.30:3001/GITEA_USER/app:latest
+    image: ghcr.io/gygmor/vierkorken-repo1:latest  # TemporÃ¤r bis Gitea bereit ist
+    container_name: vierkorken-app
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - internal
+    ports:
+      - "3000:3000"   # Website â†’ http://SERVER-IP:3000
+    environment:
+      # APP
+      NODE_ENV: "production"
+      PORT: "3000"
+      NEXT_PUBLIC_APP_URL: "http://10.0.20.30:3000"
+      NEXT_PUBLIC_SITE_NAME: "VIERKORKEN"
+      NEXT_PUBLIC_CURRENCY: "CHF"
+      MAINTENANCE_MODE: "false"
+
+      # DATENBANK âœ… fertig
+      DATABASE_URL: "mysql://vierkorken_app:FGDN8YEH1IiRei8@mariadb:3306/vierkorken"
+      DATABASE_CONNECTION_TIMEOUT: "5000"
+
+      # AUTH âœ… Secret aus Projekt
+      NEXTAUTH_URL: "http://10.0.20.30:3000"
+      NEXTAUTH_SECRET: "a6c9e17ed75401e1d98b0048d65153e30fc46f2ef4617aa92475e46e591aa400"
+      JWT_SECRET: "a6c9e17ed75401e1d98b0048d65153e30fc46f2ef4617aa92475e46e591aa400"
+
+      # STRIPE âš ï¸ Keys eintragen!  https://dashboard.stripe.com/apikeys
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "REPLACE_ME_STRIPE_PUBLISHABLE_KEY"
+      STRIPE_SECRET_KEY: "REPLACE_ME_STRIPE_SECRET_KEY"
+      STRIPE_WEBHOOK_SECRET: "REPLACE_ME_STRIPE_WEBHOOK_SECRET"
+
+      # MICROSOFT / E-MAIL âš ï¸ Azure Portal â†’ App Registrations
+      # Anleitung: ../AZURE-APP-REGISTRATION.md
+      MS_TENANT_ID: "REPLACE_ME_AZURE_TENANT_ID"
+      MS_CLIENT_ID: "REPLACE_ME_AZURE_CLIENT_ID"
+      MS_CLIENT_SECRET: "REPLACE_ME_AZURE_CLIENT_SECRET"
+      MAIL_FROM_INFO: "info@vierkorken.ch"
+      MAIL_FROM_NOREPLY: "no-reply@vierkorken.ch"
+      ADMIN_EMAIL: "admin@vierkorken.ch"
+
+      # KLARA âœ… Keys aus Projekt
+      KLARA_API_URL: "https://api.klara.ch"
+      KLARA_API_KEY: "01c11c3e-c484-4ce7-bca0-3f52eb3772af"
+      KLARA_API_SECRET: "uq1USSOdDZnCJKMFwEApTkUPwsgHYK9xmHbhfCp/6Ez7Ywpd30j2i3rw1jIXoD3hsv+6ih6YPRqHYfpvsemnTw=="
+      USE_MOCK_KLARA: "false"
+
+      # PERFORMANCE
+      API_TIMEOUT: "10000"
+      KLARA_API_TIMEOUT: "8000"
+      EMAIL_TIMEOUT: "8000"
+      NEXT_PUBLIC_API_TIMEOUT: "10000"
+      NEXT_PUBLIC_ENABLE_API_CACHE: "false"
+      API_CACHE_TTL: "0"
+
+      # OPTIONAL
+      NEXI_API_KEY: ""
+      NEXI_MERCHANT_ID: ""
+
+    volumes:
+      - uploads_data:/app/public/uploads
+
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider --timeout=3 http://localhost:3000/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    labels:
+      com.centurylinklabs.watchtower.enable: "true"   # Watchtower updated diesen Container
+
+  # ============================================================
+  # ðŸ”„ WATCHTOWER â€“ Automatische App-Updates
+  # PrÃ¼ft alle 5 Min ob neue Images da sind â†’ neustartet App
+  # ============================================================
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: vierkorken-watchtower
+    restart: unless-stopped
+    networks:
+      - internal
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      WATCHTOWER_LABEL_ENABLE: "true"
+      WATCHTOWER_POLL_INTERVAL: "300"
+      WATCHTOWER_CLEANUP: "true"
+      TZ: "Europe/Zurich"
+      WATCHTOWER_DEBUG: "false"
+
+  # ============================================================
+  # ðŸ’¾ DB-BACKUP â€“ SQL Dumps alle 2h, 21 Tage aufbewahren
+  # Komprimierte .sql.gz im ./backups/ Ordner
+  # ============================================================
+  db-backup:
+    image: fradelg/mysql-cron-backup   # Fertiges Backup-Image, kein Build noetig!
+    container_name: vierkorken-db-backup
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - internal
+    environment:
+      MYSQL_HOST: "mariadb"
+      MYSQL_PORT: "3306"
+      MYSQL_DB: "vierkorken"
+      MYSQL_USER: "vierkorken_app"
+      MYSQL_PASS: "FGDN8YEH1IiRei8"
+      MAX_BACKUPS: "252"          # 21 Tage * 12 Backups/Tag = 252
+      CRON_TIME: "0 */2 * * *"   # Alle 2 Stunden
+      INIT_BACKUP: "1"            # Sofort beim Start ein Backup machen
+      TZ: "Europe/Zurich"
+    volumes:
+      - /home/sysadmin/vierkorken/backups:/backup

@@ -324,15 +324,29 @@ export async function sendOrderConfirmationEmail(
     // Format event date for display
     let eventDate = '';
     try {
+      const vAddr = ticket.event?.venueAddress || {};
       const dateObj = ticket.event?.startDateTime ? new Date(ticket.event.startDateTime) : null;
       if (dateObj) {
-        eventDate = new Intl.DateTimeFormat('de-CH', {
+        const dStr = new Intl.DateTimeFormat('de-CH', {
           day: '2-digit',
           month: '2-digit',
           year: 'numeric',
+          timeZone: 'Europe/Zurich',
+        }).format(dateObj);
+
+        const timeStr = (vAddr as any).timeDisplay || new Intl.DateTimeFormat('de-CH', {
           hour: '2-digit',
           minute: '2-digit',
+          timeZone: 'Europe/Zurich',
         }).format(dateObj);
+
+        const endTimeStr = (vAddr as any).endTimeDisplay;
+
+        const fullTime = (endTimeStr && endTimeStr !== timeStr)
+          ? `${timeStr} – ${endTimeStr} Uhr`
+          : `${timeStr} Uhr`;
+
+        eventDate = `${dStr}, ${fullTime}`;
       }
     } catch {
       eventDate = '';

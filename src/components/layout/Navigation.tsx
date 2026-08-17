@@ -33,16 +33,18 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
   // Check if user is admin and load profile image
   useEffect(() => {
     if (session?.user?.email) {
-      fetch('/api/user/profile')
+      fetch('/api/user/profile', {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' },
+      })
         .then(res => res.json())
         .then(data => {
           if (data.success) {
-            if (data.user.role === 'ADMIN') {
-              setIsAdmin(true);
-            }
-            if (data.user.profileImage) {
-              setProfileImage(data.user.profileImage);
-            }
+            setIsAdmin(data.user.role === 'ADMIN');
+            setProfileImage(data.user.profileImage || null);
+          } else {
+            setIsAdmin(false);
+            setProfileImage(null);
           }
         })
         .catch(() => {

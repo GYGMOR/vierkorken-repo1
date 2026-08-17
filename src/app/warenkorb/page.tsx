@@ -115,7 +115,7 @@ export default function CartPage() {
                   {/* Image */}
                   {item.slug ? (
                     <Link
-                      href={`/weine/${item.slug}`}
+                      href={item.type === 'event' ? `/events/${item.slug}` : `/weine/${item.slug}`}
                       className="flex-shrink-0"
                     >
                       <div className="w-16 h-24 md:w-24 md:h-32 bg-gradient-to-br from-warmwhite to-sand-light rounded-lg relative overflow-hidden">
@@ -156,7 +156,7 @@ export default function CartPage() {
                   <div className="flex-1 min-w-0">
                     {item.slug ? (
                       <Link
-                        href={`/weine/${item.slug}`}
+                        href={item.type === 'event' ? `/events/${item.slug}` : `/weine/${item.slug}`}
                         className="block group"
                       >
                         <h3 className="font-serif text-base md:text-lg lg:text-h4 text-graphite-dark group-hover:text-accent-burgundy transition-colors line-clamp-1">
@@ -173,8 +173,8 @@ export default function CartPage() {
                           </p>
                         )}
                         {item.eventDate && (
-                          <p className="text-xs md:text-body-sm text-graphite/60 mt-1">
-                            {new Date(item.eventDate).toLocaleDateString('de-CH')}
+                          <p className="text-xs md:text-body-sm text-accent-burgundy font-medium mt-1">
+                            {item.eventDate}
                           </p>
                         )}
                       </Link>
@@ -218,7 +218,7 @@ export default function CartPage() {
                         </p>
                         {item.price > 0 && (
                           <p className="text-xs md:text-body-sm text-graphite/60">
-                            {formatPrice(item.price)} / Flasche {item.type === 'wine' && 'Inkl. MwSt'}
+                            {formatPrice(item.price)} / {item.type === 'event' ? 'Ticket' : item.type === 'divers' ? 'Stück' : 'Flasche'} {item.type === 'wine' && 'Inkl. MwSt'}
                           </p>
                         )}
                       </div>

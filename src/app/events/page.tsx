@@ -92,10 +92,12 @@ export default function EventsPage() {
             time: event.timeDisplay || new Date(event.startDateTime).toLocaleTimeString("de-CH", {
               hour: "2-digit",
               minute: "2-digit",
+              timeZone: "Europe/Zurich",
             }),
             endTime: event.endTimeDisplay || new Date(event.endDateTime).toLocaleTimeString("de-CH", {
               hour: "2-digit",
               minute: "2-digit",
+              timeZone: "Europe/Zurich",
             }),
             duration: event.duration || 0,
             venue: event.venue,
