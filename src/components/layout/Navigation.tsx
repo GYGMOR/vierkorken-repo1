@@ -155,62 +155,67 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
 
                     {/* Dropdown Menu */}
                     {userMenuOpen && (
-                      <div className="absolute right-0 mt-2 w-64 bg-warmwhite rounded-lg shadow-strong border border-taupe-light z-50">
-                        <div className="p-4 border-b border-taupe-light">
-                          <p className="font-semibold text-graphite-dark">
-                            {user.firstName} {user.lastName}
-                          </p>
-                          <p className="text-sm text-graphite/60">{user.email}</p>
-                        </div>
-                        <div className="py-2">
-                          {isAdmin && (
-                            <>
-                              <Link
-                                href="/admin"
-                                className="block px-4 py-2 text-accent-burgundy font-semibold hover:bg-accent-burgundy/5 transition-colors"
-                                onClick={() => setUserMenuOpen(false)}
-                              >
-                                <span className="flex items-center gap-2">
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <>
+                        {/* Backdrop overlay for outside clicks */}
+                        <div
+                          className="fixed inset-0 z-40"
+                          onClick={() => setUserMenuOpen(false)}
+                        />
+                        <div className="absolute right-0 mt-2 w-64 min-w-[240px] bg-warmwhite rounded-xl shadow-strong border border-taupe-light/60 z-50 overflow-hidden whitespace-nowrap">
+                          <div className="p-4 border-b border-taupe-light/50 bg-warmwhite-light/30">
+                            <p className="font-semibold text-graphite-dark text-sm truncate">
+                              {user.firstName} {user.lastName}
+                            </p>
+                            <p className="text-xs text-graphite/60 truncate mt-0.5">{user.email}</p>
+                          </div>
+                          <div className="py-1.5 text-sm">
+                            {isAdmin && (
+                              <>
+                                <Link
+                                  href="/admin"
+                                  className="flex items-center gap-2 px-4 py-2.5 text-accent-burgundy font-medium hover:bg-accent-burgundy/10 transition-colors"
+                                  onClick={() => setUserMenuOpen(false)}
+                                >
+                                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                   </svg>
-                                  Admin Portal
-                                </span>
-                              </Link>
-                              <div className="border-t border-taupe-light my-2"></div>
-                            </>
-                          )}
-                          <Link
-                            href="/konto"
-                            className="block px-4 py-2 text-graphite hover:bg-warmwhite-light transition-colors"
-                            onClick={() => setUserMenuOpen(false)}
-                          >
-                            Mein Konto
-                          </Link>
-                          <Link
-                            href="/konto?tab=orders"
-                            className="block px-4 py-2 text-graphite hover:bg-warmwhite-light transition-colors"
-                            onClick={() => setUserMenuOpen(false)}
-                          >
-                            Bestellungen
-                          </Link>
-                          <Link
-                            href="/konto?tab=loyalty"
-                            className="block px-4 py-2 text-graphite hover:bg-warmwhite-light transition-colors"
-                            onClick={() => setUserMenuOpen(false)}
-                          >
-                            Loyalty Club
-                          </Link>
-                          <div className="border-t border-taupe-light my-2"></div>
-                          <button
-                            onClick={handleLogout}
-                            className="w-full text-left px-4 py-2 text-accent-burgundy hover:bg-warmwhite-light transition-colors"
-                          >
-                            Abmelden
-                          </button>
+                                  <span>Admin Portal</span>
+                                </Link>
+                                <div className="border-t border-taupe-light/50 my-1"></div>
+                              </>
+                            )}
+                            <Link
+                              href="/konto"
+                              className="block px-4 py-2 text-graphite hover:bg-warmwhite-light transition-colors"
+                              onClick={() => setUserMenuOpen(false)}
+                            >
+                              Mein Konto
+                            </Link>
+                            <Link
+                              href="/konto?tab=orders"
+                              className="block px-4 py-2 text-graphite hover:bg-warmwhite-light transition-colors"
+                              onClick={() => setUserMenuOpen(false)}
+                            >
+                              Bestellungen
+                            </Link>
+                            <Link
+                              href="/konto?tab=loyalty"
+                              className="block px-4 py-2 text-graphite hover:bg-warmwhite-light transition-colors"
+                              onClick={() => setUserMenuOpen(false)}
+                            >
+                              Loyalty Club
+                            </Link>
+                            <div className="border-t border-taupe-light/50 my-1"></div>
+                            <button
+                              onClick={handleLogout}
+                              className="w-full text-left px-4 py-2 text-accent-burgundy hover:bg-warmwhite-light transition-colors font-medium"
+                            >
+                              Abmelden
+                            </button>
+                          </div>
                         </div>
-                      </div>
+                      </>
                     )}
                   </>
                 ) : (
