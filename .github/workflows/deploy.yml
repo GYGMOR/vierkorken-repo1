@@ -1,7 +1,11 @@
 name: Build and Deploy (web01)
 
 on:
-  workflow_dispatch: # Manuelle Auslösung per Klick in GitHub (kein automatischer Build mehr bei Push)
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
 
 permissions:
   contents: read

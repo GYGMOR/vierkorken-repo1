@@ -262,6 +262,35 @@ export default function AdminEvents() {
     }
   };
 
+  const [sendingNewsletterId, setSendingNewsletterId] = useState<string | null>(null);
+
+  const handleSendNewsletter = async (event: Event) => {
+    const sentCount = (event.venueAddress as any)?.newsletterSentCount || 0;
+    const confirmMessage = sentCount > 0
+      ? `Newsletter für "${event.title}" wurde bereits ${sentCount}-mal versendet. Möchten Sie ihn erneut an alle Abonnenten senden?`
+      : `Möchten Sie den Newsletter für "${event.title}" jetzt an alle Abonnenten senden?`;
+
+    if (!confirm(confirmMessage)) return;
+
+    try {
+      setSendingNewsletterId(event.id);
+      const res = await fetch(`/api/admin/events/${event.id}/send-newsletter`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(`✅ ${data.message || 'Newsletter erfolgreich versendet!'}`);
+        await fetchEvents();
+      } else {
+        alert(`❌ Fehler: ${data.error || 'Fehler beim Versenden'}`);
+      }
+    } catch (err: any) {
+      alert(`❌ Fehler: ${err.message}`);
+    } finally {
+      setSendingNewsletterId(null);
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       slug: '',
@@ -796,23 +825,34 @@ export default function AdminEvents() {
                     </div>
 
                     {/* Actions - Mobile */}
-                    <div className="flex gap-2 pt-3 border-t">
+                    <div className="flex flex-col gap-2 pt-3 border-t">
                       <Button
                         variant="secondary"
-                        onClick={() => handleEdit(event)}
+                        onClick={() => handleSendNewsletter(event)}
                         size="sm"
-                        className="flex-1"
+                        disabled={sendingNewsletterId === event.id}
+                        className="w-full text-accent-burgundy bg-accent-burgundy/10 hover:bg-accent-burgundy hover:text-white"
                       >
-                        Bearbeiten
+                        {sendingNewsletterId === event.id ? 'Sende...' : ((event.venueAddress as any)?.newsletterSentCount > 0 ? `📧 Newsletter erneut senden (${(event.venueAddress as any).newsletterSentCount}x)` : '📧 Newsletter senden')}
                       </Button>
-                      <Button
-                        variant="secondary"
-                        onClick={() => initiateDelete(event)}
-                        size="sm"
-                        className="flex-1 text-red-600 hover:bg-red-50"
-                      >
-                        Löschen
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="secondary"
+                          onClick={() => handleEdit(event)}
+                          size="sm"
+                          className="flex-1"
+                        >
+                          Bearbeiten
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          onClick={() => initiateDelete(event)}
+                          size="sm"
+                          className="flex-1 text-red-600 hover:bg-red-50"
+                        >
+                          Löschen
+                        </Button>
+                      </div>
                     </div>
                   </div>
 
@@ -870,15 +910,26 @@ export default function AdminEvents() {
                         </div>
 
                         <div>
-                          <span className="text-graphite/60">Slug:</span>
-                          <p className="font-medium text-graphite font-mono text-xs">
-                            {event.slug}
+                          <span className="text-graphite/60">Newsletter:</span>
+                          <p className="font-medium text-graphite text-xs">
+                            {(event.venueAddress as any)?.newsletterSentCount > 0
+                              ? `${(event.venueAddress as any).newsletterSentCount}x versendet`
+                              : 'Noch nicht versendet'}
                           </p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex gap-2 ml-4">
+                    <div className="flex gap-2 ml-4 items-center">
+                      <Button
+                        variant="secondary"
+                        onClick={() => handleSendNewsletter(event)}
+                        size="sm"
+                        disabled={sendingNewsletterId === event.id}
+                        className="text-accent-burgundy bg-accent-burgundy/10 hover:bg-accent-burgundy hover:text-white"
+                      >
+                        {sendingNewsletterId === event.id ? 'Sende...' : ((event.venueAddress as any)?.newsletterSentCount > 0 ? `📧 Newsletter (${(event.venueAddress as any).newsletterSentCount}x)` : '📧 Newsletter senden')}
+                      </Button>
                       <Button
                         variant="secondary"
                         onClick={() => handleEdit(event)}

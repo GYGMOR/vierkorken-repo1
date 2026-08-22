@@ -216,10 +216,12 @@ export function Navigation({ className, showUserMenu = true }: NavigationProps) 
                 ) : (
                   <Link
                     href="/login"
-                    className="text-graphite hover:text-graphite-dark transition-colors"
-                    aria-label="Anmelden"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs md:text-sm font-medium text-accent-burgundy bg-accent-burgundy/10 hover:bg-accent-burgundy hover:text-warmwhite rounded-full transition-all border border-accent-burgundy/20 shadow-xs"
+                    aria-label="Login / Registrieren"
                   >
                     <UserIcon />
+                    <span className="hidden sm:inline">Login / Registrieren</span>
+                    <span className="sm:hidden">Login</span>
                   </Link>
                 )}
               </div>

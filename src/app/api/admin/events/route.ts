@@ -222,66 +222,6 @@ export async function POST(req: NextRequest) {
         },
       });
       console.log('✅ News item created successfully');
-
-      // 2. Send Email Notification (if PUBLISHED)
-      if (status === 'PUBLISHED') {
-        console.log('📧 Starting event notification distribution...');
-
-        // Fetch recipients
-        // A. Users with newsletter subscription
-        const subscribedUsers = await prisma.user.findMany({
-          where: { newsletterSubscribed: true, email: { not: undefined } },
-          select: { email: true, firstName: true }
-        });
-
-        // B. Newsletter Subscribers (guests)
-        const newsletterSubscribers = await prisma.newsletterSubscriber.findMany({
-          where: { isActive: true },
-          select: { email: true, firstName: true }
-        });
-
-        // C. Maintenance Mode Subscribers
-        const maintenanceSubscribers = await prisma.maintenanceModeSubscriber.findMany({
-          where: { isActive: true },
-          select: { email: true }
-        });
-
-        // Combine and dedup
-        const emailMap = new Map<string, { email: string; firstName?: string }>();
-        subscribedUsers.forEach((u: any) => emailMap.set(u.email, { email: u.email, firstName: u.firstName || undefined }));
-        newsletterSubscribers.forEach((s: any) => {
-          if (!emailMap.has(s.email)) emailMap.set(s.email, { email: s.email, firstName: s.firstName || undefined });
-        });
-        maintenanceSubscribers.forEach((s: any) => {
-          if (!emailMap.has(s.email)) emailMap.set(s.email, { email: s.email, firstName: undefined });
-        });
-
-        const allEmails = Array.from(emailMap.values());
-
-        console.log(`📧 Found ${allEmails.length} unique recipients`);
-
-        // Send emails (chunks of 10 to avoid overwhelming)
-        const emailList = allEmails;
-        const chunkSize = 10;
-
-        // We don't await the entire batching to return response faster? 
-        // No, Vercel might kill it. We must await.
-        // We'll process in background if possible, but here we just loop.
-
-        // Optimize: Send to dev only if dev mode is handled in email.ts? 
-        // Yes, email.ts has the safe guard. We just pass all emails.
-
-        let sentCount = 0;
-        for (let i = 0; i < emailList.length; i += chunkSize) {
-          const chunk = emailList.slice(i, i + chunkSize);
-          await Promise.all(chunk.map(emailObj => sendEventNotificationEmail(emailObj.email, event, emailObj.firstName)));
-          sentCount += chunk.length;
-          console.log(`📧 Sent chunk ${i / chunkSize + 1} (${sentCount}/${emailList.length})`);
-        }
-
-        console.log('✅ All event notifications sent');
-      }
-
     } catch (newsError) {
       console.error('⚠️ Error in automatic news/email generation:', newsError);
       // We don't fail the request because the event itself was created successfully

@@ -232,40 +232,6 @@ export async function PUT(
           },
         });
 
-        // ONLY send newsletter if it's being published for the FIRST time
-        const beingPublishedFirstTime = status === 'PUBLISHED' && existingEvent.status !== 'PUBLISHED';
-        if (beingPublishedFirstTime) {
-          const subscribedUsers = await prisma.user.findMany({
-            where: { newsletterSubscribed: true, email: { not: undefined } },
-            select: { email: true, firstName: true },
-          });
-          const newsletterSubscribers = await prisma.newsletterSubscriber.findMany({
-            where: { isActive: true },
-            select: { email: true, firstName: true },
-          });
-          const maintenanceSubscribers = await prisma.maintenanceModeSubscriber.findMany({
-            where: { isActive: true },
-            select: { email: true },
-          });
-
-          const emailMap = new Map<string, { email: string; firstName?: string }>();
-          subscribedUsers.forEach((u: any) => emailMap.set(u.email, { email: u.email, firstName: u.firstName || undefined }));
-          newsletterSubscribers.forEach((s: any) => {
-            if (!emailMap.has(s.email)) emailMap.set(s.email, { email: s.email, firstName: s.firstName || undefined });
-          });
-          maintenanceSubscribers.forEach((s: any) => {
-            if (!emailMap.has(s.email)) emailMap.set(s.email, { email: s.email, firstName: undefined });
-          });
-
-          const allEmails = Array.from(emailMap.values());
-          const chunkSize = 10;
-          for (let i = 0; i < allEmails.length; i += chunkSize) {
-            const chunk = allEmails.slice(i, i + chunkSize);
-            await Promise.all(chunk.map((emailObj) => sendEventNotificationEmail(emailObj.email, event, emailObj.firstName)));
-          }
-          console.log(`✅ Newsletter sent to ${allEmails.length} recipients on first publish`);
-        }
-
         console.log('✅ News synced successfully for event:', event.id);
       } catch (newsError) {
         console.error('⚠️ Error in news/newsletter sync:', newsError);

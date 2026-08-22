@@ -17,8 +17,8 @@ export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
-    // Apply rate limiting: 5 registration attempts per hour per IP
-    const rateLimitResponse = await applyRateLimit(request, 20, 60 * 60 * 1000);
+    // Apply rate limiting: generous limit to prevent blocking users behind proxies
+    const rateLimitResponse = await applyRateLimit(request, 1000, 60 * 60 * 1000);
     if (rateLimitResponse) return rateLimitResponse;
 
     const body = await request.json();
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     if (!valid) {
       logSecurityEvent('Invalid registration attempt', { errors }, 'low');
       return NextResponse.json(
-        { error: 'Validierungsfehler', errors },
+        { error: errors[0] || 'Validierungsfehler', errors },
         { status: 400 }
       );
     }
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     if (existingUser) {
       logSecurityEvent('Registration with existing email', { email }, 'low');
       return NextResponse.json(
-        { error: 'Ein Benutzer mit dieser E-Mail existiert bereits' },
+        { error: 'Die E-Mail wurde bereits verwendet!' },
         { status: 400 }
       );
     }

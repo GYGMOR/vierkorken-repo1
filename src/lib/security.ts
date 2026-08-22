@@ -236,20 +236,15 @@ export function getRateLimitIdentifier(req: NextRequest, session?: any): string 
     return `user:${session.user.email}`;
   }
 
-  // Otherwise use IP address
+  // Otherwise check IP address headers (Cloudflare, X-Forwarded-For, X-Real-IP)
+  const cfIp = req.headers.get('cf-connecting-ip');
   const forwarded = req.headers.get('x-forwarded-for');
   const realIp = req.headers.get('x-real-ip');
   
-  // Clean up IPv6 localhost or loopback if needed
-  let ip = forwarded ? forwarded.split(',')[0].trim() : realIp || 'unknown';
+  let ip = cfIp || (forwarded ? forwarded.split(',')[0].trim() : realIp || 'unknown');
   
   if (ip === '::1' || ip === '127.0.0.1') {
     ip = 'localhost';
-  }
-
-  // For debugging, log the identifier if it's unknown
-  if (ip === 'unknown') {
-    console.warn('[SECURITY] Rate limit identifier is "unknown". Request headers:', Object.fromEntries(req.headers.entries()));
   }
 
   return `ip:${ip}`;
@@ -390,33 +385,17 @@ export function isStrongPassword(password: string): { valid: boolean; errors: st
   const errors: string[] = [];
 
   if (password.length < 8) {
-    errors.push('Password must be at least 8 characters long');
+    errors.push('Das Passwort muss mindestens 8 Zeichen lang sein');
   }
 
   if (password.length > 100) {
-    errors.push('Password must not exceed 100 characters');
-  }
-
-  if (!/[A-Z]/.test(password)) {
-    errors.push('Password must contain at least one uppercase letter');
-  }
-
-  if (!/[a-z]/.test(password)) {
-    errors.push('Password must contain at least one lowercase letter');
-  }
-
-  if (!/[0-9]/.test(password)) {
-    errors.push('Password must contain at least one number');
-  }
-
-  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-    errors.push('Password must contain at least one special character');
+    errors.push('Das Passwort darf maximal 100 Zeichen lang sein');
   }
 
   // Check for common weak passwords
   const commonPasswords = ['password', '12345678', 'qwerty', 'abc123', 'password123'];
   if (commonPasswords.includes(password.toLowerCase())) {
-    errors.push('This password is too common and not secure');
+    errors.push('Dieses Passwort ist zu einfach. Bitte wählen Sie ein sichereres Passwort.');
   }
 
   return { valid: errors.length === 0, errors };
@@ -429,11 +408,11 @@ export function validateRegistrationInput(data: any): { valid: boolean; errors: 
   const errors: string[] = [];
 
   if (!data.email || !isValidEmail(data.email)) {
-    errors.push('Invalid email address');
+    errors.push('Bitte geben Sie eine gültige E-Mail-Adresse ein');
   }
 
   if (!data.password) {
-    errors.push('Password is required');
+    errors.push('Bitte geben Sie ein Passwort ein');
   } else {
     const passwordCheck = isStrongPassword(data.password);
     if (!passwordCheck.valid) {
@@ -442,11 +421,11 @@ export function validateRegistrationInput(data: any): { valid: boolean; errors: 
   }
 
   if (!data.firstName || !isValidLength(data.firstName, 1, 50)) {
-    errors.push('First name must be between 1 and 50 characters');
+    errors.push('Bitte geben Sie einen Vornamen ein');
   }
 
   if (!data.lastName || !isValidLength(data.lastName, 1, 50)) {
-    errors.push('Last name must be between 1 and 50 characters');
+    errors.push('Bitte geben Sie einen Nachnamen ein');
   }
 
   // Sanitize all inputs
