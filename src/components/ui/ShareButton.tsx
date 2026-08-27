@@ -76,7 +76,7 @@ export function ShareButton({ url, title, className = '', align = 'right' }: Sha
             </button>
 
             {isOpen && (
-                <div className={`absolute ${align === 'right' ? 'right-0' : 'left-0'} mt-2 w-48 bg-white rounded-lg shadow-strong border border-taupe-light py-2 z-50`}>
+                <div className={`absolute ${align === 'right' ? 'right-0' : 'left-0'} mt-2 w-52 min-w-[200px] bg-white rounded-xl shadow-2xl border border-taupe-light py-2 z-50 whitespace-nowrap`}>
                     <a
                         href={whatsappUrl}
                         target="_blank"

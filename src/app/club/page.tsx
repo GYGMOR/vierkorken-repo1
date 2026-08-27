@@ -156,23 +156,25 @@ export default async function LoyaltyClubPage() {
 
 function InfoTooltip() {
   return (
-    <div className="relative group inline-block z-20">
+    <div className="relative group inline-block z-30">
       <div className="w-8 h-8 bg-warmwhite-dark rounded-full flex items-center justify-center text-graphite font-serif font-bold cursor-help shadow-sm border border-taupe-light hover:bg-accent-burgundy hover:text-white transition-colors">
         i
       </div>
-      <div className="absolute right-0 bottom-full mb-2 w-64 p-4 bg-graphite-dark text-white text-sm rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none transform translate-y-2 group-hover:translate-y-0">
-        <h4 className="font-semibold mb-2 text-accent-gold">So funktioniert's</h4>
-        <ul className="space-y-2">
-          <li className="flex gap-2">
-            <span className="text-accent-gold">•</span>
+      <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 p-4 bg-graphite-dark text-white text-sm rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none z-50 whitespace-normal border border-accent-gold/30">
+        <h4 className="font-semibold mb-2 text-accent-gold flex items-center gap-1.5">
+          <span>✨ So funktioniert's</span>
+        </h4>
+        <ul className="space-y-2 text-xs sm:text-sm text-warmwhite/90">
+          <li className="flex gap-2 items-start">
+            <span className="text-accent-gold font-bold">•</span>
             <span><strong>1 CHF = 1 Punkt.</strong> Bruchteile werden abgerundet (z.B. 86.99 CHF = 86 Punkte).</span>
           </li>
-          <li className="flex gap-2">
-            <span className="text-accent-gold">•</span>
+          <li className="flex gap-2 items-start">
+            <span className="text-accent-gold font-bold">•</span>
             <span>Punkte können im Geschäft oder online gegen Prämien eingelöst werden.</span>
           </li>
         </ul>
-        <div className="absolute top-full right-3 border-8 border-transparent border-t-graphite-dark"></div>
+        <div className="absolute -top-2 right-3 border-8 border-transparent border-b-graphite-dark"></div>
       </div>
     </div>
   );

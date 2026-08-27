@@ -140,7 +140,8 @@ export default function VersandPage() {
                   <strong>Öffnungszeiten:</strong>
                 </p>
                 <div className="text-sm text-graphite space-y-1">
-                  <p>Mo & Di: Geschlossen</p>
+                  <p>Mo: Geschlossen</p>
+                  <p>Di: 13:30 – 18:30 Uhr (NEU)</p>
                   <p>Mi & Do: 13:30 – 18:30 Uhr</p>
                   <p>Fr: 09:00 – 12:00, 13:30 – 18:30 Uhr</p>
                   <p>Sa: 09:00 – 14:00 Uhr</p>

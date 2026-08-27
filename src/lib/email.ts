@@ -646,7 +646,10 @@ Bei Fragen kontaktieren Sie uns unter info@vierkorken.ch
  * Send new order notification to admin/vendor (verwendet info@vierkorken.ch)
  */
 export async function sendNewOrderNotificationToAdmin(orderId: string, orderDetails: any, overrideRecipient?: string) {
-  const adminEmail = overrideRecipient || process.env.ADMIN_EMAIL || 'info@vierkorken.ch';
+  let adminEmail = overrideRecipient || process.env.ADMIN_EMAIL || 'info@vierkorken.ch';
+  if (adminEmail.includes('regideh221')) {
+    adminEmail = 'info@vierkorken.ch';
+  }
 
   // Format items list for email (wines/products)
   let itemsList = orderDetails.items
@@ -1474,7 +1477,8 @@ export async function sendOrderShippedEmail(
             <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107; margin: 20px 0;">
               <h3 style="color: #856404; margin-top: 0; font-size: 16px;">Öffnungszeiten für Abholung</h3>
               <p style="margin: 0; color: #856404; font-size: 14px;">
-                 <strong>Montag & Dienstag:</strong> Geschlossen<br>
+                 <strong>Montag:</strong> Geschlossen<br>
+                 <strong>Dienstag:</strong> 13:30 – 18:30 Uhr (NEU)<br>
                  <strong>Mittwoch:</strong> 13:30 – 18:30 Uhr<br>
                  <strong>Donnerstag:</strong> 13:30 – 18:30 Uhr<br>
                  <strong>Freitag:</strong> 09:00 – 12:00, 13:30 – 18:30 Uhr<br>
@@ -1520,7 +1524,8 @@ Bestellnummer: ${orderNumber}
 Status: ${isPickup ? 'Bereit zur Abholung' : 'Versendet'}
 
 ${isPickup ? `Öffnungszeiten für Abholung:
-Montag & Dienstag: Geschlossen
+Montag: Geschlossen
+Dienstag: 13:30 – 18:30 Uhr (NEU)
 Mittwoch: 13:30 – 18:30 Uhr
 Donnerstag: 13:30 – 18:30 Uhr
 Freitag: 09:00 – 12:00, 13:30 – 18:30 Uhr

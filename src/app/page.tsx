@@ -8,6 +8,7 @@ import { NewsletterSignup } from '@/components/newsletter/NewsletterSignup';
 import { AccountCreationModal } from '@/components/newsletter/AccountCreationModal';
 import { NewProductsCarousel } from '@/components/wine/NewProductsCarousel';
 import { DiscountProductsCarousel } from '@/components/wine/DiscountProductsCarousel';
+import { OpeningHoursModal } from '@/components/ui/OpeningHoursModal';
 
 interface KlaraCategory {
   id: string;
@@ -472,6 +473,7 @@ export default function HomePage() {
         </section>
       </div>
 
+      <OpeningHoursModal />
     </MainLayout>
   );
 }

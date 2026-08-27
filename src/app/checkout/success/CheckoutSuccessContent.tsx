@@ -204,7 +204,7 @@ export default function CheckoutSuccessContent() {
                   <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
                     <span className="text-sm md:text-base text-graphite">Bestellnummer:</span>
                     <span className="font-semibold text-sm md:text-base text-graphite-dark break-all">
-                      {sessionData.id}
+                      {sessionData.orderNumber || sessionData.id}
                     </span>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
