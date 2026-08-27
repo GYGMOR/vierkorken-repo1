@@ -480,7 +480,7 @@ export default function DatenschutzPage() {
               </p>
               <div className="bg-rose-light/30 p-4 md:p-6 rounded-lg mt-2">
                 <p className="font-semibold">Vier Korken Wein-Boutique - Datenschutz</p>
-                <p>Joel Hediger</p>
+                <p>Christina Hediger</p>
                 <p>Steinbrunnengasse 3A</p>
                 <p>5707 Seengen AG</p>
                 <p>Schweiz</p>
