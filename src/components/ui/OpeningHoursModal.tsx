@@ -2,10 +2,15 @@
 
 import { useState, useEffect } from 'react';
 
+// Popup "Neue Öffnungszeiten" ist deaktiviert. Zum Reaktivieren auf `true` setzen.
+const OPENING_HOURS_MODAL_ENABLED = false;
+
 export function OpeningHoursModal() {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
+    if (!OPENING_HOURS_MODAL_ENABLED) return;
+
     // Check if user already dismissed modal in this session
     const hasSeenModal = sessionStorage.getItem('vk_opening_hours_seen_sep2026');
     if (!hasSeenModal) {

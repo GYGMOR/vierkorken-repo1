@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
-import { notifyNewsletterSubscribers } from '@/lib/newsletter';
 import { PostStatus } from '@prisma/client';
 
 // Force Node.js runtime (required for Prisma)
@@ -112,30 +111,8 @@ export async function PUT(
       },
     });
 
-    // Send newsletter notifications if status changed from DRAFT to PUBLISHED
-    if (
-      originalNews &&
-      originalNews.status !== PostStatus.PUBLISHED &&
-      news.status === PostStatus.PUBLISHED
-    ) {
-      console.log(`📰 News status changed to PUBLISHED - triggering newsletter notifications for: ${news.title}`);
-      // Wait for notifications to complete so the serverless function doesn't terminate early
-      try {
-        await notifyNewsletterSubscribers({
-          id: news.id,
-          title: news.title,
-          excerpt: news.excerpt || undefined,
-          slug: news.slug,
-          featuredImage: news.featuredImage || undefined,
-          content: news.content,
-          type: news.type,
-        });
-      } catch (err) {
-        console.error('❌ Failed to send newsletter notifications:', err);
-      }
-    } else {
-      console.log(`ℹ️  News update - no newsletter sent. Status: ${originalNews?.status} → ${news.status}, Published: ${news.publishedAt}`);
-    }
+    // Newsletter wird nicht automatisch beim Veröffentlichen versendet, sondern manuell über
+    // POST /api/admin/news/[id]/send-newsletter (Play-Button auf der News-Seite).
 
     return NextResponse.json({
       success: true,

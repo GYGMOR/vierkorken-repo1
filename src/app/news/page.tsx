@@ -39,6 +39,7 @@ interface NewsItem {
   updatedAt: string;
   type?: string;
   eventId?: string;
+  newsletterSentAt?: string | null;
 }
 
 export default function NewsPage() {
@@ -153,6 +154,43 @@ export default function NewsPage() {
       } catch (err) {
         console.error("Error saving new news order", err);
       }
+    }
+  };
+
+  const [sendingNewsletterId, setSendingNewsletterId] = useState<string | null>(null);
+
+  // Newsletter manuell versenden (beliebig oft möglich). Event-News nutzen den Event-Newsletter.
+  const handleSendNewsletter = async (item: NewsItem) => {
+    if (item.status !== "PUBLISHED") {
+      alert("Nur veröffentlichte News können als Newsletter versendet werden.");
+      return;
+    }
+
+    const confirmMessage = item.newsletterSentAt
+      ? `Newsletter für "${item.title}" wurde zuletzt am ${new Date(item.newsletterSentAt).toLocaleDateString("de-CH")} versendet. Möchten Sie ihn erneut an alle Abonnenten senden?`
+      : `Möchten Sie den Newsletter für "${item.title}" jetzt an alle Abonnenten senden?`;
+
+    if (!confirm(confirmMessage)) return;
+
+    const endpoint =
+      item.type === "EVENT" && item.eventId
+        ? `/api/admin/events/${item.eventId}/send-newsletter`
+        : `/api/admin/news/${item.id}/send-newsletter`;
+
+    try {
+      setSendingNewsletterId(item.id);
+      const res = await fetch(endpoint, { method: "POST" });
+      const data = await res.json();
+      if (res.ok) {
+        alert(`✅ ${data.message || "Newsletter erfolgreich versendet!"}`);
+        await fetchNews();
+      } else {
+        alert(`❌ Fehler: ${data.error || "Fehler beim Versenden"}`);
+      }
+    } catch (err: any) {
+      alert(`❌ Fehler: ${err.message}`);
+    } finally {
+      setSendingNewsletterId(null);
     }
   };
 
@@ -330,6 +368,8 @@ export default function NewsPage() {
                           setSelectedNews(newsItem);
                           setEditModalOpen(true);
                         }}
+                        onSendNewsletter={handleSendNewsletter}
+                        isSendingNewsletter={sendingNewsletterId === item.id}
                       />
                     ))}
                 </div>
@@ -422,6 +462,8 @@ function SortableNewsCard(props: {
   news: NewsItem;
   isAdmin: boolean;
   onEdit: (news: NewsItem) => void;
+  onSendNewsletter?: (news: NewsItem) => void;
+  isSendingNewsletter?: boolean;
 }) {
   const {
     attributes,
@@ -452,11 +494,15 @@ function NewsCard({
   news,
   isAdmin,
   onEdit,
+  onSendNewsletter,
+  isSendingNewsletter,
   dragHandleProps,
 }: {
   news: NewsItem;
   isAdmin: boolean;
   onEdit: (news: NewsItem) => void;
+  onSendNewsletter?: (news: NewsItem) => void;
+  isSendingNewsletter?: boolean;
   dragHandleProps?: Record<string, any>;
 }) {
   const formatDate = (dateString?: string) => {
@@ -507,6 +553,31 @@ function NewsCard({
                 />
               </svg>
             </div>
+          )}
+
+          {onSendNewsletter && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                onSendNewsletter(news);
+              }}
+              disabled={isSendingNewsletter || news.status !== "PUBLISHED"}
+              className="w-10 h-10 bg-warmwhite/95 hover:bg-accent-burgundy text-graphite-dark hover:text-warmwhite rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-warmwhite/95 disabled:hover:text-graphite-dark"
+              aria-label="Newsletter senden"
+              title={
+                news.status !== "PUBLISHED"
+                  ? "Newsletter senden (nur für veröffentlichte News)"
+                  : news.newsletterSentAt
+                    ? `Newsletter erneut senden (zuletzt: ${new Date(news.newsletterSentAt).toLocaleDateString("de-CH")})`
+                    : "Newsletter senden"
+              }
+            >
+              {isSendingNewsletter ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current"></div>
+              ) : (
+                <PlayIcon className="w-5 h-5" />
+              )}
+            </button>
           )}
         </div>
       )}
@@ -702,6 +773,24 @@ function EditIcon({ className }: { className?: string }) {
         strokeLinejoin="round"
         strokeWidth={2}
         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+      />
+    </svg>
+  );
+}
+
+function PlayIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className || "w-5 h-5"}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z"
       />
     </svg>
   );
