@@ -5,6 +5,7 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { UserDetailModal } from '@/components/admin/UserDetailModal';
+import { NewsletterImportModal } from '@/components/admin/NewsletterImportModal';
 import { getLoyaltyLevelName } from '@/lib/utils';
 
 export default function AdminUsers() {
@@ -19,6 +20,7 @@ export default function AdminUsers() {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<'ALL' | 'ACCOUNT' | 'NEWSLETTER' | 'ADMIN'>('ALL');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [importModalOpen, setImportModalOpen] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -81,7 +83,16 @@ export default function AdminUsers() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => setImportModalOpen(true)}
+              className="px-4 py-2 bg-accent-burgundy hover:bg-wine-dark text-white text-xs font-semibold rounded-xl transition-colors shadow-sm flex items-center gap-1.5"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 16V10m0 0l-3 3m3-3l3 3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Newsletter Import
+            </button>
             <button
               onClick={handleExportCSV}
               className="px-4 py-2 bg-white hover:bg-taupe-light/30 text-accent-burgundy border border-accent-burgundy/30 text-xs font-semibold rounded-xl transition-colors shadow-sm flex items-center gap-1.5"
@@ -323,6 +334,14 @@ export default function AdminUsers() {
             fetchUsers();
             setSelectedUserId(null);
           }}
+        />
+      )}
+
+      {/* Newsletter Import Modal */}
+      {importModalOpen && (
+        <NewsletterImportModal
+          onClose={() => setImportModalOpen(false)}
+          onImported={fetchUsers}
         />
       )}
     </AdminLayout>
