@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { isAdmin } from '@/lib/action-auth';
 
 const updateLevelSchema = z.object({
     level: z.number().int().min(1).max(7),
@@ -23,6 +24,10 @@ export async function updateLoyaltyLevel(
     prevState: UpdateLevelState,
     formData: FormData
 ): Promise<UpdateLevelState> {
+    if (!(await isAdmin())) {
+        return { error: 'Nicht autorisiert' };
+    }
+
     // Parse benefits from FormData (expecting multiple 'benefits[]' entries or a JSON string)
     let benefits: string[] = [];
     const benefitsRaw = formData.getAll('benefits');
@@ -58,9 +63,6 @@ export async function updateLoyaltyLevel(
     const { level, benefits: validBenefits, name, description } = result.data;
 
     try {
-        // Check if user is admin (this check assumes middleware or layout handles loose auth, 
-        // but strict check is better. For now we trust the session check in the page component)
-
         await prisma.loyaltyLevel.update({
             where: { level },
             data: {

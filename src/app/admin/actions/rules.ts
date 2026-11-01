@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { isAdmin } from '@/lib/action-auth';
 
 const updateRuleSchema = z.object({
     identifier: z.string().min(1),
@@ -23,6 +24,10 @@ export async function updateProgramRule(
     prevState: UpdateRuleState,
     formData: FormData
 ): Promise<UpdateRuleState> {
+    if (!(await isAdmin())) {
+        return { error: 'Nicht autorisiert' };
+    }
+
     const result = updateRuleSchema.safeParse({
         identifier: formData.get('identifier'),
         name: formData.get('name'),

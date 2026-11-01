@@ -1,9 +1,14 @@
 import { NextResponse } from 'next/server';
 import { sendLaunchNotificationEmail } from '@/lib/email';
+import { isAdmin } from '@/lib/action-auth';
 
 export const runtime = 'nodejs';
 
 export async function GET() {
+  if (!(await isAdmin())) {
+    return NextResponse.json({ success: false, error: 'Keine Berechtigung' }, { status: 403 });
+  }
+
   try {
     console.log('Sending test email to info@vierkorken.ch');
     await sendLaunchNotificationEmail('info@vierkorken.ch');

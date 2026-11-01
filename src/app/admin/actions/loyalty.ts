@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { randomBytes } from 'crypto';
+import { isAdmin, canActForUser } from '@/lib/action-auth';
 
 const GiftSchema = z.object({
     loyaltyLevelId: z.coerce.number().min(1).max(7),
@@ -24,6 +25,8 @@ function generateRedeemCode(): string {
 }
 
 export async function createGift(formData: FormData) {
+    if (!(await isAdmin())) return { error: 'Nicht autorisiert' };
+
     const data = Object.fromEntries(formData.entries());
 
     const levelNumber = parseInt(data.level as string);
@@ -69,6 +72,8 @@ export async function createGift(formData: FormData) {
 }
 
 export async function deleteGift(giftId: string) {
+    if (!(await isAdmin())) return { error: 'Nicht autorisiert' };
+
     try {
         await prisma.levelGift.delete({
             where: { id: giftId },
@@ -83,6 +88,8 @@ export async function deleteGift(giftId: string) {
 }
 
 export async function updateGift(giftId: string, formData: FormData) {
+    if (!(await isAdmin())) return { error: 'Nicht autorisiert' };
+
     const data = Object.fromEntries(formData.entries());
 
     const validatedFields = GiftSchema.partial().safeParse({
@@ -120,6 +127,8 @@ export async function updateGift(giftId: string, formData: FormData) {
 // User-facing actions
 
 export async function getUnclaimedGifts(userId: string) {
+    if (!(await canActForUser(userId))) return { error: 'Nicht autorisiert' };
+
     try {
         const user = await prisma.user.findUnique({
             where: { id: userId },
@@ -230,6 +239,8 @@ export async function getUnclaimedGiftsWithValidity(userId: string) {
 }
 
 export async function createGiftActivation(userId: string, giftId: string) {
+    if (!(await canActForUser(userId))) return { error: 'Nicht autorisiert' };
+
     try {
         const gift = await prisma.levelGift.findUnique({
             where: { id: giftId },
@@ -288,6 +299,8 @@ export async function createGiftActivation(userId: string, giftId: string) {
 }
 
 export async function redeemGiftActivation(token: string) {
+    if (!(await isAdmin())) return { error: 'Nicht autorisiert' };
+
     try {
         const activation = await prisma.giftActivation.findUnique({
             where: { token },
@@ -321,6 +334,8 @@ export async function redeemGiftActivation(token: string) {
 }
 
 export async function claimGift(userId: string, level: number, giftId: string) {
+    if (!(await canActForUser(userId))) return { error: 'Nicht autorisiert' };
+
     try {
         const user = await prisma.user.findUnique({
             where: { id: userId },
@@ -365,6 +380,8 @@ export async function getMemberDeals() {
 }
 
 export async function getAllMemberDeals() {
+    if (!(await isAdmin())) return { error: 'Nicht autorisiert' };
+
     try {
         const deals = await prisma.memberDeal.findMany({
             orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
@@ -376,6 +393,8 @@ export async function getAllMemberDeals() {
 }
 
 export async function createMemberDeal(formData: FormData) {
+    if (!(await isAdmin())) return { error: 'Nicht autorisiert' };
+
     const data = Object.fromEntries(formData.entries());
     try {
         await prisma.memberDeal.create({
@@ -400,6 +419,8 @@ export async function createMemberDeal(formData: FormData) {
 }
 
 export async function updateMemberDeal(id: string, formData: FormData) {
+    if (!(await isAdmin())) return { error: 'Nicht autorisiert' };
+
     const data = Object.fromEntries(formData.entries());
     try {
         await prisma.memberDeal.update({
@@ -424,6 +445,8 @@ export async function updateMemberDeal(id: string, formData: FormData) {
 }
 
 export async function deleteMemberDeal(id: string) {
+    if (!(await isAdmin())) return { error: 'Nicht autorisiert' };
+
     try {
         await prisma.memberDeal.delete({ where: { id } });
         revalidatePath('/admin/loyalty');
